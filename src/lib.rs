@@ -2,6 +2,10 @@ pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
+pub struct List {
+    p: std::ptr::NonNull<u8>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
