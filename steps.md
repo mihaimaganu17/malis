@@ -142,3 +142,8 @@ gets its name from)
 - Need to keep a memory cache of object code to be executed
 - Startup delay because of the time it takes to load and compile bytecode
 
+## Automatic memory management
+
+2 main techniques for managing memory:
+- reference counting
+- tracing garbage collection
