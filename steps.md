@@ -15,6 +15,12 @@ Examples:
 
 `var` `average` `=` `(` `min` `+` `max` `)` `/` `2` `;`
 
+The rules that determine how a particular language groups characters into lexemes are called its
+`lexical grammar`.
+
+A `regular language` is a formal language that can be defined by a regular expression.
+Alternatively, a regular language can be defined as a languages recognised by a `finite automaton`.
+
 ## Parsing
 (Place where the language gets a grammar)
 A `parser` takes a flat sequence of tokens and build a tree structure that mirros the nested

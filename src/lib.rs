@@ -13,13 +13,13 @@ pub struct Malis {
 
 impl Malis {
     pub fn execute<P: AsRef<Path>>(path: P) -> Result<(), MalisError> {
-        let bytes = fs::read(path)?;
-        Malis::run(bytes.as_slice())
+        let source = fs::read_to_string(path)?;
+        Malis::run(source.as_str())
     }
 
-    pub fn run(bytes: &[u8]) -> Result<(), MalisError> {
-        let scanner = Scanner::new();
-        let tokens = scanner.scan_tokens(bytes)?;
+    pub fn run<'a>(bytes: &'a str) -> Result<(), MalisError> {
+        let mut scanner = Scanner::new(bytes);
+        let tokens = scanner.scan_tokens()?;
 
         for token in tokens {
             println!("Token: {token:?}");
@@ -55,7 +55,7 @@ impl Malis {
             }
 
             // If a line is invalid, we report the error and go to the next iteration
-            if let Err(err) = Self::run(buffer.as_bytes()) {
+            if let Err(err) = Self::run(buffer.as_str()) {
                 print!("{:?}", err);
                 stdout.flush();
             }
