@@ -23,6 +23,7 @@ pub enum ScannerError {
     FailedToIndexSlice,
     StdIoError(std::io::Error),
     UnexpectedCharacter(char),
+    UnterminatedString,
 }
 
 impl From<std::io::Error> for ScannerError {

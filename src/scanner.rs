@@ -2,7 +2,7 @@ mod token;
 
 use crate::error::{ScannerError, SourceError};
 use core::str::CharIndices;
-use token::{Token, TokenType, SingleChar, Comparison};
+use token::{Token, TokenType, SingleChar, Comparison, Literal};
 use std::io::Write;
 use core::iter::Peekable;
 
@@ -100,7 +100,10 @@ impl<'a> Scanner<'a> {
                     // a newline
                     while let Some((idx, peek_ch)) = chars.peek() {
                         // If we are not at the `newline` char, we consume the character.
-                        if peek_ch != &'\n' { chars.next(); } else { break; }
+                        if peek_ch != &'\n' {
+                            self.offset = *idx;
+                            chars.next();
+                        } else { break; }
                     }
                     self.create_token(TokenType::Ignored, None, start)?
                 } else {
@@ -114,6 +117,9 @@ impl<'a> Scanner<'a> {
             '\n' => {
                 self.line += 1;
                 self.create_token(TokenType::Ignored, None, start)?
+            }
+            '\"' => {
+                self.parse_string(start, chars)?
             }
             _ => {
                 let err = SourceError {
@@ -132,8 +138,9 @@ impl<'a> Scanner<'a> {
     }
 
     pub fn match_next(&mut self, expected: char, chars: &mut Peekable<CharIndices>) -> bool {
-        if let Some((_idx, ch)) = chars.peek() {
+        if let Some((idx, ch)) = chars.peek() {
             if ch == &expected {
+                self.offset = *idx;
                 chars.next();
                 true
             } else {
@@ -142,6 +149,38 @@ impl<'a> Scanner<'a> {
         } else {
             false
         }
+    }
+
+    pub fn parse_string(
+        &mut self,
+        start: usize,
+        chars: &mut Peekable<CharIndices>,
+    ) -> Result<Token, ScannerError> {
+        while let Some((idx, peek_ch)) = chars.peek() {
+            // If there is a newline, we increment our line as well
+            if peek_ch == &'\n' { self.line += 1 }
+            // If we find the next quote, we found the end of the `String`
+            if peek_ch == &'\"' { break; }
+            self.offset = *idx;
+            // Advance to the next character
+            chars.next();
+
+            if self.offset == self.data.len() {
+                // If we are at the end and we did not end the string, return an error
+                return Err(ScannerError::UnterminatedString);
+            }
+        }
+
+        // TODO!: wrap chars.next() and self.ofsfet = idx into an advance function
+        chars.next();
+        self.offset += 1;
+
+        // Get the string, without the surrounding quotes. This is the lexeme
+        let value = self.data.get(start+1..self.offset-1)
+            .ok_or(ScannerError::FailedToIndexSlice)?
+            .to_string();
+        // TODO!: Remove lexeme and add it to `Literal` since it is the only one using it.
+        self.create_token(TokenType::Literal(Literal::LitString), None, start+1)
     }
 
     pub fn create_token(
@@ -156,8 +195,5 @@ impl<'a> Scanner<'a> {
         Ok(Token::new(token_type, text, literal, self.line))
     }
 
-    pub fn next(&mut self) -> Result<u8, ScannerError> {
-        Ok(0)
-    }
 }
 
