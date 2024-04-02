@@ -37,6 +37,11 @@ impl<'a> Scanner<'a> {
             start = self.offset;
 
             if let Ok(token) = self.scan_token(ch, start, &mut chars) {
+                // If the current token is classified as `Ignored` we move to the next iteration
+                if let Some(TokenType::Ignored) = token.t_type() {
+                    continue;
+                }
+                // At this point, the token needs to be in the token list
                 token_list.push(token);
             }
         }
@@ -88,6 +93,27 @@ impl<'a> Scanner<'a> {
                 } else {
                     self.create_token(TokenType::Comparison(Comparison::Greater), None, start)?
                 }
+            }
+            '/' => {
+                if self.match_next('/', chars) {
+                    // A comment goes until the end of line. So we lookahead until we find
+                    // a newline
+                    while let Some((idx, peek_ch)) = chars.peek() {
+                        // If we are not at the `newline` char, we consume the character.
+                        if peek_ch != &'\n' { chars.next(); } else { break; }
+                    }
+                    self.create_token(TokenType::Ignored, None, start)?
+                } else {
+                    self.create_token(TokenType::SingleChar(SingleChar::Slash), None, start)?
+                }
+            }
+            // Ignore whitespaces
+            ' ' | '\r' | '\t' => {
+                self.create_token(TokenType::Ignored, None, start)?
+            }
+            '\n' => {
+                self.line += 1;
+                self.create_token(TokenType::Ignored, None, start)?
             }
             _ => {
                 let err = SourceError {

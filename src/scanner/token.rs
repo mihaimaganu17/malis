@@ -38,6 +38,10 @@ impl Token {
             line: line_cell,
         }
     }
+
+    pub fn t_type(&self) -> Option<&TokenType> {
+        self.t_type.get()
+    }
 }
 
 #[derive(Debug)]
@@ -46,6 +50,7 @@ pub enum TokenType {
     Comparison(Comparison),
     Literal(Literal),
     Keyword(Keyword),
+    Ignored,
     EOF,
 }
 
