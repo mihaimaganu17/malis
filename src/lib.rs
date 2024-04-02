@@ -57,7 +57,7 @@ impl Malis {
             // If a line is invalid, we report the error and go to the next iteration
             if let Err(err) = Self::run(buffer.as_str()) {
                 print!("{:?}", err);
-                stdout.flush();
+                stdout.flush()?;
             }
 
             // Make sure to clean the buffer for the next iteration

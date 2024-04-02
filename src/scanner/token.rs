@@ -4,23 +4,23 @@ use std::fmt;
 
 
 #[derive(Debug)]
-pub struct Token<'a> {
+pub struct Token {
     // Token type, `type` is reserved
     t_type: OnceCell<TokenType>,
     // Substring from the source code from which the token was parsed.
-    lexeme: OnceCell<&'a str>,
+    lexeme: OnceCell<String>,
     literal: OnceCell<Option<bool>>,
     line: OnceCell<usize>,
 }
 
-impl<'a> fmt::Display for Token<'a> {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "{:?} {:?} {:?}", self.t_type.get(), self.lexeme.get(), self.literal.get())
     }
 }
 
-impl<'a> Token<'a> {
-    pub fn new(t_type: TokenType, lexeme: &'a str, literal: Option<bool>, line: usize) -> Self {
+impl Token {
+    pub fn new(t_type: TokenType, lexeme: String, literal: Option<bool>, line: usize) -> Self {
         // Technically this is an initializer so there is no possible way of the unwrap to fail.
         // (There are ways, but you have to try really hard)
         let t_type_cell = OnceCell::new();

@@ -1,8 +1,10 @@
 mod token;
 
-use crate::error::ScannerError;
+use crate::error::{ScannerError, SourceError};
 use core::str::CharIndices;
-use token::{Token, TokenType};
+use token::{Token, TokenType, SingleChar, Comparison};
+use std::io::Write;
+use core::iter::Peekable;
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
@@ -26,39 +28,110 @@ impl<'a> Scanner<'a> {
     /// Scan through the internal buffer and issue `Token`s
     pub fn scan_tokens(&mut self) -> Result<Vec<Token>, ScannerError> {
         let mut token_list = vec![];
-        let mut chars = self.data.char_indices();
+        let mut chars = self.data.char_indices().peekable();
 
         // Points to the first character in the lexeme being scanned.
         let mut start = 0;
         while let Some((idx, ch)) = chars.next() {
             self.offset = idx;
             start = self.offset;
-            //self.scan_token(ch);
-        }
 
-        token_list.push(Token::new(TokenType::EOF, "", None, self.line));
+            if let Ok(token) = self.scan_token(ch, start, &mut chars) {
+                token_list.push(token);
+            }
+        }
 
         Ok(token_list)
     }
 
     // Note: I would prefer this being in `Token` and sending a slice of the data to a method in
     // `Token` where the first character would be the one at `self.offset`.
-    pub fn scan_token(&mut self, ch: char) -> Result<Token, ScannerError> {
-        todo!();
-        //match ch {
-        //    ')' => Token::new(TokenType::SingleChar(SingleChar::LeftParen), )
-        //}
+    pub fn scan_token(
+        &mut self,
+        ch: char,
+        start: usize,
+        chars: &mut Peekable<CharIndices>,
+    ) -> Result<Token, ScannerError> {
+        let token = match ch {
+            '(' => self.create_token(TokenType::SingleChar(SingleChar::LeftParen), None, start)?,
+            ')' => self.create_token(TokenType::SingleChar(SingleChar::RightParen), None, start)?,
+            '{' => self.create_token(TokenType::SingleChar(SingleChar::LeftBrace), None, start)?,
+            '}' => self.create_token(TokenType::SingleChar(SingleChar::RightBrace), None, start)?,
+            ',' => self.create_token(TokenType::SingleChar(SingleChar::Comma), None, start)?,
+            '.' => self.create_token(TokenType::SingleChar(SingleChar::Dot), None, start)?,
+            '-' => self.create_token(TokenType::SingleChar(SingleChar::Minus), None, start)?,
+            '+' => self.create_token(TokenType::SingleChar(SingleChar::Plus), None, start)?,
+            ';' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), None, start)?,
+            '!' => {
+                if self.match_next('=', chars) {
+                    self.create_token(TokenType::Comparison(Comparison::BangEqual), None, start)?
+                } else {
+                    self.create_token(TokenType::Comparison(Comparison::Bang), None, start)?
+                }
+            }
+            '=' => {
+                if self.match_next('=', chars) {
+                    self.create_token(TokenType::Comparison(Comparison::EqualEqual), None, start)?
+                } else {
+                    self.create_token(TokenType::Comparison(Comparison::Equal), None, start)?
+                }
+            }
+            '<' => {
+                if self.match_next('=', chars) {
+                    self.create_token(TokenType::Comparison(Comparison::LessEqual), None, start)?                } else {
+                    self.create_token(TokenType::Comparison(Comparison::Less), None, start)?
+                }
+            }
+            '>' => {
+                if self.match_next('=', chars) {
+                    self.create_token(TokenType::Comparison(Comparison::GreaterEqual), None, start)?
+                } else {
+                    self.create_token(TokenType::Comparison(Comparison::Greater), None, start)?
+                }
+            }
+            _ => {
+                let err = SourceError {
+                    line: self.line,
+                    location: start,
+                    err: format!("Unexpected character: {ch}"),
+                };
+                let mut stdout = std::io::stdout();
+                stdout.write_fmt(format_args!("{err:?}"))?;
+                stdout.flush()?;
+
+                return Err(ScannerError::UnexpectedCharacter(ch));
+            }
+        };
+        Ok(token)
     }
 
-    pub fn add_token(
+    pub fn match_next(&mut self, expected: char, chars: &mut Peekable<CharIndices>) -> bool {
+        if let Some((_idx, ch)) = chars.peek() {
+            if ch == &expected {
+                chars.next();
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    pub fn create_token(
         &mut self,
         token_type: TokenType,
         literal: Option<bool>,
+        start: usize,
     ) -> Result<Token, ScannerError> {
-        todo!();
+        let text = self.data.get(start..self.offset)
+            .ok_or(ScannerError::FailedToIndexSlice)?
+            .to_string();
+        Ok(Token::new(token_type, text, literal, self.line))
     }
 
     pub fn next(&mut self) -> Result<u8, ScannerError> {
         Ok(0)
     }
 }
+
