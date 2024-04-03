@@ -58,40 +58,40 @@ impl<'a> Scanner<'a> {
         chars: &mut Peekable<CharIndices>,
     ) -> Result<Token, ScannerError> {
         let token = match ch {
-            '(' => self.create_token(TokenType::SingleChar(SingleChar::LeftParen), None, start)?,
-            ')' => self.create_token(TokenType::SingleChar(SingleChar::RightParen), None, start)?,
-            '{' => self.create_token(TokenType::SingleChar(SingleChar::LeftBrace), None, start)?,
-            '}' => self.create_token(TokenType::SingleChar(SingleChar::RightBrace), None, start)?,
-            ',' => self.create_token(TokenType::SingleChar(SingleChar::Comma), None, start)?,
-            '.' => self.create_token(TokenType::SingleChar(SingleChar::Dot), None, start)?,
-            '-' => self.create_token(TokenType::SingleChar(SingleChar::Minus), None, start)?,
-            '+' => self.create_token(TokenType::SingleChar(SingleChar::Plus), None, start)?,
-            ';' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), None, start)?,
+            '(' => self.create_token(TokenType::SingleChar(SingleChar::LeftParen), start)?,
+            ')' => self.create_token(TokenType::SingleChar(SingleChar::RightParen), start)?,
+            '{' => self.create_token(TokenType::SingleChar(SingleChar::LeftBrace), start)?,
+            '}' => self.create_token(TokenType::SingleChar(SingleChar::RightBrace), start)?,
+            ',' => self.create_token(TokenType::SingleChar(SingleChar::Comma), start)?,
+            '.' => self.create_token(TokenType::SingleChar(SingleChar::Dot), start)?,
+            '-' => self.create_token(TokenType::SingleChar(SingleChar::Minus), start)?,
+            '+' => self.create_token(TokenType::SingleChar(SingleChar::Plus), start)?,
+            ';' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?,
             '!' => {
                 if self.match_next('=', chars) {
-                    self.create_token(TokenType::Comparison(Comparison::BangEqual), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::BangEqual), start)?
                 } else {
-                    self.create_token(TokenType::Comparison(Comparison::Bang), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::Bang), start)?
                 }
             }
             '=' => {
                 if self.match_next('=', chars) {
-                    self.create_token(TokenType::Comparison(Comparison::EqualEqual), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::EqualEqual), start)?
                 } else {
-                    self.create_token(TokenType::Comparison(Comparison::Equal), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::Equal), start)?
                 }
             }
             '<' => {
                 if self.match_next('=', chars) {
-                    self.create_token(TokenType::Comparison(Comparison::LessEqual), None, start)?                } else {
-                    self.create_token(TokenType::Comparison(Comparison::Less), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::LessEqual), start)?                } else {
+                    self.create_token(TokenType::Comparison(Comparison::Less), start)?
                 }
             }
             '>' => {
                 if self.match_next('=', chars) {
-                    self.create_token(TokenType::Comparison(Comparison::GreaterEqual), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::GreaterEqual), start)?
                 } else {
-                    self.create_token(TokenType::Comparison(Comparison::Greater), None, start)?
+                    self.create_token(TokenType::Comparison(Comparison::Greater), start)?
                 }
             }
             '/' => {
@@ -105,33 +105,37 @@ impl<'a> Scanner<'a> {
                             chars.next();
                         } else { break; }
                     }
-                    self.create_token(TokenType::Ignored, None, start)?
+                    self.create_token(TokenType::Ignored, start)?
                 } else {
-                    self.create_token(TokenType::SingleChar(SingleChar::Slash), None, start)?
+                    self.create_token(TokenType::SingleChar(SingleChar::Slash), start)?
                 }
             }
             // Ignore whitespaces
             ' ' | '\r' | '\t' => {
-                self.create_token(TokenType::Ignored, None, start)?
+                self.create_token(TokenType::Ignored, start)?
             }
             '\n' => {
                 self.line += 1;
-                self.create_token(TokenType::Ignored, None, start)?
+                self.create_token(TokenType::Ignored, start)?
             }
             '\"' => {
                 self.parse_string(start, chars)?
             }
             _ => {
-                let err = SourceError {
-                    line: self.line,
-                    location: start,
-                    err: format!("Unexpected character: {ch}"),
-                };
-                let mut stdout = std::io::stdout();
-                stdout.write_fmt(format_args!("{err:?}"))?;
-                stdout.flush()?;
+                if ch.is_digit(10) {
+                    self.parse_number(start, chars)?
+                } else {
+                    let err = SourceError {
+                        line: self.line,
+                        location: start,
+                        err: format!("Unexpected character: {ch}"),
+                    };
+                    let mut stdout = std::io::stdout();
+                    stdout.write_fmt(format_args!("{err:?}"))?;
+                    stdout.flush()?;
 
-                return Err(ScannerError::UnexpectedCharacter(ch));
+                    return Err(ScannerError::UnexpectedCharacter(ch));
+                }
             }
         };
         Ok(token)
@@ -164,6 +168,7 @@ impl<'a> Scanner<'a> {
             self.offset = *idx;
             // Advance to the next character
             chars.next();
+            self.offset += 1;
 
             if self.offset == self.data.len() {
                 // If we are at the end and we did not end the string, return an error
@@ -180,20 +185,47 @@ impl<'a> Scanner<'a> {
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
         // TODO!: Remove lexeme and add it to `Literal` since it is the only one using it.
-        self.create_token(TokenType::Literal(Literal::LitString), None, start+1)
+        self.create_token(TokenType::Literal(Literal::LitString(value)), start)
+    }
+
+    pub fn parse_number(
+        &mut self,
+        start: usize,
+        chars: &mut Peekable<CharIndices>,
+    ) -> Result<Token, ScannerError> {
+        while let Some(&(idx, peek_ch)) = chars.peek() {
+            // If the peeked character is a digit, consume it
+            if peek_ch.is_digit(10) {
+                self.offset = idx;
+                chars.next();
+            }
+            // Check if we have a fractional part
+            if peek_ch == '.' {
+                print!("Found dot");
+                // Consume the '.'
+                chars.next();
+                if let Some((idx2, peek_ch2)) = chars.peek() {
+                    if peek_ch2.is_digit(10) {
+                        self.offset = *idx2;
+                        continue;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        self.create_token(TokenType::Literal(Literal::Number(0.0)), start)
     }
 
     pub fn create_token(
         &mut self,
         token_type: TokenType,
-        literal: Option<bool>,
         start: usize,
     ) -> Result<Token, ScannerError> {
         let text = self.data.get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
-        Ok(Token::new(token_type, text, literal, self.line))
+        Ok(Token::new(token_type, text, self.line))
     }
-
 }
 
