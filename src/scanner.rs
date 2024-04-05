@@ -196,8 +196,9 @@ impl<'a> Scanner<'a> {
         while let Some(&(idx, peek_ch)) = chars.peek() {
             // If the peeked character is a digit, consume it
             if peek_ch.is_digit(10) {
-                self.offset = idx;
                 chars.next();
+                self.offset = idx;
+                continue;
             }
             // Check if we have a fractional part
             if peek_ch == '.' {
@@ -211,10 +212,15 @@ impl<'a> Scanner<'a> {
                     }
                 }
             } else {
+                // Before we exit the loop, we increase the counter to go to the next character
+                self.offset += 1;
                 break;
             }
         }
-        self.create_token(TokenType::Literal(Literal::Number(0.0)), start)
+        let value = self.data.get(start..self.offset)
+            .ok_or(ScannerError::FailedToIndexSlice)?;
+        let value = value.parse()?;
+        self.create_token(TokenType::Literal(Literal::Number(value)), start)
     }
 
     pub fn create_token(

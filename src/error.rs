@@ -22,6 +22,7 @@ impl From<ScannerError> for MalisError {
 pub enum ScannerError {
     FailedToIndexSlice,
     StdIoError(std::io::Error),
+    ParseFloatError(core::num::ParseFloatError),
     UnexpectedCharacter(char),
     UnterminatedString,
 }
@@ -29,6 +30,12 @@ pub enum ScannerError {
 impl From<std::io::Error> for ScannerError {
     fn from(err: std::io::Error) -> Self {
         Self::StdIoError(err)
+    }
+}
+
+impl From<core::num::ParseFloatError> for ScannerError {
+    fn from(err: core::num::ParseFloatError) -> Self {
+        Self::ParseFloatError(err)
     }
 }
 
