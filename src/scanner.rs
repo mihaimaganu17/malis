@@ -165,30 +165,40 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    /// Parses a literal string into a token until it finds it's terminating double quote `"`
+    ///
+    /// # Errors
+    ///
+    /// If end of `chars` is reached and no ending double-quote is found, it returns an error
     pub fn parse_string(
         &mut self,
         start: usize,
         chars: &mut Peekable<CharIndices>,
     ) -> Result<Token, ScannerError> {
+        // While there is a next character in `chars`
         while let Some((idx, peek_ch)) = chars.peek() {
             // If there is a newline, we increment our line as well
             if peek_ch == &'\n' { self.line += 1 }
             // If we find the next quote, we found the end of the `String`
-            if peek_ch == &'\"' { break; }
+            if peek_ch == &'\"' {
+                // Update our offset to the current index position
+                self.offset = *idx;
+                // We make sure we take into account the last character
+                self.offset +=1;
+                // Consume the final character of the literal string
+                chars.next();
+                break;
+            }
+            // Update our offset to the current index position
             self.offset = *idx;
-            // Advance to the next character
+            // Consume the current peeked character to advance
             chars.next();
-            self.offset += 1;
 
             if self.offset == self.data.len() {
                 // If we are at the end and we did not end the string, return an error
                 return Err(ScannerError::UnterminatedString);
             }
         }
-
-        // TODO!: wrap chars.next() and self.ofsfet = idx into an advance function
-        chars.next();
-        self.offset += 1;
 
         // Get the string, without the surrounding quotes. This is the lexeme
         let value = self.data.get(start+1..self.offset-1)

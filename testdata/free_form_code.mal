@@ -1,3 +1,7 @@
 // This is a comment
 (()){} // Grouping
+
 !*+-= <= == // operators
+"literal""another_literal"
+!0
+"More literals"
