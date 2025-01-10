@@ -19,10 +19,15 @@ impl Malis {
 
     pub fn run<'a>(bytes: &'a str) -> Result<(), MalisError> {
         let mut scanner = Scanner::new(bytes);
-        let tokens = scanner.scan_tokens()?;
+        let maybe_tokens = scanner.scan_tokens();
 
-        for token in tokens {
-            println!("Token: {token:?}");
+        match maybe_tokens {
+            Ok(tokens) => {
+                for token in tokens {
+                    println!("Token: {token:?}");
+                }
+            }
+            Err(error_list) => println!("{:#?}", error_list),
         }
         Ok(())
     }
@@ -35,7 +40,7 @@ impl Malis {
     // - Print the result
     // - Loop and do it all over again
     pub fn interactive() -> Result<(), MalisError> {
-        // Get a new handle to the stdin and stdout
+        // Get new handles to the stdin and stdout streams
         let stdin = io::stdin();
         let mut stdout = io::stdout();
         // Create a new buffer to store the input

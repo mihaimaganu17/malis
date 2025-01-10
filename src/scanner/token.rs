@@ -9,6 +9,7 @@ pub struct Token {
     t_type: OnceCell<TokenType>,
     // Substring from the source code from which the token was parsed.
     lexeme: OnceCell<String>,
+    // Line on which the token occurs
     line: OnceCell<usize>,
 }
 

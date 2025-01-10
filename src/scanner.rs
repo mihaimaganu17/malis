@@ -11,7 +11,7 @@ pub struct Scanner<'a> {
     data: &'a str,
     // Current offset in the `data` field
     offset: usize,
-    // The line cursor is on
+    // The line the cursor is on
     line: usize,
 }
 
@@ -26,8 +26,9 @@ impl<'a> Scanner<'a> {
     }
 
     /// Scan through the internal buffer and issue `Token`s
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, ScannerError> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<ScannerError>> {
         let mut token_list = vec![];
+        let mut error_list = vec![];
         let mut chars = self.data.char_indices().peekable();
 
         // Points to the first character in the lexeme being scanned.
@@ -36,13 +37,20 @@ impl<'a> Scanner<'a> {
             self.offset = idx;
             start = self.offset;
 
-            if let Ok(token) = self.scan_token(ch, start, &mut chars) {
-                // If the current token is classified as `Ignored` we move to the next iteration
-                if let Some(TokenType::Ignored) = token.t_type() {
-                    continue;
+            // Scan the next token
+            let maybe_token = self.scan_token(ch, start, &mut chars);
+
+            match maybe_token {
+                Ok(token) => {
+                    // If the current token is classified as `Ignored` we move to the next iteration
+                    if let Some(TokenType::Ignored) = token.t_type() {
+                        continue;
+                    }
+                    // At this point, the token needs to be in the token list
+                    token_list.push(token);
                 }
-                // At this point, the token needs to be in the token list
-                token_list.push(token);
+                // Add this error to our list of errors
+                Err(err) => error_list.push(err),
             }
         }
 
@@ -83,7 +91,8 @@ impl<'a> Scanner<'a> {
             }
             '<' => {
                 if self.match_next('=', chars) {
-                    self.create_token(TokenType::Comparison(Comparison::LessEqual), start)?                } else {
+                    self.create_token(TokenType::Comparison(Comparison::LessEqual), start)?
+                } else {
                     self.create_token(TokenType::Comparison(Comparison::Less), start)?
                 }
             }
