@@ -5,3 +5,10 @@
 "literal""another_literal"
 !0
 "More literals"
+"Multi-line
+literal"
+1234
+12.34
+0.1234
+1234.
+1abcd

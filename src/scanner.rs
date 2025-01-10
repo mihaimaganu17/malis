@@ -206,35 +206,44 @@ impl<'a> Scanner<'a> {
         self.create_token(TokenType::Literal(Literal::LitString(value)), start)
     }
 
+    /// Parse a floating-point compatible token from `start` using characters from the `chars`
+    /// iterator. This function stores both intergers and floatings point as a `f32`
+    ///
+    /// # Errors
+    ///
+    /// Fails if the range for the integer is invalid in the underlying data
     pub fn parse_number(
         &mut self,
         start: usize,
         chars: &mut Peekable<CharIndices>,
     ) -> Result<Token, ScannerError> {
-        while let Some(&(idx, peek_ch)) = chars.peek() {
+        'int_while: while let Some(&(idx, peek_ch)) = chars.peek() {
             // If the peeked character is a digit, consume it
             if peek_ch.is_digit(10) {
                 chars.next();
                 self.offset = idx;
                 continue;
-            }
-            // Check if we have a fractional part
-            if peek_ch == '.' {
-                print!("Found dot");
+            } else if peek_ch == '.' {
+                // Check if we have a fractional part
                 // Consume the '.'
                 chars.next();
-                if let Some((idx2, peek_ch2)) = chars.peek() {
+                self.offset = idx;
+                while let Some(&(idx2, peek_ch2)) = chars.peek() {
                     if peek_ch2.is_digit(10) {
-                        self.offset = *idx2;
-                        continue;
+                        self.offset = idx2;
+                        chars.next();
+                    } else {
+                        // If there are no more digits left in the fractional part, we leave
+                        break 'int_while;
                     }
                 }
             } else {
-                // Before we exit the loop, we increase the counter to go to the next character
-                self.offset += 1;
                 break;
             }
         }
+        // Go to the next position
+        self.offset += 1;
+
         let value = self.data.get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?;
         let value = value.parse()?;
