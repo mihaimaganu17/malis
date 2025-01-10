@@ -177,20 +177,18 @@ impl<'a> Scanner<'a> {
     ) -> Result<Token, ScannerError> {
         // While there is a next character in `chars`
         while let Some((idx, peek_ch)) = chars.peek() {
+            // Update our offset to the current index position
+            self.offset = *idx;
             // If there is a newline, we increment our line as well
             if peek_ch == &'\n' { self.line += 1 }
             // If we find the next quote, we found the end of the `String`
             if peek_ch == &'\"' {
-                // Update our offset to the current index position
-                self.offset = *idx;
                 // We make sure we take into account the last character
                 self.offset +=1;
                 // Consume the final character of the literal string
                 chars.next();
                 break;
             }
-            // Update our offset to the current index position
-            self.offset = *idx;
             // Consume the current peeked character to advance
             chars.next();
 
