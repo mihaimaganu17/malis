@@ -75,6 +75,7 @@ impl<'a> Scanner<'a> {
             '-' => self.create_token(TokenType::SingleChar(SingleChar::Minus), start)?,
             '+' => self.create_token(TokenType::SingleChar(SingleChar::Plus), start)?,
             ';' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?,
+            '*' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?,
             '!' => {
                 if self.match_next('=', chars) {
                     self.create_token(TokenType::Comparison(Comparison::BangEqual), start)?
