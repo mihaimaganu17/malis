@@ -80,7 +80,7 @@ pub enum Comparison {
 
 #[derive(Debug)]
 pub enum Literal {
-    Ident,
+    Ident(String),
     // Because `String` is reserved in Rust
     LitString(String),
     Number(f32),

@@ -134,6 +134,8 @@ impl<'a> Scanner<'a> {
             _ => {
                 if ch.is_digit(10) {
                     self.parse_number(start, chars)?
+                } else if ch.is_ascii_alphabetic() || ch == '_' {
+                    self.parse_ident(start, chars)?
                 } else {
                     let err = SourceError {
                         line: self.line,
@@ -202,7 +204,7 @@ impl<'a> Scanner<'a> {
         let value = self.data.get(start+1..self.offset-1)
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
-        // TODO!: Remove lexeme and add it to `Literal` since it is the only one using it.
+        // Create a token and return it
         self.create_token(TokenType::Literal(Literal::LitString(value)), start)
     }
 
@@ -248,6 +250,33 @@ impl<'a> Scanner<'a> {
             .ok_or(ScannerError::FailedToIndexSlice)?;
         let value = value.parse()?;
         self.create_token(TokenType::Literal(Literal::Number(value)), start)
+    }
+
+    /// Parse an identifier (that could be languages reserved word) from the input. The identifier
+    /// has to start with an ASCII alphabetic character or an underscore and could be composed of
+    /// ASCII alphanumeric and undescore characters
+    ///
+    /// # Errors
+    ///
+    /// Fails if the bounds into the backing data are invalid and a string could not be created
+    pub fn parse_ident(
+        &mut self,
+        start: usize,
+        chars: &mut Peekable<CharIndices>,
+    ) -> Result<Token, ScannerError> {
+        while let Some((idx, ch)) = chars.peek() {
+            if ch.is_ascii_alphanumeric() || *ch == '_' {
+                self.offset = *idx;
+                chars.next();
+            } else {
+                self.offset += 1;
+                break;
+            }
+        }
+        let ident = self.data.get(start..self.offset)
+            .ok_or(ScannerError::FailedToIndexSlice)?
+            .to_string();
+        self.create_token(TokenType::Literal(Literal::Ident(ident)), start)
     }
 
     pub fn create_token(
