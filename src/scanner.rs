@@ -2,8 +2,11 @@ mod token;
 
 use crate::error::{ScannerError, SourceError};
 use core::str::CharIndices;
-use token::{Token, TokenType, SingleChar, Comparison, Literal};
-use std::io::Write;
+use token::{Token, TokenType, SingleChar, Comparison, Literal, Keyword};
+use std::{
+    io::Write,
+    collections::HashMap,
+};
 use core::iter::Peekable;
 
 #[derive(Debug)]
@@ -13,15 +16,37 @@ pub struct Scanner<'a> {
     offset: usize,
     // The line the cursor is on
     line: usize,
+    // Keywords of the language
+    keywords: HashMap<&'a str, Keyword>,
 }
 
 impl<'a> Scanner<'a> {
     // Creates a new scanner from the given bytes
     pub fn new(data: &'a str) -> Self {
+        // We instantiate a dictionary for reserved words here, such that we save processing power
+        // when we parse identifiers
+        let keywords = HashMap::from([
+            ("and", Keyword::And),
+            ("or", Keyword::Or),
+            ("not", Keyword::Not),
+            ("class", Keyword::Class),
+            ("fun", Keyword::Fun),
+            ("if", Keyword::If),
+            ("else", Keyword::Else),
+            ("while", Keyword::While),
+            ("for", Keyword::For),
+            ("true", Keyword::True),
+            ("false", Keyword::False),
+            ("nil", Keyword::Nil),
+            ("var", Keyword::Var),
+            ("print", Keyword::Print),
+            ("return", Keyword::Return),
+        ]);
         Self {
             data,
             offset: 0,
             line: 1,
+            keywords,
         }
     }
 
@@ -66,41 +91,79 @@ impl<'a> Scanner<'a> {
         chars: &mut Peekable<CharIndices>,
     ) -> Result<Token, ScannerError> {
         let token = match ch {
-            '(' => self.create_token(TokenType::SingleChar(SingleChar::LeftParen), start)?,
-            ')' => self.create_token(TokenType::SingleChar(SingleChar::RightParen), start)?,
-            '{' => self.create_token(TokenType::SingleChar(SingleChar::LeftBrace), start)?,
-            '}' => self.create_token(TokenType::SingleChar(SingleChar::RightBrace), start)?,
-            ',' => self.create_token(TokenType::SingleChar(SingleChar::Comma), start)?,
-            '.' => self.create_token(TokenType::SingleChar(SingleChar::Dot), start)?,
-            '-' => self.create_token(TokenType::SingleChar(SingleChar::Minus), start)?,
-            '+' => self.create_token(TokenType::SingleChar(SingleChar::Plus), start)?,
-            ';' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?,
-            '*' => self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?,
+            '(' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::LeftParen), start)?
+            }
+            ')' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::RightParen), start)?
+            }
+            '{' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::LeftBrace), start)?
+            }
+            '}' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::RightBrace), start)?
+            }
+            ',' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Comma), start)?
+            }
+            '.' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Dot), start)?
+            }
+            '-' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Minus), start)?
+            }
+            '+' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Plus), start)?
+            }
+            ';' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?
+            }
+            '*' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?
+            }
             '!' => {
                 if self.match_next('=', chars) {
+                    self.offset += 2;
                     self.create_token(TokenType::Comparison(Comparison::BangEqual), start)?
                 } else {
+                    self.offset += 1;
                     self.create_token(TokenType::Comparison(Comparison::Bang), start)?
                 }
             }
             '=' => {
                 if self.match_next('=', chars) {
+                    self.offset += 2;
                     self.create_token(TokenType::Comparison(Comparison::EqualEqual), start)?
                 } else {
+                    self.offset += 1;
                     self.create_token(TokenType::Comparison(Comparison::Equal), start)?
                 }
             }
             '<' => {
                 if self.match_next('=', chars) {
+                    self.offset += 2;
                     self.create_token(TokenType::Comparison(Comparison::LessEqual), start)?
                 } else {
+                    self.offset += 1;
                     self.create_token(TokenType::Comparison(Comparison::Less), start)?
                 }
             }
             '>' => {
                 if self.match_next('=', chars) {
+                    self.offset += 2;
                     self.create_token(TokenType::Comparison(Comparison::GreaterEqual), start)?
                 } else {
+                    self.offset += 1;
                     self.create_token(TokenType::Comparison(Comparison::Greater), start)?
                 }
             }
@@ -156,7 +219,6 @@ impl<'a> Scanner<'a> {
     pub fn match_next(&mut self, expected: char, chars: &mut Peekable<CharIndices>) -> bool {
         if let Some((idx, ch)) = chars.peek() {
             if ch == &expected {
-                self.offset = *idx;
                 chars.next();
                 true
             } else {
@@ -204,8 +266,9 @@ impl<'a> Scanner<'a> {
         let value = self.data.get(start+1..self.offset-1)
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
+
         // Create a token and return it
-        self.create_token(TokenType::Literal(Literal::LitString(value)), start)
+        self.create_token(TokenType::Literal(Literal::Ident(value)), start)
     }
 
     /// Parse a floating-point compatible token from `start` using characters from the `chars`
@@ -273,10 +336,17 @@ impl<'a> Scanner<'a> {
                 break;
             }
         }
-        let ident = self.data.get(start..self.offset)
-            .ok_or(ScannerError::FailedToIndexSlice)?
-            .to_string();
-        self.create_token(TokenType::Literal(Literal::Ident(ident)), start)
+        let value = self.data.get(start..self.offset)
+            .ok_or(ScannerError::FailedToIndexSlice)?;
+
+        // Check if the parsed token is a keyword for `Malis`
+        let token_type = if let Some(keyword) = self.keywords.get(value) {
+            TokenType::Keyword(*keyword)
+        } else {
+            TokenType::Literal(Literal::LitString(value.to_string()))
+        };
+
+        self.create_token(token_type, start)
     }
 
     pub fn create_token(
