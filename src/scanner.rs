@@ -179,6 +179,23 @@ impl<'a> Scanner<'a> {
                         } else { break; }
                     }
                     self.create_token(TokenType::Ignored, start)?
+                } else if self.match_next('*', chars) {
+                    // We do not allow multiline block comments to nest as it requires keeping
+                    // a stack of previous open blocks characters `/*`
+                    while let Some(&(idx, peek_ch)) = chars.peek() {
+                        self.offset = idx;
+                        chars.next();
+                        if peek_ch == '*' {
+                            if let Some(&(idx2, peek_ch2)) = chars.peek() {
+                                if peek_ch2 == '/' {
+                                    self.offset = idx2;
+                                    chars.next();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    self.create_token(TokenType::Ignored, start)?
                 } else {
                     self.create_token(TokenType::SingleChar(SingleChar::Slash), start)?
                 }

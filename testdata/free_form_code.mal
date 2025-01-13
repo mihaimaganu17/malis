@@ -1,6 +1,11 @@
 // This is a comment
 (()){} // Grouping
 
+/* Block comment */
+/* Block comment
+with a new line */
+/* Block comment with /* Another
+block comment inside */ of it */
 !*+-= <= == // operators
 "literal""another_literal"
 !0
