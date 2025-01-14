@@ -1,5 +1,7 @@
 mod error;
 mod scanner;
+mod token;
+mod ast;
 
 pub use error::MalisError;
 use std::{fs, io::{self, Write}, path::Path};

@@ -1,8 +1,7 @@
-mod token;
 
 use crate::error::{ScannerError, SourceError};
 use core::str::CharIndices;
-use token::{Token, TokenType, SingleChar, Comparison, Literal, Keyword};
+use crate::token::{Token, TokenType, SingleChar, Comparison, Literal, Keyword};
 use std::{
     io::Write,
     collections::HashMap,
