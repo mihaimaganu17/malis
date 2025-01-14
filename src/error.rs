@@ -4,6 +4,8 @@ use std::fmt;
 pub enum MalisError {
     StdIoError(std::io::Error),
     ScannerError(ScannerError),
+    NoneTokenType,
+    AstError(AstError),
 }
 
 impl From<std::io::Error> for MalisError {
@@ -15,6 +17,12 @@ impl From<std::io::Error> for MalisError {
 impl From<ScannerError> for MalisError {
     fn from(err: ScannerError) -> Self {
         Self::ScannerError(err)
+    }
+}
+
+impl From<AstError> for MalisError {
+    fn from(err: AstError) -> Self {
+        Self::AstError(err)
     }
 }
 
@@ -49,4 +57,9 @@ impl<P: fmt::Debug> fmt::Debug for SourceError<P> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "[line {0}] Error {1:?}: {2:?}\n", self.line, self.location, self.err)
     }
+}
+
+#[derive(Debug)]
+pub enum AstError {
+    NotALiteral,
 }

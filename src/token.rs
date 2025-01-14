@@ -6,7 +6,7 @@ use std::fmt;
 #[derive(Debug)]
 pub struct Token {
     // Token type, `type` is reserved
-    t_type: OnceCell<TokenType>,
+    pub t_type: OnceCell<TokenType>,
     // Substring from the source code from which the token was parsed.
     lexeme: OnceCell<String>,
     // Line on which the token occurs
