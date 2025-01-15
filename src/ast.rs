@@ -83,4 +83,3 @@ impl<E: Expr> Grouping<E> {
         Self { expr }
     }
 }
-
