@@ -24,3 +24,16 @@ impl Visitor<String> for AstPrinter {
         String::new()
     }
 }
+
+impl AstPrinter {
+    // Wraps subexpressions stored in `exprs` in parenthasis with spaces between them
+    fn parenthesize<E: Expr, I: AsRef<[E]>, V: Visitor<String>>(&mut self, name: &str, exprs: I) -> String {
+        let final_string = exprs.as_ref().iter().map(|e| e.walk(self))
+            .fold(String::new(), |mut acc, x| {
+                acc.push(' ');
+                acc.push_str(&x);
+                acc
+            });
+        format!("({})", final_string)
+    }
+}
