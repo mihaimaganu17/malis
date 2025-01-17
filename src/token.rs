@@ -8,7 +8,7 @@ pub struct Token {
     // Token type, `type` is reserved
     pub t_type: OnceCell<TokenType>,
     // Substring from the source code from which the token was parsed.
-    lexeme: OnceCell<String>,
+    pub lexeme: OnceCell<String>,
     // Line on which the token occurs
     line: OnceCell<usize>,
 }
@@ -38,6 +38,18 @@ impl Token {
 
     pub fn t_type(&self) -> Option<&TokenType> {
         self.t_type.get()
+    }
+
+    pub fn create(new_t_type: TokenType, new_lexeme: &str) -> Self {
+        let t_type = OnceCell::new();
+        t_type.set(new_t_type);
+        let lexeme = OnceCell::new();
+        lexeme.set(new_lexeme.to_string());
+        Self {
+            t_type,
+            lexeme,
+            line: OnceCell::new(),
+        }
     }
 }
 

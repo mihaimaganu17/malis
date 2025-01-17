@@ -9,8 +9,8 @@ pub trait Expr {
 }
 
 pub struct Unary<E: Expr> {
-    operator: Token,
-    right: E,
+    pub operator: Token,
+    pub right: E,
 }
 
 impl<E: Expr> Expr for Unary<E> {
@@ -28,14 +28,14 @@ impl<E: Expr> Unary<E> {
     }
 }
 
-pub struct Binary<E: Expr> {
-    left: E,
-    operator: Token,
-    right: E,
+pub struct Binary<E1: Expr, E2: Expr> {
+    pub left: E1,
+    pub operator: Token,
+    pub right: E2,
 }
 
-impl<E: Expr> Binary<E> {
-    fn new(left: E, operator: Token, right: E) -> Self {
+impl<E1: Expr, E2: Expr> Binary<E1, E2> {
+    fn new(left: E1, operator: Token, right: E2) -> Self {
         Self {
             left,
             operator,
@@ -44,14 +44,15 @@ impl<E: Expr> Binary<E> {
     }
 }
 
-impl<E: Expr> Expr for Binary<E> {
+impl<E1: Expr, E2: Expr> Expr for Binary<E1, E2> {
     fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
         visitor.visit_binary(&self)
     }
 }
 
+#[derive(Debug)]
 pub struct Literal {
-    l_type: LiteralType,
+    pub l_type: LiteralType,
 }
 
 impl Expr for Literal {
@@ -84,6 +85,7 @@ impl Literal {
     }
 }
 
+#[derive(Debug)]
 pub enum LiteralType {
     Number(f32),
     LitString(String),
@@ -94,7 +96,7 @@ pub enum LiteralType {
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
 pub struct Grouping<E: Expr> {
-    expr: E,
+    pub expr: E,
 }
 
 impl<E: Expr> Grouping<E> {
