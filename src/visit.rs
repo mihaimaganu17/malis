@@ -13,7 +13,8 @@ pub struct AstPrinter;
 impl Visitor<String> for AstPrinter {
     fn visit_unary<E: Expr>(&mut self, unary: &Unary<E>) -> String {
         if let Some(lexeme) = unary.operator.lexeme.get() {
-            self.parenthesize(lexeme, &[&unary.right])
+            let expr = unary.right.walk(self);
+            self.parenthesize(lexeme, &[expr])
         } else {
             String::from("unknown_unary")
         }
@@ -21,7 +22,9 @@ impl Visitor<String> for AstPrinter {
 
     fn visit_binary<E1: Expr, E2: Expr>(&mut self, binary: &Binary<E1, E2>) -> String {
         if let Some(lexeme) = binary.operator.lexeme.get() {
-            self.parenthesize(lexeme, &[&binary.left, &binary.right])
+            let expr1 = binary.left.walk(self);
+            let expr2 = binary.right.walk(self);
+            self.parenthesize(lexeme, &[expr1, expr2])
         } else {
             String::from("unknown_binary")
         }
@@ -32,7 +35,8 @@ impl Visitor<String> for AstPrinter {
     }
 
     fn visit_grouping<E: Expr>(&mut self, grouping: &Grouping<E>) -> String {
-        self.parenthesize("group", &[&grouping.expr])
+        let expr = grouping.expr.walk(self);
+        self.parenthesize("group", &[expr])
     }
 }
 
@@ -42,8 +46,8 @@ impl AstPrinter {
     }
 
     // Wraps subexpressions stored in `exprs` in parenthasis with spaces between them
-    fn parenthesize<E: Expr>(&mut self, name: &str, exprs: &[&E]) -> String {
-        let final_string = exprs.as_ref().iter().map(|e| e.walk(self))
+    fn parenthesize<S: AsRef<str>>(&mut self, name: &str, exprs: &[S]) -> String {
+        let final_string = exprs.iter().map(|e| e.as_ref())
             .fold(String::from(name), |mut acc, x| {
                 acc.push(' ');
                 acc.push_str(&x);
