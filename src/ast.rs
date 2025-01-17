@@ -1,13 +1,22 @@
 use crate::{
     error::{MalisError, AstError},
     token::{Token, TokenType, Keyword, Literal as LiteralToken},
+    visit::Visitor,
 };
 
-pub trait Expr {}
+pub trait Expr {
+    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T;
+}
 
 pub struct Unary<E: Expr> {
     operator: Token,
     right: E,
+}
+
+impl<E: Expr> Expr for Unary<E> {
+    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+        visitor.visit_unary(&self)
+    }
 }
 
 impl<E: Expr> Unary<E> {
@@ -26,7 +35,7 @@ pub struct Binary<E: Expr> {
 }
 
 impl<E: Expr> Binary<E> {
-    pub fn new(left: E, operator: Token, right: E) -> Self {
+    fn new(left: E, operator: Token, right: E) -> Self {
         Self {
             left,
             operator,
@@ -35,11 +44,21 @@ impl<E: Expr> Binary<E> {
     }
 }
 
+impl<E: Expr> Expr for Binary<E> {
+    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+        visitor.visit_binary(&self)
+    }
+}
+
 pub struct Literal {
     l_type: LiteralType,
 }
 
-impl Expr for Literal {}
+impl Expr for Literal {
+    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+        visitor.visit_literal(&self)
+    }
+}
 
 impl Literal {
     pub fn new(token: &Token) -> Result<Self, MalisError> {
@@ -81,5 +100,11 @@ pub struct Grouping<E: Expr> {
 impl<E: Expr> Grouping<E> {
     pub fn new(expr: E) -> Self {
         Self { expr }
+    }
+}
+
+impl<E: Expr> Expr for Grouping<E> {
+    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+        visitor.visit_grouping(&self)
     }
 }
