@@ -136,7 +136,7 @@ impl<'a> Scanner<'a> {
                     self.create_token(TokenType::Comparison(Comparison::BangEqual), start)?
                 } else {
                     self.offset += 1;
-                    self.create_token(TokenType::Comparison(Comparison::Bang), start)?
+                    self.create_token(TokenType::SingleChar(SingleChar::Bang), start)?
                 }
             }
             '=' => {

@@ -1,6 +1,6 @@
 use crate::{
-    ast::{Expr, Literal, LiteralType, Binary},
-    token::{Token, TokenType, Comparison},
+    ast::{Expr, Literal, LiteralType, Binary, Unary},
+    token::{Token, TokenType, Comparison, SingleChar},
     error::ParserError,
 };
 
@@ -109,14 +109,14 @@ impl Parser {
     fn unary(&mut self) -> Result<Expr, ParserError> {
         // Prepare the `TokenType`s we want to match against for the operators of this production
         // rule
-        let bang = TokenType::Comparison(SingleChar::Comparison);
+        let bang = TokenType::SingleChar(SingleChar::Bang);
         let minus = TokenType::SingleChar(SingleChar::Minus);
 
         // Unary is either formed by an unary operator followed by its operand
         let expr = if self.any(&[&bang, &minus])? {
             let operator = self.advance()?.clone();
             let mut expr = self.unary()?;
-            Expr::Unary::new(operator, expr)
+            Expr::Unary(Unary::new(operator, expr))
         } else {
             // Or a single primary production rule
             self.primary()?

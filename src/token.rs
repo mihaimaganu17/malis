@@ -76,11 +76,11 @@ pub enum SingleChar {
     SemiColon,
     Slash,
     Star,
+    Bang,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Comparison {
-    Bang,
     BangEqual,
     Equal,
     EqualEqual,
