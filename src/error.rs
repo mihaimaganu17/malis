@@ -6,6 +6,7 @@ pub enum MalisError {
     ScannerError(ScannerError),
     NoneTokenType,
     AstError(AstError),
+    ParserError(ParserError),
 }
 
 impl From<std::io::Error> for MalisError {
@@ -62,4 +63,11 @@ impl<P: fmt::Debug> fmt::Debug for SourceError<P> {
 #[derive(Debug)]
 pub enum AstError {
     NotALiteral,
+}
+
+#[derive(Debug)]
+pub enum ParserError {
+    InvalidIdx(usize),
+    NegativeIdx,
+    NoTokenType,
 }

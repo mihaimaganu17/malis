@@ -53,7 +53,7 @@ impl Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     SingleChar(SingleChar),
     Comparison(Comparison),
@@ -63,7 +63,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SingleChar {
     LeftParen,
     RightParen,
@@ -78,7 +78,7 @@ pub enum SingleChar {
     Star,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Comparison {
     Bang,
     BangEqual,
@@ -90,7 +90,7 @@ pub enum Comparison {
     LessEqual,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Literal {
     Ident(String),
     // Because `String` is reserved in Rust
@@ -98,7 +98,7 @@ pub enum Literal {
     Number(f32),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Keyword {
     And,
     Or,

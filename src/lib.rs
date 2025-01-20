@@ -3,6 +3,7 @@ mod scanner;
 mod token;
 mod ast;
 mod visit;
+mod parser;
 
 pub use error::MalisError;
 use std::{fs, io::{self, Write}, path::Path};
