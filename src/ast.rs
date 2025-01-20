@@ -12,7 +12,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+    pub fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
         match self {
             Expr::Unary(unary) => visitor.visit_unary(unary),
             Expr::Binary(binary) => visitor.visit_binary(binary),
@@ -24,30 +24,30 @@ impl Expr {
 
 pub struct Unary {
     pub operator: Token,
-    pub right: Expr,
+    pub right: Box<Expr>,
 }
 
 impl Unary {
     pub fn new(operator: Token, right: Expr) -> Self {
         Self {
             operator,
-            right,
+            right: Box::new(right),
         }
     }
 }
 
 pub struct Binary {
-    pub left: Expr,
+    pub left: Box<Expr>,
     pub operator: Token,
-    pub right: Expr,
+    pub right: Box<Expr>,
 }
 
 impl Binary {
     fn new(left: Expr, operator: Token, right: Expr) -> Self {
         Self {
-            left,
+            left: Box::new(left),
             operator,
-            right,
+            right: Box::new(right),
         }
     }
 }
@@ -92,11 +92,11 @@ pub enum LiteralType {
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
 pub struct Group {
-    pub expr: Expr,
+    pub expr: Box<Expr>,
 }
 
 impl Group {
     pub fn new(expr: Expr) -> Self {
-        Self { expr }
+        Self { expr: Box::new(expr) }
     }
 }

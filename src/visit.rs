@@ -4,7 +4,7 @@ pub trait Visitor<T> {
     fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
     fn visit_literal(&mut self, literal: &Literal) -> T;
-    fn visit_grouping(&mut self, grouping: &Grouping) -> T;
+    fn visit_group(&mut self, group: &Group) -> T;
 }
 
 #[derive(Debug)]
@@ -34,8 +34,8 @@ impl Visitor<String> for AstPrinter {
         format!("{:?}", literal.l_type)
     }
 
-    fn visit_grouping(&mut self, grouping: &Grouping) -> String {
-        let expr = grouping.expr.walk(self);
+    fn visit_group(&mut self, group: &Group) -> String {
+        let expr = group.expr.walk(self);
         self.parenthesize("group", &[expr])
     }
 }
@@ -64,67 +64,67 @@ impl AstPrinter {
 #[cfg(test)]
 mod tests {
     use super::AstPrinter;
-    use crate::ast::{Literal, LiteralType, Unary, Binary, Grouping};
+    use crate::ast::{Literal, LiteralType, Unary, Binary, Group, Expr};
     use crate::token::{Token, TokenType, SingleChar};
 
     #[test]
     fn unary_test() {
         let unary_expr = Unary {
             operator: Token::create(TokenType::SingleChar(SingleChar::Minus), "-"),
-            right: Literal {
+            right: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(1.72),
-            },
+            })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(unary_expr))
+        println!("Ast: {}", ast_printer.print(Expr::Unary(unary_expr)))
     }
 
     #[test]
     fn binary_test() {
         let binary_expr = Binary {
             operator: Token::create(TokenType::SingleChar(SingleChar::Minus), "*"),
-            left: Literal {
+            left: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(425.12),
-            },
-            right: Literal {
+            })),
+            right: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(0.132),
-            },
+            })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(binary_expr))
+        println!("Ast: {}", ast_printer.print(Expr::Binary(binary_expr)))
     }
 
     #[test]
     fn grouping_test() {
-        let grouping_expr = Grouping {
-            expr: Literal {
+        let grouping_expr = Group {
+            expr: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(32.0),
-            }
+            }))
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(grouping_expr))
+        println!("Ast: {}", ast_printer.print(Expr::Group(grouping_expr)))
     }
 
     #[test]
     fn nested_test() {
         let unary_expr = Unary {
             operator: Token::create(TokenType::SingleChar(SingleChar::Minus), "-"),
-            right: Literal {
+            right: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(987.65),
-            },
+            })),
         };
-        let grouping_expr = Grouping {
-            expr: Literal {
+        let grouping_expr = Group {
+            expr: Box::new(Expr::Literal(Literal {
                 l_type: LiteralType::Number(123.0),
-            }
+            }))
         };
         let binary_expr = Binary {
             operator: Token::create(TokenType::SingleChar(SingleChar::Minus), "*"),
-            left: unary_expr,
-            right: grouping_expr,
+            left: Box::new(Expr::Unary(unary_expr)),
+            right: Box::new(Expr::Group(grouping_expr)),
         };
 
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(binary_expr))
+        println!("Ast: {}", ast_printer.print(Expr::Binary(binary_expr)))
     }
 }
