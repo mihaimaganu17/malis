@@ -86,6 +86,46 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Result<Expr, ParserError> {
+        // We first check for the first `unary` according to the production rule
+        let mut expr = self.unary()?;
+
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule
+        let slash = TokenType::SingleChar(SingleChar::Slash);
+        let star = TokenType::SingleChar(SingleChar::Star);
+
+        while self.any(&[&slash, &star])? {
+            // The operator if the `Token` that we matched above
+            let operator = self.advance()?.clone();
+            // After the operator, the expression is the next factor
+            let right_expr = self.unary()?;
+            // We create a new `Binary` expression using the two
+            expr = Expr::Binary(Binary::new(expr, operator, right_expr));
+        }
+
+        Ok(expr)
+    }
+
+    fn unary(&mut self) -> Result<Expr, ParserError> {
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule
+        let bang = TokenType::Comparison(SingleChar::Comparison);
+        let minus = TokenType::SingleChar(SingleChar::Minus);
+
+        // Unary is either formed by an unary operator followed by its operand
+        let expr = if self.any(&[&bang, &minus])? {
+            let operator = self.advance()?.clone();
+            let mut expr = self.unary()?;
+            Expr::Unary::new(operator, expr)
+        } else {
+            // Or a single primary production rule
+            self.primary()?
+        };
+
+        Ok(expr)
+    }
+
+    fn primary(&mut self) -> Result<Expr, ParserError> {
     }
 
     // Given the list of `t_types` token types, we check if the current token matches any of the
