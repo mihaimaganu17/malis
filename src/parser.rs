@@ -65,8 +65,27 @@ impl Parser {
     }
 
     fn term(&mut self) -> Result<Expr, ParserError> {
-        let expr = Expr::Literal(Literal { l_type: LiteralType::True });
+        // We first check for the first `factor` according to the production rule
+        let mut expr = self.factor()?;
+
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule
+        let minus = TokenType::SingleChar(SingleChar::Minus);
+        let plus = TokenType::SingleChar(SingleChar::Plus);
+
+        while self.any(&[&minus, &plus])? {
+            // The operator if the `Token` that we matched above
+            let operator = self.advance()?.clone();
+            // After the operator, the expression is the next factor
+            let right_expr = self.factor()?;
+            // We create a new `Binary` expression using the two
+            expr = Expr::Binary(Binary::new(expr, operator, right_expr));
+        }
+
         Ok(expr)
+    }
+
+    fn factor(&mut self) -> Result<Expr, ParserError> {
     }
 
     // Given the list of `t_types` token types, we check if the current token matches any of the
