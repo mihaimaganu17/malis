@@ -43,7 +43,7 @@ pub struct Binary {
 }
 
 impl Binary {
-    fn new(left: Expr, operator: Token, right: Expr) -> Self {
+    pub fn new(left: Expr, operator: Token, right: Expr) -> Self {
         Self {
             left: Box::new(left),
             operator,

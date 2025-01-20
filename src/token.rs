@@ -3,7 +3,7 @@ use core::cell::OnceCell;
 use std::fmt;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     // Token type, `type` is reserved
     pub t_type: OnceCell<TokenType>,
@@ -53,7 +53,7 @@ impl Token {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
     SingleChar(SingleChar),
     Comparison(Comparison),
@@ -63,7 +63,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum SingleChar {
     LeftParen,
     RightParen,
@@ -78,7 +78,7 @@ pub enum SingleChar {
     Star,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Comparison {
     Bang,
     BangEqual,
@@ -90,7 +90,7 @@ pub enum Comparison {
     LessEqual,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Ident(String),
     // Because `String` is reserved in Rust

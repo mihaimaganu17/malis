@@ -118,11 +118,11 @@ mod tests {
                 l_type: LiteralType::Number(123.0),
             }))
         };
-        let binary_expr = Binary {
-            operator: Token::create(TokenType::SingleChar(SingleChar::Minus), "*"),
-            left: Box::new(Expr::Unary(unary_expr)),
-            right: Box::new(Expr::Group(grouping_expr)),
-        };
+        let binary_expr = Binary::new(
+            Expr::Unary(unary_expr),
+            Token::create(TokenType::SingleChar(SingleChar::Minus), "*"),
+            Expr::Group(grouping_expr),
+        );
 
         let mut ast_printer = AstPrinter;
         println!("Ast: {}", ast_printer.print(Expr::Binary(binary_expr)))
