@@ -1,5 +1,6 @@
 # Operator precedence in Malis
-The following table provides the operator precedence in Malis. The rules are the same as in C.
+The following table provides the operator precedence in Malis. The rules are the same as in C and
+they are listed starting with the lowest up to the highest.
 `Name` columns provides the category name of the operations
 `Operators` are the lexemes associated with the operations
 `Associates` is the mode each catergory performs associativity. For example addition and
