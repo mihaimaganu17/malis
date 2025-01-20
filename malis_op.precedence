@@ -1,0 +1,18 @@
+# Operator precedence in Malis
+The following table provides the operator precedence in Malis. The rules are the same as in C.
+`Name` columns provides the category name of the operations
+`Operators` are the lexemes associated with the operations
+`Associates` is the mode each catergory performs associativity. For example addition and
+subtractions are left-associative, meaning we first evaluate the left operators before the right
+ex: 4-1-1 means (4 - 1) - 1
+but equality is right associative, meaning, we evaluate operators from the right first:
+ex: x = y = z means x = (y = z)
+
+| Name          | Operators     | Associates    |
+|:--------------|:--------------|:--------------|
+| Equality      |== !=          | Left          |
+| Comparison    |> >= < <=      | Left          |
+| Term          |- +            | Left          |
+| Factor        |/ *            | Left          |
+| Unary         |! -            | Right         |
+
