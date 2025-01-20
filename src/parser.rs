@@ -42,6 +42,29 @@ impl Parser {
     }
 
     fn comparison(&mut self) -> Result<Expr, ParserError> {
+        // We first check for the first `term` according to the production rule
+        let mut expr = self.term()?;
+
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule
+        let greater = TokenType::Comparison(Comparison::Greater);
+        let greater_equal = TokenType::Comparison(Comparison::GreaterEqual);
+        let less = TokenType::Comparison(Comparison::Less);
+        let less_equal = TokenType::Comparison(Comparison::LessEqual);
+
+        while self.any(&[&greater, &greater_equal, &less, &less_equal])? {
+            // The operator if the `Token` that we matched above
+            let operator = self.advance()?.clone();
+            // After the operator, the expression is the next term
+            let right_expr = self.term()?;
+            // We create a new `Binary` expression using the two
+            expr = Expr::Binary(Binary::new(expr, operator, right_expr));
+        }
+
+        Ok(expr)
+    }
+
+    fn term(&mut self) -> Result<Expr, ParserError> {
         let expr = Expr::Literal(Literal { l_type: LiteralType::True });
         Ok(expr)
     }
