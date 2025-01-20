@@ -16,18 +16,18 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
-    fn expression<E: Expr>(&mut self) -> Result<E, ParserError> {
+    fn expression(&mut self) -> Result<Expr, ParserError> {
         self.equality()
     }
 
-    fn equality<E: Expr>(&mut self) -> Result<E, ParserError> {
+    fn equality(&mut self) -> Result<Expr, ParserError> {
         let expr = self.comparison();
 
         expr
     }
 
-    fn comparison<E: Expr>(&mut self) -> Result<E, ParserError> {
-        let expr: E = Literal { l_type: LiteralType::True };
+    fn comparison(&mut self) -> Result<Expr, ParserError> {
+        let expr = Expr::Literal(Literal { l_type: LiteralType::True });
         Ok(expr)
     }
 

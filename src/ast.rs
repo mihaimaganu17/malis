@@ -4,23 +4,31 @@ use crate::{
     visit::Visitor,
 };
 
-pub trait Expr {
-    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T;
+pub enum Expr {
+    Unary(Unary),
+    Binary(Binary),
+    Group(Group),
+    Literal(Literal),
 }
 
-pub struct Unary<E: Expr> {
-    pub operator: Token,
-    pub right: E,
-}
-
-impl<E: Expr> Expr for Unary<E> {
+impl Expr {
     fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
-        visitor.visit_unary(&self)
+        match self {
+            Expr::Unary(unary) => visitor.visit_unary(unary),
+            Expr::Binary(binary) => visitor.visit_binary(binary),
+            Expr::Group(group) => visitor.visit_group(group),
+            Expr::Literal(literal) => visitor.visit_literal(literal),
+        }
     }
 }
 
-impl<E: Expr> Unary<E> {
-    pub fn new(operator: Token, right: E) -> Self {
+pub struct Unary {
+    pub operator: Token,
+    pub right: Expr,
+}
+
+impl Unary {
+    pub fn new(operator: Token, right: Expr) -> Self {
         Self {
             operator,
             right,
@@ -28,14 +36,14 @@ impl<E: Expr> Unary<E> {
     }
 }
 
-pub struct Binary<E1: Expr, E2: Expr> {
-    pub left: E1,
+pub struct Binary {
+    pub left: Expr,
     pub operator: Token,
-    pub right: E2,
+    pub right: Expr,
 }
 
-impl<E1: Expr, E2: Expr> Binary<E1, E2> {
-    fn new(left: E1, operator: Token, right: E2) -> Self {
+impl Binary {
+    fn new(left: Expr, operator: Token, right: Expr) -> Self {
         Self {
             left,
             operator,
@@ -44,21 +52,9 @@ impl<E1: Expr, E2: Expr> Binary<E1, E2> {
     }
 }
 
-impl<E1: Expr, E2: Expr> Expr for Binary<E1, E2> {
-    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
-        visitor.visit_binary(&self)
-    }
-}
-
 #[derive(Debug)]
 pub struct Literal {
     pub l_type: LiteralType,
-}
-
-impl Expr for Literal {
-    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
-        visitor.visit_literal(&self)
-    }
 }
 
 impl Literal {
@@ -95,18 +91,12 @@ pub enum LiteralType {
 }
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
-pub struct Grouping<E: Expr> {
-    pub expr: E,
+pub struct Group {
+    pub expr: Expr,
 }
 
-impl<E: Expr> Grouping<E> {
-    pub fn new(expr: E) -> Self {
+impl Group {
+    pub fn new(expr: Expr) -> Self {
         Self { expr }
-    }
-}
-
-impl<E: Expr> Expr for Grouping<E> {
-    fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
-        visitor.visit_grouping(&self)
     }
 }

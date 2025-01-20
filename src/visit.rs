@@ -1,17 +1,17 @@
-use crate::ast::{Expr, Unary, Binary, Literal, Grouping};
+use crate::ast::{Expr, Unary, Binary, Literal, Group};
 
 pub trait Visitor<T> {
-    fn visit_unary<E: Expr>(&mut self, unary: &Unary<E>) -> T;
-    fn visit_binary<E1: Expr, E2: Expr>(&mut self, binary: &Binary<E1, E2>) -> T;
+    fn visit_unary(&mut self, unary: &Unary) -> T;
+    fn visit_binary(&mut self, binary: &Binary) -> T;
     fn visit_literal(&mut self, literal: &Literal) -> T;
-    fn visit_grouping<E: Expr>(&mut self, grouping: &Grouping<E>) -> T;
+    fn visit_grouping(&mut self, grouping: &Grouping) -> T;
 }
 
 #[derive(Debug)]
 pub struct AstPrinter;
 
 impl Visitor<String> for AstPrinter {
-    fn visit_unary<E: Expr>(&mut self, unary: &Unary<E>) -> String {
+    fn visit_unary(&mut self, unary: &Unary) -> String {
         if let Some(lexeme) = unary.operator.lexeme.get() {
             let expr = unary.right.walk(self);
             self.parenthesize(lexeme, &[expr])
@@ -20,7 +20,7 @@ impl Visitor<String> for AstPrinter {
         }
     }
 
-    fn visit_binary<E1: Expr, E2: Expr>(&mut self, binary: &Binary<E1, E2>) -> String {
+    fn visit_binary(&mut self, binary: &Binary) -> String {
         if let Some(lexeme) = binary.operator.lexeme.get() {
             let expr1 = binary.left.walk(self);
             let expr2 = binary.right.walk(self);
@@ -34,7 +34,7 @@ impl Visitor<String> for AstPrinter {
         format!("{:?}", literal.l_type)
     }
 
-    fn visit_grouping<E: Expr>(&mut self, grouping: &Grouping<E>) -> String {
+    fn visit_grouping(&mut self, grouping: &Grouping) -> String {
         let expr = grouping.expr.walk(self);
         self.parenthesize("group", &[expr])
     }
@@ -56,7 +56,7 @@ impl AstPrinter {
         format!("({})", final_string)
     }
 
-    fn print<E: Expr>(&mut self, expr: E) -> String {
+    fn print(&mut self, expr: Expr) -> String {
         expr.walk(self)
     }
 }
