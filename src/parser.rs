@@ -126,6 +126,7 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr, ParserError> {
+        todo!()
     }
 
     // Given the list of `t_types` token types, we check if the current token matches any of the
