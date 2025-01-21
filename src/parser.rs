@@ -1,6 +1,6 @@
 use crate::{
-    ast::{Expr, Literal, LiteralType, Binary, Unary},
-    token::{Token, TokenType, Comparison, SingleChar},
+    ast::{Expr, Literal, LiteralType, Binary, Unary, Group},
+    token::{Token, TokenType, Comparison, SingleChar, Keyword},
     error::ParserError,
 };
 
@@ -126,14 +126,40 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr, ParserError> {
-        todo!()
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule
+        if let Ok(literal) = Literal::new(self.peek()?) {
+            self.advance()?;
+            Ok(Expr::Literal(literal))
+        } else {
+            let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+            let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+
+            if self.any(&[&left_paren])? {
+                // Move past the left parenthesis
+                self.advance()?;
+                // Parse the expression following if possible
+                let expr = self.expression()?;
+                // Consume the last parenthesis
+                if self.any(&[&right_paren])? {
+                    self.advance()?;
+                    Ok(Expr::Group(Group::new(expr)))
+                } else {
+                    Err(ParserError::MissingClosingParen)
+                }
+            } else {
+                Err(ParserError::NoPrimaryProduction)
+            }
+        }
     }
 
     // Given the list of `t_types` token types, we check if the current token matches any of the
     // desired ones.
     fn any(&mut self, t_types: &[&TokenType]) -> Result<bool, ParserError> {
         for t_type in t_types {
-            if self.check(t_type)? { return Ok(true); }
+            if self.check(t_type)? {
+                return Ok(true);
+            }
         }
         Ok(false)
     }

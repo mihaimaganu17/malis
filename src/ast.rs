@@ -81,6 +81,12 @@ impl Literal {
     }
 }
 
+impl From<LiteralType> for Literal {
+    fn from(l_type: LiteralType) -> Self {
+        Self { l_type }
+    }
+}
+
 #[derive(Debug)]
 pub enum LiteralType {
     Number(f32),

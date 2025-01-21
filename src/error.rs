@@ -70,4 +70,6 @@ pub enum ParserError {
     InvalidIdx(usize),
     NegativeIdx,
     NoTokenType,
+    MissingClosingParen,
+    NoPrimaryProduction,
 }
