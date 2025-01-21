@@ -16,6 +16,13 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
+    pub fn parse(&mut self) -> Result<Expr, ParserError> {
+        match self.expression() {
+            Ok(expr) => Ok(expr),
+            Err(e) => Err(e)
+        }
+    }
+
     fn expression(&mut self) -> Result<Expr, ParserError> {
         self.equality()
     }
@@ -185,6 +192,11 @@ impl Parser {
         self.tokens.get(self.current).ok_or(ParserError::InvalidIdx(self.current))
     }
 
+    // Returns the token type at the `current` index, without further advancing the cursor
+    fn peek_type(&self) -> Result<&TokenType, ParserError> {
+        self.peek()?.t_type.get().ok_or(ParserError::NoTokenType)
+    }
+
     // Returns the token that preceded `current` indexed token
     fn previous(&self) -> Result<&Token, ParserError> {
         if self.current != 0 {
@@ -210,5 +222,46 @@ impl Parser {
             false
         };
         Ok(check)
+    }
+
+    // Synchronizes the recursive descent parser which entered the panic mode due to an unxpected
+    // token and tries to get the parser back to a safe state for further parsing the remaining
+    // of the code or script. This entails the following: unwinding the call stack, such that we
+    // clear any tokens owned by the current faulty statement and finding the start of the next
+    // statement
+    fn synchronize(&mut self) -> Result<(), ParserError> {
+        self.advance()?;
+        // while we are not at the end of the code
+        while self.tokens_left()? {
+            // If we are at a semicolon, this means the current statement ended and we just need
+            // to go past it and return in order to synchronize
+            if self.check(&TokenType::SingleChar(SingleChar::SemiColon))? {
+                // Go past the faulty token which issued the panic mode
+                self.advance()?;
+                return Ok(());
+            }
+
+            match self.peek_type()? {
+                TokenType::Keyword(keyword) => {
+                    // We (likely) are at the start of a new statement
+                    match keyword {
+                        Keyword::Class
+                        | Keyword::Fun
+                        | Keyword::Var
+                        | Keyword::For
+                        | Keyword::If
+                        | Keyword::While
+                        | Keyword::Print
+                        | Keyword::Return => return Ok(()),
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
+            // If we reach this point, we must munch tokens forward until we find the start of
+            // another statement
+            self.advance()?;
+        }
+        Ok(())
     }
 }

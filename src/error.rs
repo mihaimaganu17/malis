@@ -28,6 +28,12 @@ impl From<AstError> for MalisError {
     }
 }
 
+impl From<ParserError> for MalisError {
+    fn from(err: ParserError) -> Self {
+        Self::ParserError(err)
+    }
+}
+
 #[derive(Debug)]
 pub enum ScannerError {
     FailedToIndexSlice,

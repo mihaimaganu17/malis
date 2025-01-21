@@ -8,6 +8,8 @@ mod parser;
 pub use error::MalisError;
 use std::{fs, io::{self, Write}, path::Path};
 use scanner::Scanner;
+use parser::Parser;
+use visit::AstPrinter;
 
 #[derive(Debug)]
 pub struct Malis {
@@ -27,9 +29,10 @@ impl Malis {
 
         match maybe_tokens {
             Ok(tokens) => {
-                for token in tokens {
-                    println!("Token: {token:?}");
-                }
+                let mut parser = Parser::new(tokens);
+                let expr = parser.parse()?;
+                let mut ast_printer = AstPrinter;
+                println!("Ast {}", ast_printer.print(expr));
             }
             Err(error_list) => println!("{:#?}", error_list),
         }
