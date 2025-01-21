@@ -10,7 +10,7 @@ pub struct Token {
     // Substring from the source code from which the token was parsed.
     pub lexeme: OnceCell<String>,
     // Line on which the token occurs
-    line: OnceCell<usize>,
+    pub line: OnceCell<usize>,
 }
 
 impl fmt::Display for Token {

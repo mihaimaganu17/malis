@@ -76,3 +76,16 @@ pub enum ParserError {
     PanicMode(String, Token),
 }
 
+impl fmt::Display for ParserError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            ParserError::PanicMode(message, token) => {
+                write!(f, "Error on line {} for {}: {}",
+                    token.line.get().unwrap(),
+                    token.lexeme.get().unwrap(),
+                    message)
+            }
+            _ => write!(f, "{:?}", self)
+        }
+    }
+}
