@@ -141,7 +141,7 @@ impl Parser {
                 // Parse the expression following if possible
                 let expr = self.expression()?;
                 // Consume the last parenthesis
-                if self.any(&[&right_paren])? {
+                if self.consume(&right_paren, "Expect ')' after expression".to_string()).is_ok() {
                     self.advance()?;
                     Ok(Expr::Group(Group::new(expr)))
                 } else {
@@ -162,6 +162,15 @@ impl Parser {
             }
         }
         Ok(false)
+    }
+
+    fn consume(&mut self, t_type: &TokenType, message: String) -> Result<(), ParserError> {
+        if self.any(&[t_type])? {
+            self.advance()?;
+            Ok(())
+        } else {
+            Err(ParserError::PanicMode(message, self.peek()?.clone()))
+        }
     }
 
     // Returns whether there are more tokens to be parsed

@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::token::Token;
 
 #[derive(Debug)]
 pub enum MalisError {
@@ -72,4 +73,6 @@ pub enum ParserError {
     NoTokenType,
     MissingClosingParen,
     NoPrimaryProduction,
+    PanicMode(String, Token),
 }
+
