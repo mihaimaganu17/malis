@@ -77,6 +77,11 @@ impl<'a> Scanner<'a> {
                 Err(err) => error_list.push(err),
             }
         }
+        // At the end, we push an end of file token
+        match self.create_token(TokenType::EOF, self.offset) {
+            Ok(token) => token_list.push(token),
+            Err(err) => error_list.push(err),
+        };
 
         Ok(token_list)
     }
@@ -128,7 +133,7 @@ impl<'a> Scanner<'a> {
             }
             '*' => {
                 self.offset += 1;
-                self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?
+                self.create_token(TokenType::SingleChar(SingleChar::Star), start)?
             }
             '!' => {
                 if self.match_next('=', chars) {
@@ -196,15 +201,18 @@ impl<'a> Scanner<'a> {
                     }
                     self.create_token(TokenType::Ignored, start)?
                 } else {
+                    self.offset += 1;
                     self.create_token(TokenType::SingleChar(SingleChar::Slash), start)?
                 }
             }
             // Ignore whitespaces
             ' ' | '\r' | '\t' => {
+                self.offset += 1;
                 self.create_token(TokenType::Ignored, start)?
             }
             '\n' => {
                 self.line += 1;
+                self.offset += 1;
                 self.create_token(TokenType::Ignored, start)?
             }
             '\"' => {

@@ -11,6 +11,12 @@ pub enum Expr {
     Literal(Literal),
 }
 
+impl AsRef<Expr> for Expr {
+    fn as_ref(&self) -> &Expr {
+        &self
+    }
+}
+
 impl Expr {
     pub fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
         match self {

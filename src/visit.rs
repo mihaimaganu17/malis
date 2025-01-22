@@ -56,7 +56,7 @@ impl AstPrinter {
         format!("({})", final_string)
     }
 
-    pub fn print(&mut self, expr: Expr) -> String {
+    pub fn print(&mut self, expr: &Expr) -> String {
         expr.walk(self)
     }
 }

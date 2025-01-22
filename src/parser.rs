@@ -8,7 +8,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Parser {
     tokens: Vec<Token>,
-    current: usize,
+    pub current: usize,
 }
 
 impl Parser {
@@ -162,7 +162,7 @@ impl Parser {
 
     // Given the list of `t_types` token types, we check if the current token matches any of the
     // desired ones.
-    fn any(&mut self, t_types: &[&TokenType]) -> Result<bool, ParserError> {
+    fn any(&self, t_types: &[&TokenType]) -> Result<bool, ParserError> {
         for t_type in t_types {
             if self.check(t_type)? {
                 return Ok(true);
@@ -200,7 +200,7 @@ impl Parser {
     // Returns the token that preceded `current` indexed token
     fn previous(&self) -> Result<&Token, ParserError> {
         if self.current != 0 {
-            self.tokens.get(self.current).ok_or(ParserError::InvalidIdx(self.current))
+            self.tokens.get(self.current-1).ok_or(ParserError::InvalidIdx(self.current-1))
         } else {
             Err(ParserError::NegativeIdx)
         }
