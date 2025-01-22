@@ -197,7 +197,7 @@ impl Parser {
                 // Move past the left parenthesis
                 self.advance()?;
                 // Parse the expression following if possible
-                let expr = self.expression()?;
+                let expr = self.separator()?;
                 // Consume the last parenthesis
                 if self
                     .consume(&right_paren, "Expect ')' after expression".to_string())
