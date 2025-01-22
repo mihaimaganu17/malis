@@ -24,7 +24,22 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, ParserError> {
-        self.equality()
+        let mut expr = self.equality()?;
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule. In this case, we want to match comma which could be used in C to chain expressions
+        // together similar to how a block chains statements
+        let comma = TokenType::SingleChar(SingleChar::Comma);
+
+        // Then we have a compound of any number of `!=` or `==` followed by another comparison
+        while self.any(&[&comma])? {
+            // The operator if the `Token` that we matched above
+            let operator = self.advance()?.clone();
+            // After the operator, the expression is the next comparison
+            let right_expr = self.equality()?;
+            // We create a new `Binary` expression using the two
+            expr = Expr::Binary(Binary::new(expr, operator, right_expr));
+        }
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, ParserError> {
