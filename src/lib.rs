@@ -1,20 +1,24 @@
+pub mod ast;
 mod error;
+mod parser;
 mod scanner;
 mod token;
-mod ast;
 mod visit;
-mod parser;
 
 pub use error::MalisError;
-use std::{fs, io::{self, Write}, path::Path};
-use scanner::Scanner;
 use parser::Parser;
+use scanner::Scanner;
+use std::{
+    fs,
+    io::{self, Write},
+    path::Path,
+};
 use visit::AstPrinter;
 
 #[derive(Debug)]
 pub struct Malis {
     // Keeps track of wheather the code has an error and to avoid executing it.
-    had_error: bool,
+    _had_error: bool,
 }
 
 impl Malis {
@@ -81,5 +85,4 @@ impl Malis {
 }
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}

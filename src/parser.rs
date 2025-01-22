@@ -1,7 +1,7 @@
 use crate::{
-    ast::{Expr, Literal, LiteralType, Binary, Unary, Ternary, Group},
-    token::{Token, TokenType, Comparison, SingleChar, Keyword},
+    ast::{Binary, Expr, Group, Literal, Ternary, Unary},
     error::ParserError,
+    token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
 
 /// Parses the tokens according to the `malis.cfg` context-free grammar
@@ -19,7 +19,7 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Expr, ParserError> {
         match self.separator() {
             Ok(expr) => Ok(expr),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -57,7 +57,10 @@ impl Parser {
             // is true
             let variant1 = self.expression()?;
             // At this point, we need to consume the colon to have a valid ternary condition
-            let operator2 = if self.consume(&colon, "Expect ':' after expression".to_string()).is_err() {
+            let operator2 = if self
+                .consume(&colon, "Expect ':' after expression".to_string())
+                .is_err()
+            {
                 return Err(ParserError::MissingColon);
             } else {
                 self.previous()?.clone()
@@ -170,7 +173,7 @@ impl Parser {
         // Unary is either formed by an unary operator followed by its operand
         let expr = if self.any(&[&bang, &minus])? {
             let operator = self.advance()?.clone();
-            let mut expr = self.unary()?;
+            let expr = self.unary()?;
             Expr::Unary(Unary::new(operator, expr))
         } else {
             // Or a single primary production rule
@@ -196,7 +199,10 @@ impl Parser {
                 // Parse the expression following if possible
                 let expr = self.expression()?;
                 // Consume the last parenthesis
-                if self.consume(&right_paren, "Expect ')' after expression".to_string()).is_ok() {
+                if self
+                    .consume(&right_paren, "Expect ')' after expression".to_string())
+                    .is_ok()
+                {
                     Ok(Expr::Group(Group::new(expr)))
                 } else {
                     Err(ParserError::MissingClosingParen)
@@ -236,18 +242,22 @@ impl Parser {
 
     // Returns the token at the `current` index
     fn peek(&self) -> Result<&Token, ParserError> {
-        self.tokens.get(self.current).ok_or(ParserError::InvalidIdx(self.current))
+        self.tokens
+            .get(self.current)
+            .ok_or(ParserError::InvalidIdx(self.current))
     }
 
     // Returns the token type at the `current` index, without further advancing the cursor
-    fn peek_type(&self) -> Result<&TokenType, ParserError> {
+    fn _peek_type(&self) -> Result<&TokenType, ParserError> {
         self.peek()?.t_type.get().ok_or(ParserError::NoTokenType)
     }
 
     // Returns the token that preceded `current` indexed token
     fn previous(&self) -> Result<&Token, ParserError> {
         if self.current != 0 {
-            self.tokens.get(self.current-1).ok_or(ParserError::InvalidIdx(self.current-1))
+            self.tokens
+                .get(self.current - 1)
+                .ok_or(ParserError::InvalidIdx(self.current - 1))
         } else {
             Err(ParserError::NegativeIdx)
         }
@@ -276,7 +286,7 @@ impl Parser {
     // of the code or script. This entails the following: unwinding the call stack, such that we
     // clear any tokens owned by the current faulty statement and finding the start of the next
     // statement
-    fn synchronize(&mut self) -> Result<(), ParserError> {
+    fn _synchronize(&mut self) -> Result<(), ParserError> {
         self.advance()?;
         // while we are not at the end of the code
         while self.tokens_left()? {
@@ -288,7 +298,7 @@ impl Parser {
                 return Ok(());
             }
 
-            match self.peek_type()? {
+            match self._peek_type()? {
                 TokenType::Keyword(keyword) => {
                     // We (likely) are at the start of a new statement
                     match keyword {

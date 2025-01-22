@@ -1,12 +1,8 @@
-
 use crate::error::{ScannerError, SourceError};
-use core::str::CharIndices;
-use crate::token::{Token, TokenType, SingleChar, Comparison, Literal, Keyword};
-use std::{
-    io::Write,
-    collections::HashMap,
-};
+use crate::token::{Comparison, Keyword, Literal, SingleChar, Token, TokenType};
 use core::iter::Peekable;
+use core::str::CharIndices;
+use std::{collections::HashMap, io::Write};
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
@@ -56,7 +52,7 @@ impl<'a> Scanner<'a> {
         let mut chars = self.data.char_indices().peekable();
 
         // Points to the first character in the lexeme being scanned.
-        let mut start = 0;
+        let mut start;
         while let Some((idx, ch)) = chars.next() {
             self.offset = idx;
             start = self.offset;
@@ -188,7 +184,9 @@ impl<'a> Scanner<'a> {
                         if peek_ch != &'\n' {
                             self.offset = *idx;
                             chars.next();
-                        } else { break; }
+                        } else {
+                            break;
+                        }
                     }
                     self.create_token(TokenType::Ignored, start)?
                 } else if self.match_next('*', chars) {
@@ -223,9 +221,7 @@ impl<'a> Scanner<'a> {
                 self.offset += 1;
                 self.create_token(TokenType::Ignored, start)?
             }
-            '\"' => {
-                self.parse_string(start, chars)?
-            }
+            '\"' => self.parse_string(start, chars)?,
             _ => {
                 if ch.is_digit(10) {
                     self.parse_number(start, chars)?
@@ -249,7 +245,7 @@ impl<'a> Scanner<'a> {
     }
 
     pub fn match_next(&mut self, expected: char, chars: &mut Peekable<CharIndices>) -> bool {
-        if let Some((idx, ch)) = chars.peek() {
+        if let Some((_idx, ch)) = chars.peek() {
             if ch == &expected {
                 chars.next();
                 true
@@ -276,11 +272,13 @@ impl<'a> Scanner<'a> {
             // Update our offset to the current index position
             self.offset = *idx;
             // If there is a newline, we increment our line as well
-            if peek_ch == &'\n' { self.line += 1 }
+            if peek_ch == &'\n' {
+                self.line += 1
+            }
             // If we find the next quote, we found the end of the `String`
             if peek_ch == &'\"' {
                 // We make sure we take into account the last character
-                self.offset +=1;
+                self.offset += 1;
                 // Consume the final character of the literal string
                 chars.next();
                 break;
@@ -295,7 +293,9 @@ impl<'a> Scanner<'a> {
         }
 
         // Get the string, without the surrounding quotes. This is the lexeme
-        let value = self.data.get(start+1..self.offset-1)
+        let value = self
+            .data
+            .get(start + 1..self.offset - 1)
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
 
@@ -341,7 +341,9 @@ impl<'a> Scanner<'a> {
         // Go to the next position
         self.offset += 1;
 
-        let value = self.data.get(start..self.offset)
+        let value = self
+            .data
+            .get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?;
         let value = value.parse()?;
         self.create_token(TokenType::Literal(Literal::Number(value)), start)
@@ -368,7 +370,9 @@ impl<'a> Scanner<'a> {
                 break;
             }
         }
-        let value = self.data.get(start..self.offset)
+        let value = self
+            .data
+            .get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?;
 
         // Check if the parsed token is a keyword for `Malis`
@@ -386,10 +390,11 @@ impl<'a> Scanner<'a> {
         token_type: TokenType,
         start: usize,
     ) -> Result<Token, ScannerError> {
-        let text = self.data.get(start..self.offset)
+        let text = self
+            .data
+            .get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?
             .to_string();
         Ok(Token::new(token_type, text, self.line))
     }
 }
-

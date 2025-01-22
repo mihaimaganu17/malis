@@ -1,6 +1,6 @@
 use crate::{
-    error::{MalisError, AstError},
-    token::{Token, TokenType, Keyword, Literal as LiteralToken},
+    error::{AstError, MalisError},
+    token::{Keyword, Literal as LiteralToken, Token, TokenType},
     visit::Visitor,
 };
 
@@ -69,14 +69,19 @@ pub struct Ternary {
 }
 
 impl Ternary {
-    pub fn new(first: Expr, first_operator: Token, second: Expr, second_operator: Token,
-        third: Expr) -> Self {
+    pub fn new(
+        first: Expr,
+        first_operator: Token,
+        second: Expr,
+        second_operator: Token,
+        third: Expr,
+    ) -> Self {
         Self {
             first: Box::new(first),
             first_operator,
             second: Box::new(second),
             second_operator,
-            third: Box::new(third)
+            third: Box::new(third),
         }
     }
 }
@@ -94,13 +99,13 @@ impl Literal {
                     LiteralToken::Number(value) => LiteralType::Number(*value),
                     LiteralToken::LitString(value) => LiteralType::LitString(value.clone()),
                     _ => Err(AstError::NotALiteral)?,
-                }
+                },
                 TokenType::Keyword(value) => match value {
                     Keyword::True => LiteralType::True,
                     Keyword::False => LiteralType::False,
                     Keyword::Nil => LiteralType::Nil,
                     _ => Err(AstError::NotALiteral)?,
-                }
+                },
                 _ => Err(AstError::NotALiteral)?,
             }
         } else {
@@ -132,6 +137,8 @@ pub struct Group {
 
 impl Group {
     pub fn new(expr: Expr) -> Self {
-        Self { expr: Box::new(expr) }
+        Self {
+            expr: Box::new(expr),
+        }
     }
 }

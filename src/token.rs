@@ -2,7 +2,6 @@
 use core::cell::OnceCell;
 use std::fmt;
 
-
 #[derive(Debug, Clone)]
 pub struct Token {
     // Token type, `type` is reserved
@@ -42,9 +41,9 @@ impl Token {
 
     pub fn create(new_t_type: TokenType, new_lexeme: &str) -> Self {
         let t_type = OnceCell::new();
-        t_type.set(new_t_type);
+        t_type.set(new_t_type).expect("Failed to set token");
         let lexeme = OnceCell::new();
-        lexeme.set(new_lexeme.to_string());
+        lexeme.set(new_lexeme.to_string()).expect("Failed to set token");
         Self {
             t_type,
             lexeme,

@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::token::Token;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum MalisError {
@@ -63,7 +63,11 @@ pub struct SourceError<P: fmt::Debug> {
 
 impl<P: fmt::Debug> fmt::Debug for SourceError<P> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "[line {0}] Error {1:?}: {2:?}\n", self.line, self.location, self.err)
+        write!(
+            f,
+            "[line {0}] Error {1:?}: {2:?}\n",
+            self.line, self.location, self.err
+        )
     }
 }
 
@@ -87,12 +91,15 @@ impl fmt::Display for ParserError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             ParserError::PanicMode(message, token) => {
-                write!(f, "Error on line {} for {}: {}",
+                write!(
+                    f,
+                    "Error on line {} for {}: {}",
                     token.line.get().unwrap(),
                     token.lexeme.get().unwrap(),
-                    message)
+                    message
+                )
             }
-            _ => write!(f, "{:?}", self)
+            _ => write!(f, "{:?}", self),
         }
     }
 }
