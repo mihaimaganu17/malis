@@ -74,7 +74,7 @@ impl<'a> Scanner<'a> {
             }
         }
         // At the end, we push an end of file token
-        match self.create_token(TokenType::EOF, self.offset) {
+        match self.create_token(TokenType::Eof, self.offset) {
             Ok(token) => token_list.push(token),
             Err(err) => error_list.push(err),
         };
@@ -223,7 +223,7 @@ impl<'a> Scanner<'a> {
             }
             '\"' => self.parse_string(start, chars)?,
             _ => {
-                if ch.is_digit(10) {
+                if ch.is_ascii_digit() {
                     self.parse_number(start, chars)?
                 } else if ch.is_ascii_alphabetic() || ch == '_' {
                     self.parse_ident(start, chars)?
@@ -316,7 +316,7 @@ impl<'a> Scanner<'a> {
     ) -> Result<Token, ScannerError> {
         'int_while: while let Some(&(idx, peek_ch)) = chars.peek() {
             // If the peeked character is a digit, consume it
-            if peek_ch.is_digit(10) {
+            if peek_ch.is_ascii_digit() {
                 chars.next();
                 self.offset = idx;
                 continue;
@@ -326,7 +326,7 @@ impl<'a> Scanner<'a> {
                 chars.next();
                 self.offset = idx;
                 while let Some(&(idx2, peek_ch2)) = chars.peek() {
-                    if peek_ch2.is_digit(10) {
+                    if peek_ch2.is_ascii_digit() {
                         self.offset = idx2;
                         chars.next();
                     } else {

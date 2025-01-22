@@ -14,7 +14,7 @@ pub enum Expr {
 
 impl AsRef<Expr> for Expr {
     fn as_ref(&self) -> &Expr {
-        &self
+        self
     }
 }
 

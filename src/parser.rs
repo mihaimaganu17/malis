@@ -208,7 +208,7 @@ impl Parser {
                     Err(ParserError::MissingClosingParen)
                 }
             } else {
-                let _ = self.error()?;
+                self.error()?;
                 Err(ParserError::NoPrimaryProduction)
             }
         }
@@ -231,7 +231,8 @@ impl Parser {
         let star = TokenType::SingleChar(SingleChar::Star);
 
         // Then we have a compound of any number of `!=` or `==` followed by another comparison
-        if self.any(&[&comma,
+        if self.any(&[
+            &comma,
             &bang_equal,
             &equal_equal,
             &greater,
@@ -248,8 +249,11 @@ impl Parser {
             // After the operator, the expression is the next comparison
             let right_expr = self.ternary()?;
 
-            let message = format!("Found binary operator {} with only right operand {}",
-                operator, crate::AstPrinter.print(&right_expr));
+            let message = format!(
+                "Found binary operator {} with only right operand {}",
+                operator,
+                crate::AstPrinter.print(&right_expr)
+            );
 
             Err(ParserError::PanicMode(message, operator))
         } else {
@@ -281,7 +285,7 @@ impl Parser {
     fn tokens_left(&self) -> Result<bool, ParserError> {
         let token = self.peek()?;
 
-        Ok(token.t_type.get().ok_or(ParserError::NoTokenType)? != &TokenType::EOF)
+        Ok(token.t_type.get().ok_or(ParserError::NoTokenType)? != &TokenType::Eof)
     }
 
     // Returns the token at the `current` index
@@ -342,22 +346,19 @@ impl Parser {
                 return Ok(());
             }
 
-            match self._peek_type()? {
-                TokenType::Keyword(keyword) => {
-                    // We (likely) are at the start of a new statement
-                    match keyword {
-                        Keyword::Class
-                        | Keyword::Fun
-                        | Keyword::Var
-                        | Keyword::For
-                        | Keyword::If
-                        | Keyword::While
-                        | Keyword::Print
-                        | Keyword::Return => return Ok(()),
-                        _ => {}
-                    }
-                }
-                _ => {}
+            if let TokenType::Keyword(
+                Keyword::Class
+                | Keyword::Fun
+                | Keyword::Var
+                | Keyword::For
+                | Keyword::If
+                | Keyword::While
+                | Keyword::Print
+                | Keyword::Return,
+            ) = self._peek_type()?
+            {
+                // We (likely) are at the start of a new statement
+                return Ok(());
             }
             // If we reach this point, we must munch tokens forward until we find the start of
             // another statement

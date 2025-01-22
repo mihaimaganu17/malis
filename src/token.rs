@@ -43,7 +43,9 @@ impl Token {
         let t_type = OnceCell::new();
         t_type.set(new_t_type).expect("Failed to set token");
         let lexeme = OnceCell::new();
-        lexeme.set(new_lexeme.to_string()).expect("Failed to set token");
+        lexeme
+            .set(new_lexeme.to_string())
+            .expect("Failed to set token");
         Self {
             t_type,
             lexeme,
@@ -59,7 +61,7 @@ pub enum TokenType {
     Literal(Literal),
     Keyword(Keyword),
     Ignored,
-    EOF,
+    Eof,
 }
 
 #[derive(Debug, PartialEq, Clone)]

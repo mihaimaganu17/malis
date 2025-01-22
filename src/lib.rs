@@ -27,7 +27,7 @@ impl Malis {
         Malis::run(source.as_str())
     }
 
-    pub fn run<'a>(bytes: &'a str) -> Result<(), MalisError> {
+    pub fn run(bytes: &str) -> Result<(), MalisError> {
         let mut scanner = Scanner::new(bytes);
         let maybe_tokens = scanner.scan_tokens();
 
@@ -59,7 +59,7 @@ impl Malis {
 
         loop {
             // Write the new line identifier
-            stdout.write(b"> ")?;
+            let _ = stdout.write(b"> ")?;
             // Flush it to make sure we print it
             stdout.flush()?;
             // Read the next line
@@ -72,7 +72,7 @@ impl Malis {
 
             // If a line is invalid, we report the error and go to the next iteration
             if let Err(err) = Self::run(buffer.as_str()) {
-                print!("{:?}\n", err);
+                println!("{:?}", err);
                 stdout.flush()?;
             }
 

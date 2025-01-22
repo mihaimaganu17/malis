@@ -66,7 +66,7 @@ impl AstPrinter {
                 .map(|e| e.as_ref())
                 .fold(String::from(name), |mut acc, x| {
                     acc.push(' ');
-                    acc.push_str(&x);
+                    acc.push_str(x);
                     acc
                 });
         format!("({})", final_string)

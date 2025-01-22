@@ -1,5 +1,4 @@
 use crate::token::Token;
-use crate::ast::Expr;
 use std::fmt;
 
 #[derive(Debug)]
@@ -64,9 +63,9 @@ pub struct SourceError<P: fmt::Debug> {
 
 impl<P: fmt::Debug> fmt::Debug for SourceError<P> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(
+        writeln!(
             f,
-            "[line {0}] Error {1:?}: {2:?}\n",
+            "[line {0}] Error {1:?}: {2:?}",
             self.line, self.location, self.err
         )
     }
