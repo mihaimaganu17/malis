@@ -78,6 +78,7 @@ pub enum ParserError {
     NegativeIdx,
     NoTokenType,
     MissingClosingParen,
+    MissingColon,
     NoPrimaryProduction,
     PanicMode(String, Token),
 }

@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Expr, Literal, LiteralType, Binary, Unary, Group},
+    ast::{Expr, Literal, LiteralType, Binary, Unary, Ternary, Group},
     token::{Token, TokenType, Comparison, SingleChar, Keyword},
     error::ParserError,
 };
@@ -17,14 +17,14 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, ParserError> {
-        match self.expression() {
+        match self.separator() {
             Ok(expr) => Ok(expr),
             Err(e) => Err(e)
         }
     }
 
-    fn expression(&mut self) -> Result<Expr, ParserError> {
-        let mut expr = self.equality()?;
+    fn separator(&mut self) -> Result<Expr, ParserError> {
+        let mut expr = self.ternary()?;
         // Prepare the `TokenType`s we want to match against for the operators of this production
         // rule. In this case, we want to match comma which could be used in C to chain expressions
         // together similar to how a block chains statements
@@ -35,10 +35,43 @@ impl Parser {
             // The operator if the `Token` that we matched above
             let operator = self.advance()?.clone();
             // After the operator, the expression is the next comparison
-            let right_expr = self.equality()?;
+            let right_expr = self.ternary()?;
             // We create a new `Binary` expression using the two
             expr = Expr::Binary(Binary::new(expr, operator, right_expr));
         }
+        Ok(expr)
+    }
+
+    fn ternary(&mut self) -> Result<Expr, ParserError> {
+        let mut expr = self.expression()?;
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule. In this case, we want to match question mark first and then colon
+        let question_mark = TokenType::SingleChar(SingleChar::Question);
+        let colon = TokenType::SingleChar(SingleChar::Colon);
+
+        // Then we have a compound of any number of `!=` or `==` followed by another comparison
+        while self.any(&[&question_mark])? {
+            // The operator if the `Token` that we matched above
+            let operator1 = self.advance()?.clone();
+            // After the operator, the expression is the value to be returned if the condition
+            // is true
+            let variant1 = self.expression()?;
+            // At this point, we need to consume the colon to have a valid ternary condition
+            let operator2 = if self.consume(&colon, "Expect ':' after expression".to_string()).is_err() {
+                return Err(ParserError::MissingColon);
+            } else {
+                self.previous()?.clone()
+            };
+            let variant2 = self.expression()?;
+
+            // We create a new `Binary` expression using the two
+            expr = Expr::Ternary(Ternary::new(expr, operator1, variant1, operator2, variant2));
+        }
+        Ok(expr)
+    }
+
+    fn expression(&mut self) -> Result<Expr, ParserError> {
+        let expr = self.equality()?;
         Ok(expr)
     }
 
@@ -164,7 +197,6 @@ impl Parser {
                 let expr = self.expression()?;
                 // Consume the last parenthesis
                 if self.consume(&right_paren, "Expect ')' after expression".to_string()).is_ok() {
-                    self.advance()?;
                     Ok(Expr::Group(Group::new(expr)))
                 } else {
                     Err(ParserError::MissingClosingParen)

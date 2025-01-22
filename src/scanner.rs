@@ -131,9 +131,17 @@ impl<'a> Scanner<'a> {
                 self.offset += 1;
                 self.create_token(TokenType::SingleChar(SingleChar::SemiColon), start)?
             }
+            ':' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Colon), start)?
+            }
             '*' => {
                 self.offset += 1;
                 self.create_token(TokenType::SingleChar(SingleChar::Star), start)?
+            }
+            '?' => {
+                self.offset += 1;
+                self.create_token(TokenType::SingleChar(SingleChar::Question), start)?
             }
             '!' => {
                 if self.match_next('=', chars) {

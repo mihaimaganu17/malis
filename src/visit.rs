@@ -1,8 +1,9 @@
-use crate::ast::{Expr, Unary, Binary, Literal, Group};
+use crate::ast::{Expr, Unary, Binary, Ternary, Literal, Group};
 
 pub trait Visitor<T> {
     fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
+    fn visit_ternary(&mut self, ternary: &Ternary) -> T;
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_group(&mut self, group: &Group) -> T;
 }
@@ -27,6 +28,22 @@ impl Visitor<String> for AstPrinter {
             self.parenthesize(lexeme, &[expr1, expr2])
         } else {
             String::from("unknown_binary")
+        }
+    }
+
+    fn visit_ternary(&mut self, ternary: &Ternary) -> String {
+        if let Some(lexeme) = ternary.first_operator.lexeme.get() {
+            let variants = if let Some(lexeme) = ternary.second_operator.lexeme.get() {
+                let expr2 = ternary.second.walk(self);
+                let expr3 = ternary.third.walk(self);
+                self.parenthesize(lexeme, &[expr2, expr3])
+            } else {
+                String::from("unknown_ternary_second_operator")
+            };
+            let condition = ternary.first.walk(self);
+            self.parenthesize(lexeme, &[condition, variants])
+        } else {
+            String::from("unknown_ternary_first_operator")
         }
     }
 

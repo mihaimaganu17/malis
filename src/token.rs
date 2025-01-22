@@ -74,9 +74,11 @@ pub enum SingleChar {
     Minus,
     Plus,
     SemiColon,
+    Colon,
     Slash,
     Star,
     Bang,
+    Question,
 }
 
 #[derive(Debug, PartialEq, Clone)]

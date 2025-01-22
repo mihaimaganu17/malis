@@ -9,6 +9,7 @@ pub enum Expr {
     Binary(Binary),
     Group(Group),
     Literal(Literal),
+    Ternary(Ternary),
 }
 
 impl AsRef<Expr> for Expr {
@@ -22,6 +23,7 @@ impl Expr {
         match self {
             Expr::Unary(unary) => visitor.visit_unary(unary),
             Expr::Binary(binary) => visitor.visit_binary(binary),
+            Expr::Ternary(ternary) => visitor.visit_ternary(ternary),
             Expr::Group(group) => visitor.visit_group(group),
             Expr::Literal(literal) => visitor.visit_literal(literal),
         }
@@ -54,6 +56,27 @@ impl Binary {
             left: Box::new(left),
             operator,
             right: Box::new(right),
+        }
+    }
+}
+
+pub struct Ternary {
+    pub first: Box<Expr>,
+    pub first_operator: Token,
+    pub second: Box<Expr>,
+    pub second_operator: Token,
+    pub third: Box<Expr>,
+}
+
+impl Ternary {
+    pub fn new(first: Expr, first_operator: Token, second: Expr, second_operator: Token,
+        third: Expr) -> Self {
+        Self {
+            first: Box::new(first),
+            first_operator,
+            second: Box::new(second),
+            second_operator,
+            third: Box::new(third)
         }
     }
 }
