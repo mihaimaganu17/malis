@@ -1,4 +1,5 @@
 use crate::token::Token;
+use crate::ast::Expr;
 use std::fmt;
 
 #[derive(Debug)]
@@ -84,6 +85,7 @@ pub enum ParserError {
     MissingClosingParen,
     MissingColon,
     NoPrimaryProduction,
+    NoErrorProduction,
     PanicMode(String, Token),
 }
 
@@ -93,7 +95,7 @@ impl fmt::Display for ParserError {
             ParserError::PanicMode(message, token) => {
                 write!(
                     f,
-                    "Error on line {} for {}: {}",
+                    "Error on line {} for {}: {:#?}",
                     token.line.get().unwrap(),
                     token.lexeme.get().unwrap(),
                     message

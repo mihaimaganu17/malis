@@ -38,7 +38,7 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
                 println!("Ast {}", ast_printer.print(&expr));
             }
-            Err(error_list) => println!("{:#?}", error_list),
+            Err(error_list) => println!("{:?}\n", error_list),
         }
         Ok(())
     }
@@ -72,7 +72,7 @@ impl Malis {
 
             // If a line is invalid, we report the error and go to the next iteration
             if let Err(err) = Self::run(buffer.as_str()) {
-                print!("{:?}", err);
+                print!("{:?}\n", err);
                 stdout.flush()?;
             }
 

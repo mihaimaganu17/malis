@@ -67,7 +67,7 @@ impl Parser {
             };
             let variant2 = self.expression()?;
 
-            // We create a new `Binary` expression using the two
+            // We create a new `ternary` expression using the two
             expr = Expr::Ternary(Ternary::new(expr, operator1, variant1, operator2, variant2));
         }
         Ok(expr)
@@ -208,8 +208,52 @@ impl Parser {
                     Err(ParserError::MissingClosingParen)
                 }
             } else {
+                let _ = self.error()?;
                 Err(ParserError::NoPrimaryProduction)
             }
+        }
+    }
+
+    fn error(&mut self) -> Result<(), ParserError> {
+        // Prepare the `TokenType`s we want to match against for the operators of this production
+        // rule. In this case, we want to match comma which could be used in C to chain expressions
+        // together similar to how a block chains statements
+        let comma = TokenType::SingleChar(SingleChar::Comma);
+        let bang_equal = TokenType::Comparison(Comparison::BangEqual);
+        let equal_equal = TokenType::Comparison(Comparison::EqualEqual);
+        let greater = TokenType::Comparison(Comparison::Greater);
+        let greater_equal = TokenType::Comparison(Comparison::GreaterEqual);
+        let less = TokenType::Comparison(Comparison::Less);
+        let less_equal = TokenType::Comparison(Comparison::LessEqual);
+        let minus = TokenType::SingleChar(SingleChar::Minus);
+        let plus = TokenType::SingleChar(SingleChar::Plus);
+        let slash = TokenType::SingleChar(SingleChar::Slash);
+        let star = TokenType::SingleChar(SingleChar::Star);
+
+        // Then we have a compound of any number of `!=` or `==` followed by another comparison
+        if self.any(&[&comma,
+            &bang_equal,
+            &equal_equal,
+            &greater,
+            &greater_equal,
+            &less,
+            &less_equal,
+            &minus,
+            &plus,
+            &slash,
+            &star,
+        ])? {
+            // The operator if the `Token` that we matched above
+            let operator = self.advance()?.clone();
+            // After the operator, the expression is the next comparison
+            let right_expr = self.ternary()?;
+
+            let message = format!("Found binary operator {} with only right operand {}",
+                operator, crate::AstPrinter.print(&right_expr));
+
+            Err(ParserError::PanicMode(message, operator))
+        } else {
+            Ok(())
         }
     }
 
