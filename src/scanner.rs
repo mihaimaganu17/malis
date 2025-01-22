@@ -300,7 +300,7 @@ impl<'a> Scanner<'a> {
             .to_string();
 
         // Create a token and return it
-        self.create_token(TokenType::Literal(Literal::Ident(value)), start)
+        self.create_token(TokenType::Literal(Literal::LitString(value)), start)
     }
 
     /// Parse a floating-point compatible token from `start` using characters from the `chars`
@@ -375,7 +375,7 @@ impl<'a> Scanner<'a> {
         let token_type = if let Some(keyword) = self.keywords.get(value) {
             TokenType::Keyword(*keyword)
         } else {
-            TokenType::Literal(Literal::LitString(value.to_string()))
+            TokenType::Literal(Literal::Ident(value.to_string()))
         };
 
         self.create_token(token_type, start)
