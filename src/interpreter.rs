@@ -37,7 +37,9 @@ impl Visitor<MalisObject> for Interpreter {
             LiteralType::Nil => MalisObject::Nil,
         }
     }
-    fn visit_group(&mut self, _group: &Group) -> MalisObject {
-        return MalisObject::Nil;
+    // Grouping is an expression surrounded by parenthesis. To evaluate the grouping expression
+    // itself, we recursively evaluate the subexpression contained and return it.
+    fn visit_group(&mut self, group: &Group) -> MalisObject {
+        group.expr.walk(self)
     }
 }
