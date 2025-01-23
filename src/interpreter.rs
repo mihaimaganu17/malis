@@ -1,15 +1,60 @@
 use crate::visit::Visitor;
 use crate::token::{TokenType, SingleChar};
 use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
+use core::ops::{Neg, Not};
 
 #[derive(Debug)]
 pub enum MalisObject {
     Boolean(bool),
     Number(f32),
     StringValue(String),
-    True,
-    False,
     Nil,
+}
+
+impl MalisObject {
+    // Decides whether a `MalisObject` value is true or not inside the context of the `Malis`
+    // language
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            MalisObject::Boolean(b) => *b,
+            // We consider any value coming from a literal as true. What do we do about
+            // 0?
+            MalisObject::StringValue(_)
+            | MalisObject::Number(_) => true,
+            // We consider null as false
+            MalisObject::Nil => false,
+        }
+    }
+}
+
+impl From<bool> for MalisObject {
+    fn from(v: bool) -> Self {
+        Self::Boolean(v)
+    }
+}
+
+impl Not for MalisObject {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        if self.is_truthy() {
+            MalisObject::Boolean(true)
+        } else {
+            MalisObject::Boolean(false)
+        }
+    }
+}
+
+impl Neg for MalisObject {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if let MalisObject::Number(n) = self {
+            MalisObject::Number(-n)
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        }
+    }
 }
 
 pub struct Interpreter {}
@@ -23,20 +68,8 @@ impl Visitor<MalisObject> for Interpreter {
         // and now we are evaluating the operator of our current value
         if let Some(operator_type) = unary.operator.t_type.get() {
             match operator_type {
-                TokenType::SingleChar(SingleChar::Minus) => {
-                    if let MalisObject::Number(n) = right_malis_object {
-                        MalisObject::Number(-n)
-                    } else {
-                        panic!("Cannot minus object {:?} at {:?}", right_malis_object, unary.operator.line);
-                    }
-                }
-                TokenType::SingleChar(SingleChar::Bang) => {
-                    match right_malis_object {
-                        MalisObject::True => MalisObject::False,
-                        MalisObject::False => MalisObject::True,
-                        _ => panic!("Cannot negate object {:?} at {:?}", right_malis_object, unary.operator.line),
-                    }
-                }
+                TokenType::SingleChar(SingleChar::Minus) => -right_malis_object,
+                TokenType::SingleChar(SingleChar::Bang) => !right_malis_object,
                 _ => panic!("Invalid unary operator {:?}", unary.operator),
             }
         } else {
@@ -59,8 +92,8 @@ impl Visitor<MalisObject> for Interpreter {
         match &literal.l_type {
             LiteralType::Number(n) => MalisObject::Number(*n),
             LiteralType::LitString(s) => MalisObject::StringValue(s.to_string()),
-            LiteralType::True => MalisObject::True,
-            LiteralType::False => MalisObject::False,
+            LiteralType::True => MalisObject::Boolean(true),
+            LiteralType::False => MalisObject::Boolean(false),
             LiteralType::Nil => MalisObject::Nil,
         }
     }
