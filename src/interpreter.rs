@@ -1,7 +1,7 @@
 use crate::visit::Visitor;
 use crate::token::{TokenType, SingleChar};
 use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
-use core::ops::{Neg, Not};
+use core::ops::{Neg, Not, Sub, Mul, Div};
 
 #[derive(Debug)]
 pub enum MalisObject {
@@ -57,6 +57,63 @@ impl Neg for MalisObject {
     }
 }
 
+impl Sub for MalisObject {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let left = if let MalisObject::Number(n) = self {
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        let right = if let MalisObject::Number(n) = rhs {
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        MalisObject::Number(left - right)
+    }
+}
+
+impl Mul for MalisObject {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let left = if let MalisObject::Number(n) = self {
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        let right = if let MalisObject::Number(n) = rhs {
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        MalisObject::Number(left * right)
+    }
+}
+
+impl Div for MalisObject {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let left = if let MalisObject::Number(n) = self {
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        let right = if let MalisObject::Number(n) = rhs {
+            if n == 0.0 {
+                panic!("Zero is an invalid denominator!");
+            }
+            n
+        } else {
+            panic!("Cannot minus object {:?}", self);
+        };
+        MalisObject::Number(left / right)
+    }
+}
+
 pub struct Interpreter {}
 
 impl Visitor<MalisObject> for Interpreter {
@@ -77,8 +134,22 @@ impl Visitor<MalisObject> for Interpreter {
         }
     }
 
-    fn visit_binary(&mut self, _binary: &Binary) -> MalisObject {
-        return MalisObject::Nil;
+    fn visit_binary(&mut self, binary: &Binary) -> MalisObject {
+        // In a binary expression, we evaluate the operand from left to right and then evaulte
+        // the binary expression itself
+        let left_object = binary.left.walk(self);
+        let right_object = binary.right.walk(self);
+
+        if let Some(operator_type) = binary.operator.t_type.get() {
+            match operator_type {
+                TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
+                TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
+                TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
+                _ => panic!("Invalid binary operator {:?}", binary.operator),
+            }
+        } else {
+            panic!("Binary operator {:?} has not TokenType {:?}", binary.operator.lexeme, binary.operator.line);
+        }
     }
     fn visit_ternary(&mut self, _ternary: &Ternary) -> MalisObject {
         return MalisObject::Nil;
