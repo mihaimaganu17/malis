@@ -102,6 +102,8 @@ pub enum RuntimeError {
     Subtraction(String),
     Multiplication(String),
     Division(String),
+    UnaryEvaluation(String),
+    BinaryEvaluation(String),
 }
 
 impl fmt::Display for ParserError {
