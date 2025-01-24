@@ -8,6 +8,7 @@ pub enum MalisError {
     NoneTokenType,
     AstError(AstError),
     ParserError(ParserError),
+    RuntimeError(RuntimeError),
 }
 
 impl From<std::io::Error> for MalisError {
@@ -31,6 +32,12 @@ impl From<AstError> for MalisError {
 impl From<ParserError> for MalisError {
     fn from(err: ParserError) -> Self {
         Self::ParserError(err)
+    }
+}
+
+impl From<RuntimeError> for MalisError {
+    fn from(err: RuntimeError) -> Self {
+        Self::RuntimeError(err)
     }
 }
 
@@ -86,6 +93,15 @@ pub enum ParserError {
     NoPrimaryProduction,
     NoErrorProduction,
     PanicMode(String, Token),
+}
+
+#[derive(Debug)]
+pub enum RuntimeError {
+    Negation(String),
+    Addition(String),
+    Subtraction(String),
+    Multiplication(String),
+    Division(String),
 }
 
 impl fmt::Display for ParserError {

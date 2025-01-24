@@ -1,6 +1,7 @@
 use crate::visit::Visitor;
 use crate::token::{TokenType, SingleChar, Comparison};
 use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
+use crate::error::RuntimeError;
 use core::ops::{Neg, Not, Add, Sub, Mul, Div};
 
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -46,95 +47,91 @@ impl Not for MalisObject {
 }
 
 impl Neg for MalisObject {
-    type Output = Self;
+    type Output = Result<Self, RuntimeError>;
 
     fn neg(self) -> Self::Output {
         if let MalisObject::Number(n) = self {
-            MalisObject::Number(-n)
+            Ok(MalisObject::Number(-n))
         } else {
-            panic!("Cannot minus object {:?}", self);
+            Err(RuntimeError::Negation(format!("Cannot negate object {:?}", self)))
         }
     }
 }
 
 impl Add for MalisObject {
-    type Output = Self;
+    type Output = Result<Self, RuntimeError>;
 
     fn add(self, rhs: Self) -> Self::Output {
         match self {
             MalisObject::Number(left) => {
                 if let MalisObject::Number(right) = rhs {
-                    MalisObject::Number(left + right)
+                    Ok(MalisObject::Number(left + right))
                 } else {
-                    panic!("Cannot add objects {:?} and {:?}", self, rhs);
+                    Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
                 }
             }
             MalisObject::StringValue(ref left) => {
                 if let MalisObject::StringValue(right) = rhs {
-                    MalisObject::StringValue(format!("{left}{right}"))
+                    Ok(MalisObject::StringValue(format!("{left}{right}")))
                 } else {
-                    panic!("Cannot add objects {:?} and {:?}", self, rhs);
+                    Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
                 }
             }
-            _ => panic!("Cannot subtract objects {:?} and {:?}", self, rhs),
+            _ => Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
         }
     }
 }
 
 impl Sub for MalisObject {
-    type Output = Self;
+    type Output = Result<Self, RuntimeError>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let left = if let MalisObject::Number(n) = self {
-            n
+        if let MalisObject::Number(left) = self {
+            if let MalisObject::Number(right) = rhs {
+                Ok(MalisObject::Number(left - right))
+            } else {
+                Err(RuntimeError::Subtraction(format!("Cannot subtract objects {:?} and {:?}", self, rhs)))
+            }
         } else {
-            panic!("Cannot subtract objects {:?} and {:?}", self, rhs);
-        };
-        let right = if let MalisObject::Number(n) = rhs {
-            n
-        } else {
-            panic!("Cannot subtract objects {:?} and {:?}", self, rhs);
-        };
-        MalisObject::Number(left - right)
+            Err(RuntimeError::Subtraction(format!("Cannot subtract objects {:?} and {:?}", self, rhs)))
+        }
     }
 }
 
 impl Mul for MalisObject {
-    type Output = Self;
+    type Output = Result<Self, RuntimeError>;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let left = if let MalisObject::Number(n) = self {
-            n
+        if let MalisObject::Number(left) = self {
+            if let MalisObject::Number(right) = rhs {
+                Ok(MalisObject::Number(left * right))
+            } else {
+                Err(RuntimeError::Multiplication(format!("Cannot multiply objects {:?} and {:?}", self, rhs)))
+            }
         } else {
-            panic!("Cannot multiply objects {:?} and {:?}", self, rhs);
-        };
-        let right = if let MalisObject::Number(n) = rhs {
-            n
-        } else {
-            panic!("Cannot multiply objects {:?} and {:?}", self, rhs);
-        };
-        MalisObject::Number(left * right)
+            Err(RuntimeError::Multiplication(format!("Cannot multiply objects {:?} and {:?}", self, rhs)))
+        }
     }
 }
 
 impl Div for MalisObject {
-    type Output = Self;
+    type Output = Result<Self, RuntimeError>;
+
 
     fn div(self, rhs: Self) -> Self::Output {
-        let left = if let MalisObject::Number(n) = self {
-            n
-        } else {
-            panic!("Cannot divide objects {:?} and {:?}", self, rhs);
-        };
-        let right = if let MalisObject::Number(n) = rhs {
-            if n == 0.0 {
-                panic!("Zero is an invalid denominator!");
+        if let MalisObject::Number(left) = self {
+            if let MalisObject::Number(right) = rhs {
+                if right == 0.0 {
+                    Err(RuntimeError::Division(format!("Zero is an invalid denominator {:?}!", right)))
+                } else {
+                    Ok(MalisObject::Number(left * right))
+                }
+            } else {
+                Err(RuntimeError::Division(format!("Cannot divide objects {:?} and {:?}", self, rhs)))
             }
-            n
         } else {
-            panic!("Cannot divide objects {:?} and {:?}", self, rhs);
-        };
-        MalisObject::Number(left / right)
+            Err(RuntimeError::Division(format!("Cannot divide objects {:?} and {:?}", self, rhs)))
+        }
     }
 }
 
