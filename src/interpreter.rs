@@ -1,9 +1,9 @@
 use crate::visit::Visitor;
-use crate::token::{TokenType, SingleChar};
+use crate::token::{TokenType, SingleChar, Comparison};
 use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
 use core::ops::{Neg, Not, Add, Sub, Mul, Div};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum MalisObject {
     Boolean(bool),
     Number(f32),
@@ -138,7 +138,7 @@ impl Div for MalisObject {
     }
 }
 
-pub struct Interpreter {}
+pub struct Interpreter;
 
 impl Visitor<MalisObject> for Interpreter {
     fn visit_unary(&mut self, unary: &Unary) -> MalisObject {
@@ -170,6 +170,10 @@ impl Visitor<MalisObject> for Interpreter {
                 TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
                 TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
                 TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
+                TokenType::Comparison(Comparison::Greater) => MalisObject::Boolean(left_object.gt(&right_object)),
+                TokenType::Comparison(Comparison::GreaterEqual) => MalisObject::Boolean(left_object.ge(&right_object)),
+                TokenType::Comparison(Comparison::Less) => MalisObject::Boolean(left_object.lt(&right_object)),
+                TokenType::Comparison(Comparison::LessEqual) => MalisObject::Boolean(left_object.le(&right_object)),
                 _ => panic!("Invalid binary operator {:?}", binary.operator),
             }
         } else {
