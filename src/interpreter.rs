@@ -174,6 +174,8 @@ impl Visitor<MalisObject> for Interpreter {
                 TokenType::Comparison(Comparison::GreaterEqual) => MalisObject::Boolean(left_object.ge(&right_object)),
                 TokenType::Comparison(Comparison::Less) => MalisObject::Boolean(left_object.lt(&right_object)),
                 TokenType::Comparison(Comparison::LessEqual) => MalisObject::Boolean(left_object.le(&right_object)),
+                TokenType::Comparison(Comparison::BangEqual) => MalisObject::Boolean(left_object.eq(&right_object)),
+                TokenType::Comparison(Comparison::EqualEqual) => MalisObject::Boolean(left_object.ne(&right_object)),
                 _ => panic!("Invalid binary operator {:?}", binary.operator),
             }
         } else {
