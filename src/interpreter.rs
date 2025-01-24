@@ -166,6 +166,7 @@ impl Visitor<MalisObject> for Interpreter {
 
         if let Some(operator_type) = binary.operator.t_type.get() {
             match operator_type {
+                TokenType::SingleChar(SingleChar::Plus) => left_object + right_object,
                 TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
                 TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
                 TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
