@@ -1,7 +1,7 @@
 use crate::visit::Visitor;
 use crate::token::{TokenType, SingleChar};
 use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
-use core::ops::{Neg, Not, Sub, Mul, Div};
+use core::ops::{Neg, Not, Add, Sub, Mul, Div};
 
 #[derive(Debug)]
 pub enum MalisObject {
@@ -57,6 +57,30 @@ impl Neg for MalisObject {
     }
 }
 
+impl Add for MalisObject {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        match self {
+            MalisObject::Number(left) => {
+                if let MalisObject::Number(right) = rhs {
+                    MalisObject::Number(left + right)
+                } else {
+                    panic!("Cannot add objects {:?} and {:?}", self, rhs);
+                }
+            }
+            MalisObject::StringValue(ref left) => {
+                if let MalisObject::StringValue(right) = rhs {
+                    MalisObject::StringValue(format!("{left}{right}"))
+                } else {
+                    panic!("Cannot add objects {:?} and {:?}", self, rhs);
+                }
+            }
+            _ => panic!("Cannot subtract objects {:?} and {:?}", self, rhs),
+        }
+    }
+}
+
 impl Sub for MalisObject {
     type Output = Self;
 
@@ -64,12 +88,12 @@ impl Sub for MalisObject {
         let left = if let MalisObject::Number(n) = self {
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot subtract objects {:?} and {:?}", self, rhs);
         };
         let right = if let MalisObject::Number(n) = rhs {
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot subtract objects {:?} and {:?}", self, rhs);
         };
         MalisObject::Number(left - right)
     }
@@ -82,12 +106,12 @@ impl Mul for MalisObject {
         let left = if let MalisObject::Number(n) = self {
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot multiply objects {:?} and {:?}", self, rhs);
         };
         let right = if let MalisObject::Number(n) = rhs {
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot multiply objects {:?} and {:?}", self, rhs);
         };
         MalisObject::Number(left * right)
     }
@@ -100,7 +124,7 @@ impl Div for MalisObject {
         let left = if let MalisObject::Number(n) = self {
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot divide objects {:?} and {:?}", self, rhs);
         };
         let right = if let MalisObject::Number(n) = rhs {
             if n == 0.0 {
@@ -108,7 +132,7 @@ impl Div for MalisObject {
             }
             n
         } else {
-            panic!("Cannot minus object {:?}", self);
+            panic!("Cannot divide objects {:?} and {:?}", self, rhs);
         };
         MalisObject::Number(left / right)
     }
