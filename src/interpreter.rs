@@ -77,26 +77,28 @@ impl Add for MalisObject {
 
     fn add(self, rhs: Self) -> Self::Output {
         match self {
-            MalisObject::Number(left) => {
-                if let MalisObject::Number(right) = rhs {
-                    Ok(MalisObject::Number(left + right))
-                } else {
-                    Err(RuntimeError::Addition(format!(
-                        "Cannot add objects {:?} and {:?}",
-                        self, rhs
-                    )))
-                }
-            }
-            MalisObject::StringValue(ref left) => {
-                if let MalisObject::StringValue(right) = rhs {
+            MalisObject::Number(left) => match rhs {
+                MalisObject::Number(right) => Ok(MalisObject::Number(left + right)),
+                MalisObject::StringValue(right) => {
                     Ok(MalisObject::StringValue(format!("{left}{right}")))
-                } else {
-                    Err(RuntimeError::Addition(format!(
-                        "Cannot add objects {:?} and {:?}",
-                        self, rhs
-                    )))
                 }
-            }
+                _ => Err(RuntimeError::Addition(format!(
+                    "Cannot add objects {:?} and {:?}",
+                    self, rhs
+                ))),
+            },
+            MalisObject::StringValue(ref left) => match rhs {
+                MalisObject::StringValue(right) => {
+                    Ok(MalisObject::StringValue(format!("{left}{right}")))
+                }
+                MalisObject::Number(right) => {
+                    Ok(MalisObject::StringValue(format!("{left}{right}")))
+                }
+                _ => Err(RuntimeError::Addition(format!(
+                    "Cannot add objects {:?} and {:?}",
+                    self, rhs
+                ))),
+            },
             _ => Err(RuntimeError::Addition(format!(
                 "Cannot add objects {:?} and {:?}",
                 self, rhs
