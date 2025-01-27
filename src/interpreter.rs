@@ -241,10 +241,10 @@ impl Visitor<Result<MalisObject, RuntimeError>> for Interpreter {
                     Ok(MalisObject::Boolean(left_object.le(&right_object)))
                 }
                 TokenType::Comparison(Comparison::BangEqual) => {
-                    Ok(MalisObject::Boolean(left_object.eq(&right_object)))
+                    Ok(MalisObject::Boolean(left_object.ne(&right_object)))
                 }
                 TokenType::Comparison(Comparison::EqualEqual) => {
-                    Ok(MalisObject::Boolean(left_object.ne(&right_object)))
+                    Ok(MalisObject::Boolean(left_object.eq(&right_object)))
                 }
                 _ => Err(RuntimeError::BinaryEvaluation(format!(
                     "Invalid binary operator {:?}",
