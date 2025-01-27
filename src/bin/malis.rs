@@ -9,12 +9,9 @@ fn main() {
         // If we do have a second argument, we execute it
         Some(arg) => {
             let execution = Malis::execute(&arg);
-            match execution {
-                Err(MalisError::RuntimeError(e)) => {
-                    println!("{}", e);
-                    std::process::exit(70);
-                }
-                _ => {}
+            if let Err(MalisError::RuntimeError(e)) = execution {
+                println!("{}", e);
+                std::process::exit(70);
             }
         }
         // If not, we enter interactive mode in the prompt

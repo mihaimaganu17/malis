@@ -7,6 +7,7 @@ mod token;
 mod visit;
 
 pub use error::MalisError;
+use interpreter::Interpreter;
 use parser::Parser;
 use scanner::Scanner;
 use std::{
@@ -15,7 +16,6 @@ use std::{
     path::Path,
 };
 use visit::AstPrinter;
-use interpreter::Interpreter;
 
 #[derive(Debug)]
 pub struct Malis {
@@ -38,9 +38,9 @@ impl Malis {
                 let mut parser = Parser::new(tokens);
                 let expr = parser.parse()?;
                 let mut ast_printer = AstPrinter;
-                println!("Ast {}", ast_printer.print(&expr));
+                println!("Ast: {}", ast_printer.print(&expr));
 
-                let _ = Interpreter.interpret(expr)?;
+                Interpreter.interpret(expr)?;
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),

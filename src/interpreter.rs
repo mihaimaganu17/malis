@@ -19,16 +19,7 @@ impl fmt::Display for MalisObject {
             Self::Boolean(value) => write!(f, "{value}"),
             Self::StringValue(value) => write!(f, "{value}"),
             Self::Nil => write!(f, "nil"),
-            Self::Number(value) => {
-                if value.fract() == 0.0 {
-                    let mut value = format!("{value}");
-                    value.pop();
-                    value.pop();
-                    write!(f, "{}", value)
-                } else {
-                    write!(f, "{}", value)
-                }
-            }
+            Self::Number(value) => write!(f, "{}", value),
         }
     }
 }
