@@ -1,8 +1,9 @@
-use crate::ast::{Binary, Group, Literal, LiteralType, Ternary, Unary};
+use crate::ast::{Binary, Expr, Group, Literal, LiteralType, Ternary, Unary};
 use crate::error::RuntimeError;
 use crate::token::{Comparison, SingleChar, TokenType};
 use crate::visit::Visitor;
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
+use std::fmt;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum MalisObject {
@@ -10,6 +11,26 @@ pub enum MalisObject {
     Number(f32),
     StringValue(String),
     Nil,
+}
+
+impl fmt::Display for MalisObject {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            Self::Boolean(value) => write!(f, "{value}"),
+            Self::StringValue(value) => write!(f, "{value}"),
+            Self::Nil => write!(f, "nil"),
+            Self::Number(value) => {
+                if value.fract() == 0.0 {
+                    let mut value = format!("{value}");
+                    value.pop();
+                    value.pop();
+                    write!(f, "{}", value)
+                } else {
+                    write!(f, "{}", value)
+                }
+            }
+        }
+    }
 }
 
 impl MalisObject {
@@ -167,6 +188,18 @@ impl Div for MalisObject {
 }
 
 pub struct Interpreter;
+
+impl Interpreter {
+    pub fn interpret(&mut self, expr: Expr) -> Result<(), RuntimeError> {
+        let malis_object = self.evaluate(expr)?;
+        println!("{}", malis_object);
+        Ok(())
+    }
+
+    pub fn evaluate(&mut self, expr: Expr) -> Result<MalisObject, RuntimeError> {
+        expr.walk(self)
+    }
+}
 
 impl Visitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_unary(&mut self, unary: &Unary) -> Result<MalisObject, RuntimeError> {
