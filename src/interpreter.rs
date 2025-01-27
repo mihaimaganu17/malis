@@ -163,7 +163,7 @@ impl Div for MalisObject {
                         right
                     )))
                 } else {
-                    Ok(MalisObject::Number(left * right))
+                    Ok(MalisObject::Number(left / right))
                 }
             } else {
                 Err(RuntimeError::Division(format!(
