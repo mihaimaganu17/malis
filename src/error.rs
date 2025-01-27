@@ -11,6 +11,16 @@ pub enum MalisError {
     RuntimeError(RuntimeError),
 }
 
+impl fmt::Display for MalisError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            MalisError::ParserError(e) => write!(f, "{e}"),
+            MalisError::RuntimeError(e) => write!(f, "{e}"),
+            _ => write!(f, "{self:?}"),
+        }
+    }
+}
+
 impl From<std::io::Error> for MalisError {
     fn from(err: std::io::Error) -> Self {
         Self::StdIoError(err)
@@ -95,17 +105,6 @@ pub enum ParserError {
     PanicMode(String, Token),
 }
 
-#[derive(Debug)]
-pub enum RuntimeError {
-    Negation(String),
-    Addition(String),
-    Subtraction(String),
-    Multiplication(String),
-    Division(String),
-    UnaryEvaluation(String),
-    BinaryEvaluation(String),
-}
-
 impl fmt::Display for ParserError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
@@ -119,6 +118,31 @@ impl fmt::Display for ParserError {
                 )
             }
             _ => write!(f, "{:?}", self),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum RuntimeError {
+    Negation(String),
+    Addition(String),
+    Subtraction(String),
+    Multiplication(String),
+    Division(String),
+    UnaryEvaluation(String),
+    BinaryEvaluation(String),
+}
+
+impl fmt::Display for RuntimeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            RuntimeError::Negation(message)
+            | RuntimeError::Addition(message)
+            | RuntimeError::Subtraction(message)
+            | RuntimeError::Multiplication(message)
+            | RuntimeError::Division(message)
+            | RuntimeError::UnaryEvaluation(message)
+            | RuntimeError::BinaryEvaluation(message) => write!(f, "{}", message),
         }
     }
 }
