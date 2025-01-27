@@ -1,8 +1,8 @@
-use crate::visit::Visitor;
-use crate::token::{TokenType, SingleChar, Comparison};
-use crate::ast::{Unary, Binary, Ternary, Literal, LiteralType, Group};
+use crate::ast::{Binary, Group, Literal, LiteralType, Ternary, Unary};
 use crate::error::RuntimeError;
-use core::ops::{Neg, Not, Add, Sub, Mul, Div};
+use crate::token::{Comparison, SingleChar, TokenType};
+use crate::visit::Visitor;
+use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum MalisObject {
@@ -20,8 +20,7 @@ impl MalisObject {
             MalisObject::Boolean(b) => *b,
             // We consider any value coming from a literal as true. What do we do about
             // 0?
-            MalisObject::StringValue(_)
-            | MalisObject::Number(_) => true,
+            MalisObject::StringValue(_) | MalisObject::Number(_) => true,
             // We consider null as false
             MalisObject::Nil => false,
         }
@@ -53,7 +52,10 @@ impl Neg for MalisObject {
         if let MalisObject::Number(n) = self {
             Ok(MalisObject::Number(-n))
         } else {
-            Err(RuntimeError::Negation(format!("Cannot negate object {:?}", self)))
+            Err(RuntimeError::Negation(format!(
+                "Cannot negate object {:?}",
+                self
+            )))
         }
     }
 }
@@ -67,17 +69,26 @@ impl Add for MalisObject {
                 if let MalisObject::Number(right) = rhs {
                     Ok(MalisObject::Number(left + right))
                 } else {
-                    Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
+                    Err(RuntimeError::Addition(format!(
+                        "Cannot add objects {:?} and {:?}",
+                        self, rhs
+                    )))
                 }
             }
             MalisObject::StringValue(ref left) => {
                 if let MalisObject::StringValue(right) = rhs {
                     Ok(MalisObject::StringValue(format!("{left}{right}")))
                 } else {
-                    Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
+                    Err(RuntimeError::Addition(format!(
+                        "Cannot add objects {:?} and {:?}",
+                        self, rhs
+                    )))
                 }
             }
-            _ => Err(RuntimeError::Addition(format!("Cannot add objects {:?} and {:?}", self, rhs)))
+            _ => Err(RuntimeError::Addition(format!(
+                "Cannot add objects {:?} and {:?}",
+                self, rhs
+            ))),
         }
     }
 }
@@ -90,10 +101,16 @@ impl Sub for MalisObject {
             if let MalisObject::Number(right) = rhs {
                 Ok(MalisObject::Number(left - right))
             } else {
-                Err(RuntimeError::Subtraction(format!("Cannot subtract objects {:?} and {:?}", self, rhs)))
+                Err(RuntimeError::Subtraction(format!(
+                    "Cannot subtract objects {:?} and {:?}",
+                    self, rhs
+                )))
             }
         } else {
-            Err(RuntimeError::Subtraction(format!("Cannot subtract objects {:?} and {:?}", self, rhs)))
+            Err(RuntimeError::Subtraction(format!(
+                "Cannot subtract objects {:?} and {:?}",
+                self, rhs
+            )))
         }
     }
 }
@@ -106,10 +123,16 @@ impl Mul for MalisObject {
             if let MalisObject::Number(right) = rhs {
                 Ok(MalisObject::Number(left * right))
             } else {
-                Err(RuntimeError::Multiplication(format!("Cannot multiply objects {:?} and {:?}", self, rhs)))
+                Err(RuntimeError::Multiplication(format!(
+                    "Cannot multiply objects {:?} and {:?}",
+                    self, rhs
+                )))
             }
         } else {
-            Err(RuntimeError::Multiplication(format!("Cannot multiply objects {:?} and {:?}", self, rhs)))
+            Err(RuntimeError::Multiplication(format!(
+                "Cannot multiply objects {:?} and {:?}",
+                self, rhs
+            )))
         }
     }
 }
@@ -117,20 +140,28 @@ impl Mul for MalisObject {
 impl Div for MalisObject {
     type Output = Result<Self, RuntimeError>;
 
-
     fn div(self, rhs: Self) -> Self::Output {
         if let MalisObject::Number(left) = self {
             if let MalisObject::Number(right) = rhs {
                 if right == 0.0 {
-                    Err(RuntimeError::Division(format!("Zero is an invalid denominator {:?}!", right)))
+                    Err(RuntimeError::Division(format!(
+                        "Zero is an invalid denominator {:?}!",
+                        right
+                    )))
                 } else {
                     Ok(MalisObject::Number(left * right))
                 }
             } else {
-                Err(RuntimeError::Division(format!("Cannot divide objects {:?} and {:?}", self, rhs)))
+                Err(RuntimeError::Division(format!(
+                    "Cannot divide objects {:?} and {:?}",
+                    self, rhs
+                )))
             }
         } else {
-            Err(RuntimeError::Division(format!("Cannot divide objects {:?} and {:?}", self, rhs)))
+            Err(RuntimeError::Division(format!(
+                "Cannot divide objects {:?} and {:?}",
+                self, rhs
+            )))
         }
     }
 }
@@ -148,10 +179,16 @@ impl Visitor<Result<MalisObject, RuntimeError>> for Interpreter {
             match operator_type {
                 TokenType::SingleChar(SingleChar::Minus) => -right_malis_object,
                 TokenType::SingleChar(SingleChar::Bang) => Ok(!right_malis_object),
-                _ => Err(RuntimeError::UnaryEvaluation(format!("Invalid unary operator {:?}", unary.operator))),
+                _ => Err(RuntimeError::UnaryEvaluation(format!(
+                    "Invalid unary operator {:?}",
+                    unary.operator
+                ))),
             }
         } else {
-            Err(RuntimeError::UnaryEvaluation(format!("Unary operator {:?} has not TokenType {:?}", unary.operator.lexeme, unary.operator.line)))
+            Err(RuntimeError::UnaryEvaluation(format!(
+                "Unary operator {:?} has not TokenType {:?}",
+                unary.operator.lexeme, unary.operator.line
+            )))
         }
     }
 
@@ -167,16 +204,34 @@ impl Visitor<Result<MalisObject, RuntimeError>> for Interpreter {
                 TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
                 TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
                 TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
-                TokenType::Comparison(Comparison::Greater) => Ok(MalisObject::Boolean(left_object.gt(&right_object))),
-                TokenType::Comparison(Comparison::GreaterEqual) => Ok(MalisObject::Boolean(left_object.ge(&right_object))),
-                TokenType::Comparison(Comparison::Less) => Ok(MalisObject::Boolean(left_object.lt(&right_object))),
-                TokenType::Comparison(Comparison::LessEqual) => Ok(MalisObject::Boolean(left_object.le(&right_object))),
-                TokenType::Comparison(Comparison::BangEqual) => Ok(MalisObject::Boolean(left_object.eq(&right_object))),
-                TokenType::Comparison(Comparison::EqualEqual) => Ok(MalisObject::Boolean(left_object.ne(&right_object))),
-                _ => Err(RuntimeError::BinaryEvaluation(format!("Invalid binary operator {:?}", binary.operator))),
+                TokenType::Comparison(Comparison::Greater) => {
+                    Ok(MalisObject::Boolean(left_object.gt(&right_object)))
+                }
+                TokenType::Comparison(Comparison::GreaterEqual) => {
+                    Ok(MalisObject::Boolean(left_object.ge(&right_object)))
+                }
+                TokenType::Comparison(Comparison::Less) => {
+                    Ok(MalisObject::Boolean(left_object.lt(&right_object)))
+                }
+                TokenType::Comparison(Comparison::LessEqual) => {
+                    Ok(MalisObject::Boolean(left_object.le(&right_object)))
+                }
+                TokenType::Comparison(Comparison::BangEqual) => {
+                    Ok(MalisObject::Boolean(left_object.eq(&right_object)))
+                }
+                TokenType::Comparison(Comparison::EqualEqual) => {
+                    Ok(MalisObject::Boolean(left_object.ne(&right_object)))
+                }
+                _ => Err(RuntimeError::BinaryEvaluation(format!(
+                    "Invalid binary operator {:?}",
+                    binary.operator
+                ))),
             }
         } else {
-            Err(RuntimeError::BinaryEvaluation(format!("Binary operator {:?} has not TokenType {:?}", binary.operator.lexeme, binary.operator.line)))
+            Err(RuntimeError::BinaryEvaluation(format!(
+                "Binary operator {:?} has not TokenType {:?}",
+                binary.operator.lexeme, binary.operator.line
+            )))
         }
     }
     fn visit_ternary(&mut self, _ternary: &Ternary) -> Result<MalisObject, RuntimeError> {

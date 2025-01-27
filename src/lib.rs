@@ -1,6 +1,6 @@
 pub mod ast;
-pub mod interpreter;
 mod error;
+pub mod interpreter;
 mod parser;
 mod scanner;
 mod token;
