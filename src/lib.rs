@@ -15,6 +15,7 @@ use std::{
     path::Path,
 };
 use visit::AstPrinter;
+use interpreter::Interpreter;
 
 #[derive(Debug)]
 pub struct Malis {
@@ -38,8 +39,11 @@ impl Malis {
                 let expr = parser.parse()?;
                 let mut ast_printer = AstPrinter;
                 println!("Ast {}", ast_printer.print(&expr));
+
+                let _ = Interpreter.interpret(expr)?;
             }
-            Err(error_list) => println!("{:?}\n", error_list),
+            // Print all the errors we found during scanning
+            Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),
         }
         Ok(())
     }
@@ -73,7 +77,7 @@ impl Malis {
 
             // If a line is invalid, we report the error and go to the next iteration
             if let Err(err) = Self::run(buffer.as_str()) {
-                println!("{:?}", err);
+                println!("{err}");
                 stdout.flush()?;
             }
 

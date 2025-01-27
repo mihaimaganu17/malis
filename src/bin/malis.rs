@@ -1,4 +1,4 @@
-use malis::Malis;
+use malis::{Malis, MalisError};
 
 fn main() {
     let mut args = std::env::args();
@@ -7,7 +7,16 @@ fn main() {
 
     match args.next() {
         // If we do have a second argument, we execute it
-        Some(arg) => Malis::execute(&arg).expect("Failed to execute script"),
+        Some(arg) => {
+            let execution = Malis::execute(&arg);
+            match execution {
+                Err(MalisError::RuntimeError(e)) => {
+                    println!("{}", e);
+                    std::process::exit(70);
+                }
+                _ => {}
+            }
+        }
         // If not, we enter interactive mode in the prompt
         None => Malis::interactive().expect("Failed to execut script"),
     };
