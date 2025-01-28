@@ -266,6 +266,9 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
                 TokenType::Comparison(Comparison::EqualEqual) => {
                     Ok(MalisObject::Boolean(left_object.eq(&right_object)))
                 }
+                // When we have the comma separator, separating multiple expressions, similar to C,
+                // the return value is the result of the last expression
+                TokenType::SingleChar(SingleChar::Comma) => Ok(right_object),
                 _ => Err(RuntimeError::BinaryEvaluation(format!(
                     "Invalid binary operator {:?}",
                     binary.operator
