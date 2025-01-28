@@ -1,7 +1,7 @@
 use crate::ast::{Binary, Expr, Group, Literal, LiteralType, Ternary, Unary};
 use crate::error::RuntimeError;
 use crate::token::{Comparison, SingleChar, TokenType};
-use crate::visit::Visitor;
+use crate::visit::ExprVisitor;
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -194,7 +194,7 @@ impl Interpreter {
     }
 }
 
-impl Visitor<Result<MalisObject, RuntimeError>> for Interpreter {
+impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_unary(&mut self, unary: &Unary) -> Result<MalisObject, RuntimeError> {
         // We first evaluate the operand expression;
         let right_malis_object = unary.right.walk(self)?;

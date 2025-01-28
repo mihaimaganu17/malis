@@ -286,7 +286,7 @@ impl Parser {
             let message = format!(
                 "Found binary operator {} with only right operand {}",
                 operator,
-                crate::AstPrinter.print(&right_expr)
+                crate::AstPrinter.print_expr(&right_expr)
             );
 
             Err(ParserError::PanicMode(message, operator))

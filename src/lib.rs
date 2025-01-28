@@ -38,7 +38,7 @@ impl Malis {
                 let mut parser = Parser::new(tokens);
                 let expr = parser.parse()?;
                 let mut ast_printer = AstPrinter;
-                println!("Ast: {}", ast_printer.print(&expr));
+                println!("Ast: {}", ast_printer.print_stmt(&expr));
 
                 Interpreter.interpret(expr)?;
             }

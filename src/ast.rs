@@ -1,12 +1,27 @@
 use crate::{
     error::{AstError, MalisError},
     token::{Keyword, Literal as LiteralToken, Token, TokenType},
-    visit::Visitor,
+    visit::{ExprVisitor, StmtVisitor},
 };
 
 pub enum Stmt {
     Expr(Expr),
     Print(Expr),
+}
+
+impl AsRef<Stmt> for Stmt {
+    fn as_ref(&self) -> &Stmt {
+        self
+    }
+}
+
+impl Stmt {
+    pub fn walk<T, V: StmtVisitor<T>>(&self, visitor: &mut V) -> T {
+        match self {
+            Stmt::Expr(expr) => visitor.visit_expr_stmt(expr),
+            Stmt::Print(expr) => visitor.visit_print_stmt(expr),
+        }
+    }
 }
 
 pub enum Expr {
@@ -24,7 +39,7 @@ impl AsRef<Expr> for Expr {
 }
 
 impl Expr {
-    pub fn walk<T, V: Visitor<T>>(&self, visitor: &mut V) -> T {
+    pub fn walk<T, V: ExprVisitor<T>>(&self, visitor: &mut V) -> T {
         match self {
             Expr::Unary(unary) => visitor.visit_unary(unary),
             Expr::Binary(binary) => visitor.visit_binary(binary),

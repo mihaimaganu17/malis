@@ -1,6 +1,8 @@
-use crate::ast::{Binary, Expr, Group, Literal, Ternary, Unary};
+use crate::ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary};
 
-pub trait Visitor<T> {
+/// Trait that must be implemented by a type which want to use the Visitor pattern to visit an
+/// `Expr` expression of the Malis lanaguage
+pub trait ExprVisitor<T> {
     fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
     fn visit_ternary(&mut self, ternary: &Ternary) -> T;
@@ -8,10 +10,17 @@ pub trait Visitor<T> {
     fn visit_group(&mut self, group: &Group) -> T;
 }
 
+/// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
+/// `Stmt` statement of the Malis lanaguage
+pub trait StmtVisitor<T> {
+    fn visit_expr_stmt(&mut self, stmt: &Expr) -> T;
+    fn visit_print_stmt(&mut self, stmt: &Expr) -> T;
+}
+
 #[derive(Debug)]
 pub struct AstPrinter;
 
-impl Visitor<String> for AstPrinter {
+impl ExprVisitor<String> for AstPrinter {
     fn visit_unary(&mut self, unary: &Unary) -> String {
         if let Some(lexeme) = unary.operator.lexeme.get() {
             let expr = unary.right.walk(self);
@@ -57,6 +66,18 @@ impl Visitor<String> for AstPrinter {
     }
 }
 
+impl StmtVisitor<String> for AstPrinter {
+    fn visit_expr_stmt(&mut self, stmt: &Expr) -> String {
+        let expr = stmt.walk(self);
+        self.parenthesize("expr_stmt", &[expr])
+    }
+
+    fn visit_print_stmt(&mut self, stmt: &Expr) -> String {
+        let expr = stmt.walk(self);
+        self.parenthesize("print_stmt", &[expr])
+    }
+}
+
 impl AstPrinter {
     // Wraps subexpressions stored in `exprs` in parenthasis with spaces between them
     fn parenthesize<S: AsRef<str>>(&mut self, name: &str, exprs: &[S]) -> String {
@@ -72,8 +93,13 @@ impl AstPrinter {
         format!("({})", final_string)
     }
 
-    pub fn print(&mut self, expr: &Expr) -> String {
+    pub fn print_expr(&mut self, expr: &Expr) -> String {
         expr.walk(self)
+    }
+
+    pub fn print_stmt(&mut self, statements: &[Stmt]) -> String {
+        let statements = statements.iter().map(|stmt| stmt.walk(self)).collect::<Vec<_>>();
+        statements.join("\n")
     }
 }
 
@@ -92,7 +118,7 @@ mod tests {
             })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(&Expr::Unary(unary_expr)))
+        println!("Ast: {}", ast_printer.print_expr(&Expr::Unary(unary_expr)))
     }
 
     #[test]
@@ -107,7 +133,7 @@ mod tests {
             })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(&Expr::Binary(binary_expr)))
+        println!("Ast: {}", ast_printer.print_expr(&Expr::Binary(binary_expr)))
     }
 
     #[test]
@@ -118,7 +144,7 @@ mod tests {
             })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(&Expr::Group(grouping_expr)))
+        println!("Ast: {}", ast_printer.print_expr(&Expr::Group(grouping_expr)))
     }
 
     #[test]
@@ -141,6 +167,6 @@ mod tests {
         );
 
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print(&Expr::Binary(binary_expr)))
+        println!("Ast: {}", ast_printer.print_expr(&Expr::Binary(binary_expr)))
     }
 }
