@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, Ternary, Unary},
+    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -16,11 +16,45 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, ParserError> {
-        match self.separator() {
-            Ok(expr) => Ok(expr),
-            Err(e) => Err(e),
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, ParserError> {
+        let mut statements = vec![];
+        while self.tokens_left()? {
+            statements.push(self.statement()?);
         }
+        Ok(statements)
+    }
+
+    // Parses a Malis Statement
+    fn statement(&mut self) -> Result<Stmt, ParserError> {
+        // We could have 2 type of statements: expression statement or print statements
+        // Print statements are identified by the keyword `print`
+        let print_token = TokenType::Keyword(Keyword::Print);
+
+        if self.any(&[&print_token])? {
+            // Consume the print
+            let _ = self.advance()?;
+            self.print_statement()
+        } else {
+            self.expr_statement()
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<Stmt, ParserError> {
+        // Parse the expression in the statement
+        let expr = self.separator()?;
+        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        // We need to consume the `;` in order to parse a proper statement
+        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        Ok(Stmt::Print(expr))
+    }
+
+    fn expr_statement(&mut self) -> Result<Stmt, ParserError> {
+        // Parse the expression in the statement
+        let expr = self.separator()?;
+        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        // We need to consume the `;` in order to parse a proper statement
+        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        Ok(Stmt::Expr(expr))
     }
 
     fn separator(&mut self) -> Result<Expr, ParserError> {
