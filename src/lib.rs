@@ -40,7 +40,7 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
                 println!("Ast: {}", ast_printer.print_stmt(&expr));
 
-                Interpreter.interpret(expr)?;
+                //Interpreter.interpret(expr)?;
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),
@@ -73,6 +73,11 @@ impl Malis {
             // If no bytes were read, it means we reached `End-of-File` or `Ctrl-D` was pressed.
             if bread == 0 {
                 break;
+            }
+
+            match buffer.as_str().trim() {
+                "q" | "quit" | "exit" => break,
+                _ => {}
             }
 
             // If a line is invalid, we report the error and go to the next iteration
