@@ -4,6 +4,11 @@ use crate::{
     visit::Visitor,
 };
 
+pub enum Stmt {
+    Expr(Expr),
+    Print(Expr),
+}
+
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),
