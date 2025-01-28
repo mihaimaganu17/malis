@@ -1,7 +1,7 @@
-use crate::ast::{Binary, Expr, Group, Literal, LiteralType, Ternary, Unary};
+use crate::ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary};
 use crate::error::RuntimeError;
 use crate::token::{Comparison, SingleChar, TokenType};
-use crate::visit::ExprVisitor;
+use crate::visit::{ExprVisitor, StmtVisitor};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -183,14 +183,32 @@ impl Div for MalisObject {
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn interpret(&mut self, expr: Expr) -> Result<(), RuntimeError> {
-        let malis_object = self.evaluate(expr)?;
-        println!("{}", malis_object);
+    pub fn interpret(&mut self, statements: &[Stmt]) -> Result<(), RuntimeError> {
+        for stmt in statements.iter() {
+            self.execute(stmt)?;
+        }
         Ok(())
     }
 
-    pub fn evaluate(&mut self, expr: Expr) -> Result<MalisObject, RuntimeError> {
+    pub fn evaluate(&mut self, expr: &Expr) -> Result<MalisObject, RuntimeError> {
         expr.walk(self)
+    }
+
+    pub fn execute(&mut self, stmt: &Stmt) -> Result<(), RuntimeError> {
+        stmt.walk(self)
+    }
+}
+
+impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
+    fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
+        self.evaluate(stmt)?;
+        Ok(())
+    }
+
+    fn visit_print_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
+        let expr = self.evaluate(stmt)?;
+        println!("{expr}");
+        Ok(())
     }
 }
 
