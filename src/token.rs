@@ -60,6 +60,7 @@ pub enum TokenType {
     Comparison(Comparison),
     Literal(Literal),
     Keyword(Keyword),
+    Ident,
     Ignored,
     Eof,
 }
@@ -80,12 +81,12 @@ pub enum SingleChar {
     Star,
     Bang,
     Question,
+    Equal,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Comparison {
     BangEqual,
-    Equal,
     EqualEqual,
     Greater,
     GreaterEqual,
@@ -95,7 +96,6 @@ pub enum Comparison {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
-    Ident(String),
     // Because `String` is reserved in Rust
     LitString(String),
     Number(f32),

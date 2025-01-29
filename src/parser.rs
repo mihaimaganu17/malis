@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary},
+    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -19,9 +19,51 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, ParserError> {
         let mut statements = vec![];
         while self.tokens_left()? {
-            statements.push(self.statement()?);
+            if let Some(declaration) = self.declaration()? {
+                statements.push(declaration);
+            }
         }
         Ok(statements)
+    }
+
+    // Parses a Malis Declaration, which is in fact a node of statement
+    fn declaration(&mut self) -> Result<Option<Stmt>, ParserError> {
+        // We could have 1 type of declaration as a statemen: variable declration
+        let var_token = TokenType::Keyword(Keyword::Var);
+
+        let maybe_declaration = if self.any(&[&var_token])? {
+            self.var_declaration()
+        } else {
+            self.statement()
+        };
+
+        if maybe_declaration.is_err() {
+            self.synchronize()?;
+            return Ok(None)
+        }
+        maybe_declaration.map(|r| Some(r))
+    }
+
+    // Parses a Malis Variable Declaration, which is in fact a node of statement
+    fn var_declaration(&mut self) -> Result<Stmt, ParserError> {
+        // At this point we have a `var` keyword and we need to consume the Identifier that follows
+        // it
+        let ident = TokenType::Ident;
+        let var_name = self.consume(&ident, "Expeted a variable name".to_string())?.clone();
+
+        // We now have an indetifier and we optionally need to bind it to a value using equal `=`
+        let equal = TokenType::SingleChar(SingleChar::Equal);
+
+        let maybe_binded = if self.any(&[&equal])? {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        // We need to consume the `;` in order to parse a proper declaration statement
+        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        Ok(Stmt::Var(VarStmt::new(var_name, maybe_binded)))
     }
 
     // Parses a Malis Statement
@@ -224,26 +266,31 @@ impl Parser {
             self.advance()?;
             Ok(Expr::Literal(literal))
         } else {
-            let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
-            let right_paren = TokenType::SingleChar(SingleChar::RightParen);
-
-            if self.any(&[&left_paren])? {
-                // Move past the left parenthesis
-                self.advance()?;
-                // Parse the expression following if possible
-                let expr = self.separator()?;
-                // Consume the last parenthesis
-                if self
-                    .consume(&right_paren, "Expect ')' after expression".to_string())
-                    .is_ok()
-                {
-                    Ok(Expr::Group(Group::new(expr)))
-                } else {
-                    Err(ParserError::MissingClosingParen)
+            match self.peek_type()? {
+                TokenType::SingleChar(SingleChar::LeftParen) => {
+                    // Move past the left parenthesis
+                    self.advance()?;
+                    // Parse the expression following if possible
+                    let expr = self.separator()?;
+                    // Consume the closing parenthesis
+                    let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+                    if self
+                        .consume(&right_paren, "Expect ')' after expression".to_string())
+                        .is_ok()
+                    {
+                        Ok(Expr::Group(Group::new(expr)))
+                    } else {
+                        Err(ParserError::MissingClosingParen)
+                    }
                 }
-            } else {
-                self.error()?;
-                Err(ParserError::NoPrimaryProduction)
+                TokenType::Ident => {
+                    let token = self.advance()?.clone();
+                    Ok(Expr::Var(token))
+                }
+                _ => {
+                    self.error()?;
+                    Err(ParserError::NoPrimaryProduction)
+                }
             }
         }
     }
@@ -306,10 +353,9 @@ impl Parser {
         Ok(false)
     }
 
-    fn consume(&mut self, t_type: &TokenType, message: String) -> Result<(), ParserError> {
+    fn consume(&mut self, t_type: &TokenType, message: String) -> Result<&Token, ParserError> {
         if self.any(&[t_type])? {
-            self.advance()?;
-            Ok(())
+            self.advance()
         } else {
             Err(ParserError::PanicMode(message, self.peek()?.clone()))
         }
@@ -330,7 +376,7 @@ impl Parser {
     }
 
     // Returns the token type at the `current` index, without further advancing the cursor
-    fn _peek_type(&self) -> Result<&TokenType, ParserError> {
+    fn peek_type(&self) -> Result<&TokenType, ParserError> {
         self.peek()?.t_type.get().ok_or(ParserError::NoTokenType)
     }
 
@@ -368,7 +414,7 @@ impl Parser {
     // of the code or script. This entails the following: unwinding the call stack, such that we
     // clear any tokens owned by the current faulty statement and finding the start of the next
     // statement
-    fn _synchronize(&mut self) -> Result<(), ParserError> {
+    fn synchronize(&mut self) -> Result<(), ParserError> {
         self.advance()?;
         // while we are not at the end of the code
         while self.tokens_left()? {
@@ -389,7 +435,7 @@ impl Parser {
                 | Keyword::While
                 | Keyword::Print
                 | Keyword::Return,
-            ) = self._peek_type()?
+            ) = self.peek_type()?
             {
                 // We (likely) are at the start of a new statement
                 return Ok(());

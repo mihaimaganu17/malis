@@ -154,7 +154,7 @@ impl<'a> Scanner<'a> {
                     self.create_token(TokenType::Comparison(Comparison::EqualEqual), start)?
                 } else {
                     self.offset += 1;
-                    self.create_token(TokenType::Comparison(Comparison::Equal), start)?
+                    self.create_token(TokenType::SingleChar(SingleChar::Equal), start)?
                 }
             }
             '<' => {
@@ -379,7 +379,7 @@ impl<'a> Scanner<'a> {
         let token_type = if let Some(keyword) = self.keywords.get(value) {
             TokenType::Keyword(*keyword)
         } else {
-            TokenType::Literal(Literal::Ident(value.to_string()))
+            TokenType::Ident
         };
 
         self.create_token(token_type, start)

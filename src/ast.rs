@@ -28,15 +28,18 @@ impl Stmt {
 
 pub struct VarStmt {
     identifier: Token,
-    expr: Expr,
+    expr: Option<Expr>,
 }
 
 impl VarStmt {
+    pub fn new(identifier: Token, expr: Option<Expr>) -> Self {
+        Self { identifier, expr }
+    }
     pub fn identifier(&self) -> &Token {
         &self.identifier
     }
-    pub fn expr(&self) -> &Expr {
-        &self.expr
+    pub fn expr(&self) -> Option<&Expr> {
+        self.expr.as_ref()
     }
 }
 
@@ -136,7 +139,6 @@ impl Literal {
                 TokenType::Literal(literal) => match literal {
                     LiteralToken::Number(value) => LiteralType::Number(*value),
                     LiteralToken::LitString(value) => LiteralType::LitString(value.clone()),
-                    _ => Err(AstError::NotALiteral)?,
                 },
                 TokenType::Keyword(value) => match value {
                     Keyword::True => LiteralType::True,
