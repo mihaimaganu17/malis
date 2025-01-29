@@ -7,6 +7,7 @@ use crate::{
 pub enum Stmt {
     Expr(Expr),
     Print(Expr),
+    Var(VarStmt),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -20,7 +21,22 @@ impl Stmt {
         match self {
             Stmt::Expr(expr) => visitor.visit_expr_stmt(expr),
             Stmt::Print(expr) => visitor.visit_print_stmt(expr),
+            Stmt::Var(var) => visitor.visit_var_stmt(var),
         }
+    }
+}
+
+pub struct VarStmt {
+    identifier: Token,
+    expr: Expr,
+}
+
+impl VarStmt {
+    pub fn identifier(&self) -> &Token {
+        &self.identifier
+    }
+    pub fn expr(&self) -> &Expr {
+        &self.expr
     }
 }
 
@@ -30,6 +46,7 @@ pub enum Expr {
     Group(Group),
     Literal(Literal),
     Ternary(Ternary),
+    Var(Token),
 }
 
 impl AsRef<Expr> for Expr {
@@ -46,6 +63,7 @@ impl Expr {
             Expr::Ternary(ternary) => visitor.visit_ternary(ternary),
             Expr::Group(group) => visitor.visit_group(group),
             Expr::Literal(literal) => visitor.visit_literal(literal),
+            Expr::Var(token) => visitor.visit_variable(token),
         }
     }
 }
