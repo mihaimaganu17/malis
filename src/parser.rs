@@ -39,7 +39,7 @@ impl Parser {
 
         if maybe_declaration.is_err() {
             self.synchronize()?;
-            return Ok(None)
+            return Ok(None);
         }
         maybe_declaration.map(|r| Some(r))
     }
@@ -49,7 +49,9 @@ impl Parser {
         // At this point we have a `var` keyword and we need to consume the Identifier that follows
         // it
         let ident = TokenType::Ident;
-        let var_name = self.consume(&ident, "Expeted a variable name".to_string())?.clone();
+        let var_name = self
+            .consume(&ident, "Expeted a variable name".to_string())?
+            .clone();
 
         // We now have an indetifier and we optionally need to bind it to a value using equal `=`
         let equal = TokenType::SingleChar(SingleChar::Equal);

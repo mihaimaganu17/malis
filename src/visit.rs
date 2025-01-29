@@ -98,7 +98,10 @@ impl AstPrinter {
     }
 
     pub fn print_stmt(&mut self, statements: &[Stmt]) -> String {
-        let statements = statements.iter().map(|stmt| stmt.walk(self)).collect::<Vec<_>>();
+        let statements = statements
+            .iter()
+            .map(|stmt| stmt.walk(self))
+            .collect::<Vec<_>>();
         statements.join("\n")
     }
 }
@@ -133,7 +136,10 @@ mod tests {
             })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print_expr(&Expr::Binary(binary_expr)))
+        println!(
+            "Ast: {}",
+            ast_printer.print_expr(&Expr::Binary(binary_expr))
+        )
     }
 
     #[test]
@@ -144,7 +150,10 @@ mod tests {
             })),
         };
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print_expr(&Expr::Group(grouping_expr)))
+        println!(
+            "Ast: {}",
+            ast_printer.print_expr(&Expr::Group(grouping_expr))
+        )
     }
 
     #[test]
@@ -167,6 +176,9 @@ mod tests {
         );
 
         let mut ast_printer = AstPrinter;
-        println!("Ast: {}", ast_printer.print_expr(&Expr::Binary(binary_expr)))
+        println!(
+            "Ast: {}",
+            ast_printer.print_expr(&Expr::Binary(binary_expr))
+        )
     }
 }
