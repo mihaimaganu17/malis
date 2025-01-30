@@ -5,6 +5,7 @@ mod parser;
 mod scanner;
 mod token;
 mod visit;
+mod environment;
 
 pub use error::MalisError;
 use interpreter::Interpreter;
