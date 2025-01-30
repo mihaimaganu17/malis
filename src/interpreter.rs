@@ -1,9 +1,9 @@
-use crate:: {
+use crate::{
     ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary, VarStmt},
-    error::RuntimeError,
-    token::{Comparison, SingleChar, TokenType, Token},
-    visit::{ExprVisitor, StmtVisitor},
     environment::Environment,
+    error::RuntimeError,
+    token::{Comparison, SingleChar, Token, TokenType},
+    visit::{ExprVisitor, StmtVisitor},
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
@@ -183,6 +183,7 @@ impl Div for MalisObject {
     }
 }
 
+#[derive(Default)]
 pub struct Interpreter {
     environment: Environment,
 }
@@ -253,7 +254,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         } else {
             Err(RuntimeError::UnaryEvaluation(format!(
                 "Unary operator {:?} has not TokenType {:?}",
-                unary.operator.lexeme(), unary.operator.line
+                unary.operator.lexeme(),
+                unary.operator.line
             )))
         }
     }
@@ -299,7 +301,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         } else {
             Err(RuntimeError::BinaryEvaluation(format!(
                 "Binary operator {} has not TokenType {:?}",
-                binary.operator.lexeme(), binary.operator.line
+                binary.operator.lexeme(),
+                binary.operator.line
             )))
         }
     }

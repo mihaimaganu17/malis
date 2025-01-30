@@ -41,7 +41,7 @@ impl Parser {
             self.synchronize()?;
             return Ok(None);
         }
-        maybe_declaration.map(|r| Some(r))
+        maybe_declaration.map(Some)
     }
 
     // Parses a Malis Variable Declaration, which is in fact a node of statement

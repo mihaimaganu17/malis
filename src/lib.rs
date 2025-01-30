@@ -1,11 +1,11 @@
 pub mod ast;
+mod environment;
 mod error;
 pub mod interpreter;
 mod parser;
 mod scanner;
 mod token;
 mod visit;
-mod environment;
 
 pub use error::MalisError;
 use interpreter::Interpreter;
@@ -41,7 +41,7 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
                 println!("Ast: {}", ast_printer.print_stmt(&expr));
 
-                Interpreter::new().interpret(expr.as_slice())?;
+                Interpreter::default().interpret(expr.as_slice())?;
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),

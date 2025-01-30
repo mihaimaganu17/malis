@@ -1,5 +1,5 @@
-use crate::token::Token;
 use crate::environment::EnvironmentError;
+use crate::token::Token;
 use std::fmt;
 
 #[derive(Debug)]
@@ -151,7 +151,7 @@ impl fmt::Display for RuntimeError {
             | RuntimeError::Division(message)
             | RuntimeError::UnaryEvaluation(message)
             | RuntimeError::BinaryEvaluation(message) => write!(f, "{}", message),
-            | RuntimeError::EnvironmentError(env) => write!(f, "{:?}", env),
+            RuntimeError::EnvironmentError(env) => write!(f, "{:?}", env),
         }
     }
 }
