@@ -1,4 +1,7 @@
-use crate::ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary};
+use crate::{
+    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt},
+    token::Token,
+};
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit an
 /// `Expr` expression of the Malis lanaguage
@@ -8,6 +11,7 @@ pub trait ExprVisitor<T> {
     fn visit_ternary(&mut self, ternary: &Ternary) -> T;
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_group(&mut self, group: &Group) -> T;
+    fn visit_variable(&mut self, variable: &Token) -> T;
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -15,6 +19,7 @@ pub trait ExprVisitor<T> {
 pub trait StmtVisitor<T> {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_print_stmt(&mut self, stmt: &Expr) -> T;
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> T;
 }
 
 #[derive(Debug)]
@@ -64,6 +69,14 @@ impl ExprVisitor<String> for AstPrinter {
         let expr = group.expr.walk(self);
         self.parenthesize("group", &[expr])
     }
+
+    fn visit_variable(&mut self, variable: &Token) -> String {
+        if let Some(lexeme) = variable.lexeme.get() {
+            self.parenthesize("var", &[lexeme])
+        } else {
+            String::from("unknown variable")
+        }
+    }
 }
 
 impl StmtVisitor<String> for AstPrinter {
@@ -75,6 +88,16 @@ impl StmtVisitor<String> for AstPrinter {
     fn visit_print_stmt(&mut self, stmt: &Expr) -> String {
         let expr = stmt.walk(self);
         self.parenthesize("print_stmt", &[expr])
+    }
+
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> String {
+        let id = self.visit_variable(stmt.identifier());
+        let expr = if let Some(expr) = stmt.expr() {
+            expr.walk(self)
+        } else {
+            "None".to_string()
+        };
+        self.parenthesize("var", &[id, expr])
     }
 }
 

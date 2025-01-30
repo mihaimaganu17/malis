@@ -1,7 +1,10 @@
-use crate::ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary};
-use crate::error::RuntimeError;
-use crate::token::{Comparison, SingleChar, TokenType};
-use crate::visit::{ExprVisitor, StmtVisitor};
+use crate:: {
+    ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary},
+    error::RuntimeError,
+    token::{Comparison, SingleChar, TokenType},
+    visit::{ExprVisitor, StmtVisitor},
+    environment::Environment,
+};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -180,9 +183,17 @@ impl Div for MalisObject {
     }
 }
 
-pub struct Interpreter;
+pub struct Interpreter {
+    environment: Environment,
+}
 
 impl Interpreter {
+    pub fn new() -> Self {
+        Self {
+            environment: Environment::new(),
+        }
+    }
+
     pub fn interpret(&mut self, statements: &[Stmt]) -> Result<(), RuntimeError> {
         for stmt in statements.iter() {
             self.execute(stmt)?;

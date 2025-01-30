@@ -41,7 +41,7 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
                 println!("Ast: {}", ast_printer.print_stmt(&expr));
 
-                Interpreter.interpret(expr.as_slice())?;
+                Interpreter::new().interpret(expr.as_slice())?;
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),

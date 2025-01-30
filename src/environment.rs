@@ -15,7 +15,13 @@ impl Environment {
     pub fn define(&mut self, name: String, value: MalisObject) -> Result<Option<MalisObject>, EnvironmentError> {
         Ok(self.values.insert(name, value))
     }
+
+    pub fn get(&self, name: &str) -> Result<&MalisObject, EnvironmentError> {
+        self.values.get(name).ok_or(EnvironmentError::UndefinedVariable(name.to_string()))
+    }
 }
 
 #[derive(Debug)]
-pub enum EnvironmentError {}
+pub enum EnvironmentError {
+    UndefinedVariable(String)
+}
