@@ -1,4 +1,5 @@
 use crate::token::Token;
+use crate::environment::EnvironmentError;
 use std::fmt;
 
 #[derive(Debug)]
@@ -48,6 +49,12 @@ impl From<ParserError> for MalisError {
 impl From<RuntimeError> for MalisError {
     fn from(err: RuntimeError) -> Self {
         Self::RuntimeError(err)
+    }
+}
+
+impl From<EnvironmentError> for RuntimeError {
+    fn from(err: EnvironmentError) -> Self {
+        Self::EnvironmentError(err)
     }
 }
 
@@ -113,7 +120,7 @@ impl fmt::Display for ParserError {
                     f,
                     "Error on line {} for {}: {:#?}",
                     token.line.get().unwrap(),
-                    token.lexeme.get().unwrap(),
+                    token.lexeme(),
                     message
                 )
             }
@@ -131,6 +138,7 @@ pub enum RuntimeError {
     Division(String),
     UnaryEvaluation(String),
     BinaryEvaluation(String),
+    EnvironmentError(EnvironmentError),
 }
 
 impl fmt::Display for RuntimeError {
@@ -143,6 +151,7 @@ impl fmt::Display for RuntimeError {
             | RuntimeError::Division(message)
             | RuntimeError::UnaryEvaluation(message)
             | RuntimeError::BinaryEvaluation(message) => write!(f, "{}", message),
+            | RuntimeError::EnvironmentError(env) => write!(f, "{:?}", env),
         }
     }
 }

@@ -1,14 +1,14 @@
 use crate:: {
-    ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary},
+    ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary, VarStmt},
     error::RuntimeError,
-    token::{Comparison, SingleChar, TokenType},
+    token::{Comparison, SingleChar, TokenType, Token},
     visit::{ExprVisitor, StmtVisitor},
     environment::Environment,
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {
     Boolean(bool),
     Number(f32),
@@ -221,6 +221,17 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         println!("{expr}");
         Ok(())
     }
+
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), RuntimeError> {
+        let value = if let Some(expr) = stmt.expr() {
+            self.evaluate(expr)?
+        } else {
+            MalisObject::Nil
+        };
+        let name = stmt.identifier().lexeme();
+        let _ = self.environment.define(name.to_string(), value);
+        Ok(())
+    }
 }
 
 impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
@@ -242,7 +253,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         } else {
             Err(RuntimeError::UnaryEvaluation(format!(
                 "Unary operator {:?} has not TokenType {:?}",
-                unary.operator.lexeme, unary.operator.line
+                unary.operator.lexeme(), unary.operator.line
             )))
         }
     }
@@ -287,8 +298,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             }
         } else {
             Err(RuntimeError::BinaryEvaluation(format!(
-                "Binary operator {:?} has not TokenType {:?}",
-                binary.operator.lexeme, binary.operator.line
+                "Binary operator {} has not TokenType {:?}",
+                binary.operator.lexeme(), binary.operator.line
             )))
         }
     }
@@ -314,5 +325,11 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // itself, we recursively evaluate the subexpression contained and return it.
     fn visit_group(&mut self, group: &Group) -> Result<MalisObject, RuntimeError> {
         group.expr.walk(self)
+    }
+
+    // One type of expression is accessing a variable, previously declared, using it's identifier.
+    // We do that by accessing the interpreters environment
+    fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
+        Ok(self.environment.get(var.lexeme())?.clone())
     }
 }

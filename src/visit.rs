@@ -27,38 +27,28 @@ pub struct AstPrinter;
 
 impl ExprVisitor<String> for AstPrinter {
     fn visit_unary(&mut self, unary: &Unary) -> String {
-        if let Some(lexeme) = unary.operator.lexeme.get() {
-            let expr = unary.right.walk(self);
-            self.parenthesize(lexeme, &[expr])
-        } else {
-            String::from("unknown_unary")
-        }
+        let lexeme = unary.operator.lexeme();
+        let expr = unary.right.walk(self);
+        self.parenthesize(lexeme, &[expr])
     }
 
     fn visit_binary(&mut self, binary: &Binary) -> String {
-        if let Some(lexeme) = binary.operator.lexeme.get() {
-            let expr1 = binary.left.walk(self);
-            let expr2 = binary.right.walk(self);
-            self.parenthesize(lexeme, &[expr1, expr2])
-        } else {
-            String::from("unknown_binary")
-        }
+        let lexeme = binary.operator.lexeme();
+        let expr1 = binary.left.walk(self);
+        let expr2 = binary.right.walk(self);
+        self.parenthesize(lexeme, &[expr1, expr2])
     }
 
     fn visit_ternary(&mut self, ternary: &Ternary) -> String {
-        if let Some(lexeme) = ternary.first_operator.lexeme.get() {
-            let variants = if let Some(lexeme) = ternary.second_operator.lexeme.get() {
-                let expr2 = ternary.second.walk(self);
-                let expr3 = ternary.third.walk(self);
-                self.parenthesize(lexeme, &[expr2, expr3])
-            } else {
-                String::from("unknown_ternary_second_operator")
-            };
-            let condition = ternary.first.walk(self);
-            self.parenthesize(lexeme, &[condition, variants])
-        } else {
-            String::from("unknown_ternary_first_operator")
-        }
+        let lexeme = ternary.first_operator.lexeme();
+        let variants = {
+            let lexeme2 = ternary.second_operator.lexeme();
+            let expr2 = ternary.second.walk(self);
+            let expr3 = ternary.third.walk(self);
+            self.parenthesize(lexeme2, &[expr2, expr3])
+        };
+        let condition = ternary.first.walk(self);
+        self.parenthesize(lexeme, &[condition, variants])
     }
 
     fn visit_literal(&mut self, literal: &Literal) -> String {
@@ -71,11 +61,8 @@ impl ExprVisitor<String> for AstPrinter {
     }
 
     fn visit_variable(&mut self, variable: &Token) -> String {
-        if let Some(lexeme) = variable.lexeme.get() {
-            self.parenthesize("var", &[lexeme])
-        } else {
-            String::from("unknown variable")
-        }
+        let lexeme = variable.lexeme();
+        self.parenthesize("var", &[lexeme])
     }
 }
 

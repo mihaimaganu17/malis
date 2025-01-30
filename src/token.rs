@@ -7,14 +7,14 @@ pub struct Token {
     // Token type, `type` is reserved
     pub t_type: OnceCell<TokenType>,
     // Substring from the source code from which the token was parsed.
-    pub lexeme: OnceCell<String>,
+    lexeme: String,
     // Line on which the token occurs
     pub line: OnceCell<usize>,
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "{:?} {:?}", self.t_type.get(), self.lexeme.get())
+        write!(f, "{:?} {:?}", self.t_type.get(), self.lexeme())
     }
 }
 
@@ -24,13 +24,11 @@ impl Token {
         // (There are ways, but you have to try really hard)
         let t_type_cell = OnceCell::new();
         t_type_cell.set(t_type).unwrap();
-        let lexeme_cell = OnceCell::new();
-        lexeme_cell.set(lexeme).unwrap();
         let line_cell = OnceCell::new();
         line_cell.set(line).unwrap();
         Self {
             t_type: t_type_cell,
-            lexeme: lexeme_cell,
+            lexeme,
             line: line_cell,
         }
     }
@@ -39,13 +37,14 @@ impl Token {
         self.t_type.get()
     }
 
+    pub fn lexeme(&self) -> &str {
+        self.lexeme.as_str()
+    }
+
     pub fn create(new_t_type: TokenType, new_lexeme: &str) -> Self {
         let t_type = OnceCell::new();
         t_type.set(new_t_type).expect("Failed to set token");
-        let lexeme = OnceCell::new();
-        lexeme
-            .set(new_lexeme.to_string())
-            .expect("Failed to set token");
+        let lexeme = new_lexeme.to_string();
         Self {
             t_type,
             lexeme,
