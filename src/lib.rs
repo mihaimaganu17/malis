@@ -18,19 +18,21 @@ use std::{
 };
 use visit::AstPrinter;
 
-#[derive(Debug)]
+#[derive(Default)]
 pub struct Malis {
     // Keeps track of wheather the code has an error and to avoid executing it.
     _had_error: bool,
+    interpreter: Interpreter,
 }
 
 impl Malis {
     pub fn execute<P: AsRef<Path>>(path: P) -> Result<(), MalisError> {
+        let mut malis = Self::default();
         let source = fs::read_to_string(path)?;
-        Malis::run(source.as_str())
+        malis.run(source.as_str())
     }
 
-    pub fn run(bytes: &str) -> Result<(), MalisError> {
+    pub fn run(&mut self, bytes: &str) -> Result<(), MalisError> {
         let mut scanner = Scanner::new(bytes);
         let maybe_tokens = scanner.scan_tokens();
 
@@ -41,7 +43,7 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
                 println!("Ast: {}", ast_printer.print_stmt(&expr));
 
-                Interpreter::default().interpret(expr.as_slice())?;
+                self.interpreter.interpret(expr.as_slice())?;
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),
@@ -57,6 +59,7 @@ impl Malis {
     // - Print the result
     // - Loop and do it all over again
     pub fn interactive() -> Result<(), MalisError> {
+        let mut malis = Malis::default();
         // Get new handles to the stdin and stdout streams
         let stdin = io::stdin();
         let mut stdout = io::stdout();
@@ -82,7 +85,7 @@ impl Malis {
             }
 
             // If a line is invalid, we report the error and go to the next iteration
-            if let Err(err) = Self::run(buffer.as_str()) {
+            if let Err(err) = malis.run(buffer.as_str()) {
                 println!("{err}");
                 stdout.flush()?;
             }

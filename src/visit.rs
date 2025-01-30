@@ -84,7 +84,7 @@ impl StmtVisitor<String> for AstPrinter {
         } else {
             "None".to_string()
         };
-        self.parenthesize("var", &[id, expr])
+        self.parenthesize("var decl", &[id, expr])
     }
 }
 

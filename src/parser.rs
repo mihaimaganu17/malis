@@ -32,6 +32,7 @@ impl Parser {
         let var_token = TokenType::Keyword(Keyword::Var);
 
         let maybe_declaration = if self.any(&[&var_token])? {
+            self.advance()?;
             self.var_declaration()
         } else {
             self.statement()
@@ -50,14 +51,15 @@ impl Parser {
         // it
         let ident = TokenType::Ident;
         let var_name = self
-            .consume(&ident, "Expeted a variable name".to_string())?
+            .consume(&ident, "Expected a variable name".to_string())?
             .clone();
 
         // We now have an indetifier and we optionally need to bind it to a value using equal `=`
         let equal = TokenType::SingleChar(SingleChar::Equal);
 
         let maybe_binded = if self.any(&[&equal])? {
-            Some(self.expression()?)
+            self.advance()?;
+            Some(self.separator()?)
         } else {
             None
         };
