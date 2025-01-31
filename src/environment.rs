@@ -26,6 +26,14 @@ impl Environment {
             .get(name)
             .ok_or(EnvironmentError::UndefinedVariable(name.to_string()))
     }
+
+    pub fn insert(&mut self, name: &str, value: MalisObject) -> Result<MalisObject, EnvironmentError> {
+        if self.values.contains_key(name) {
+            Ok(self.values.insert(name.to_string(), value).unwrap())
+        } else {
+            Err(EnvironmentError::UndefinedVariable(name.to_string()))
+        }
+    }
 }
 
 #[derive(Debug)]

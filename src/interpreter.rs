@@ -335,4 +335,12 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
         Ok(self.environment.get(var.lexeme())?.clone())
     }
+
+    // Assignment is treated as an expression and not a variable. As such, we need a previously
+    // defined identifier which mutates state to the new value
+    fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<MalisObject, RuntimeError> {
+        let malis_object = expr.walk(self)?;
+        let lexeme = ident.lexeme();
+        Ok(self.environment.insert(lexeme, malis_object)?)
+    }
 }

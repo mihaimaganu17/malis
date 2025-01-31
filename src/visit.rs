@@ -12,6 +12,7 @@ pub trait ExprVisitor<T> {
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_group(&mut self, group: &Group) -> T;
     fn visit_variable(&mut self, variable: &Token) -> T;
+    fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> T;
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -63,6 +64,12 @@ impl ExprVisitor<String> for AstPrinter {
     fn visit_variable(&mut self, variable: &Token) -> String {
         let lexeme = variable.lexeme();
         self.parenthesize("var", &[lexeme])
+    }
+
+    fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> String {
+        let lexeme = ident.lexeme();
+        let expr = expr.walk(self);
+        self.parenthesize("assign", &[lexeme, &expr])
     }
 }
 

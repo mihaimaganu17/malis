@@ -50,6 +50,7 @@ pub enum Expr {
     Literal(Literal),
     Ternary(Ternary),
     Var(Token),
+    Assign(Token, Box<Expr>),
 }
 
 impl AsRef<Expr> for Expr {
@@ -67,6 +68,7 @@ impl Expr {
             Expr::Group(group) => visitor.visit_group(group),
             Expr::Literal(literal) => visitor.visit_literal(literal),
             Expr::Var(token) => visitor.visit_variable(token),
+            Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
         }
     }
 }
