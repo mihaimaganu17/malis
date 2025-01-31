@@ -104,7 +104,7 @@ impl Parser {
     }
 
     fn separator(&mut self) -> Result<Expr, ParserError> {
-        let mut expr = self.ternary()?;
+        let mut expr = self.assignment()?;
         // Prepare the `TokenType`s we want to match against for the operators of this production
         // rule. In this case, we want to match comma which could be used in C to chain expressions
         // together similar to how a block chains statements
@@ -115,11 +115,33 @@ impl Parser {
             // The operator if the `Token` that we matched above
             let operator = self.advance()?.clone();
             // After the operator, the expression is the next comparison
-            let right_expr = self.ternary()?;
+            let right_expr = self.assignment()?;
             // We create a new `Binary` expression using the two
             expr = Expr::Binary(Binary::new(expr, operator, right_expr));
         }
         Ok(expr)
+    }
+
+    fn assignment(&mut self) -> Result<Expr, ParserError> {
+        // Try and parse a normal ternary expression
+        let expr = self.ternary()?;
+        // If we have an equal afterwards
+        let equal = TokenType::SingleChar(SingleChar::Equal);
+        if self.any(&[&equal])? {
+            // Move past the equal
+            let equals = self.advance()?.clone();
+            // Get the next value
+            let value = self.assignment()?;
+            // If the top expression that we parsed, is actualy a variable name
+            if let Expr::Var(var) = expr {
+                // We return a new assign expression with that variable name and the value
+                Ok(Expr::Assign(var, Box::new(value)))
+            } else {
+                Err(ParserError::PanicMode("Invalid assignment target".to_string(), equals))
+            }
+        } else {
+            Ok(expr)
+        }
     }
 
     fn ternary(&mut self) -> Result<Expr, ParserError> {
