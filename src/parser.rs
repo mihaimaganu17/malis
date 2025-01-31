@@ -59,7 +59,7 @@ impl Parser {
 
         let maybe_binded = if self.any(&[&equal])? {
             self.advance()?;
-            Some(self.separator()?)
+            Some(self.ternary()?)
         } else {
             None
         };
