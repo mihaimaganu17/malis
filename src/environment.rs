@@ -52,10 +52,19 @@ impl Environment {
     pub fn insert(&mut self, name: &str, value: MalisObject) -> Result<MalisObject, EnvironmentError> {
         if self.values.contains_key(name) {
             self.values.insert(name.to_string(), value.clone()).unwrap();
-            Ok(value)
-        } else {
-            Err(EnvironmentError::UndefinedVariable(name.to_string()))
+            return Ok(value);
         }
+
+        if let Some(enclosing) = &mut self.enclosing {
+            if let Some(enclosing) = enclosing.upgrade() {
+                return enclosing.borrow_mut().insert(name, value);
+            } else {
+                return Err(EnvironmentError::OutOfScope(name.to_string()));
+            }
+        }
+
+        Err(EnvironmentError::UndefinedVariable(name.to_string()))
+
     }
 }
 
