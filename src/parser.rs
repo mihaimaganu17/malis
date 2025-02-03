@@ -122,7 +122,10 @@ impl Parser {
         }
 
         // We need to consume the right brace `}` which ends the block
-        self.consume(&right_brace, "Expect '}' to close the block scope".to_string())?;
+        self.consume(
+            &right_brace,
+            "Expect '}' to close the block scope".to_string(),
+        )?;
 
         Ok(Stmt::Block(statements))
     }
@@ -170,7 +173,10 @@ impl Parser {
                 // We return a new assign expression with that variable name and the value
                 Ok(Expr::Assign(var, Box::new(value)))
             } else {
-                Err(ParserError::PanicMode("Invalid assignment target".to_string(), equals))
+                Err(ParserError::PanicMode(
+                    "Invalid assignment target".to_string(),
+                    equals,
+                ))
             }
         } else {
             Ok(expr)

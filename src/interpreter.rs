@@ -6,9 +6,9 @@ use crate::{
     visit::{ExprVisitor, StmtVisitor},
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
+use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {
@@ -212,7 +212,11 @@ impl Interpreter {
         stmt.walk(self)
     }
 
-    pub fn execute_block(&mut self, _stmts: &[Stmt], _parent_env: Option<Rc<RefCell<Environment>>>) -> Result<(), RuntimeError> {
+    pub fn execute_block(
+        &mut self,
+        _stmts: &[Stmt],
+        _parent_env: Option<Rc<RefCell<Environment>>>,
+    ) -> Result<(), RuntimeError> {
         Ok(())
     }
 }
@@ -236,7 +240,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             MalisObject::Nil
         };
         let name = stmt.identifier().lexeme();
-        let _ = self.environment.borrow_mut().define(name.to_string(), value);
+        let _ = self
+            .environment
+            .borrow_mut()
+            .define(name.to_string(), value);
         Ok(())
     }
 
