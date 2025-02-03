@@ -8,6 +8,7 @@ pub enum Stmt {
     Expr(Expr),
     Print(Expr),
     Var(VarStmt),
+    Block(Vec<Stmt>),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -22,6 +23,7 @@ impl Stmt {
             Stmt::Expr(expr) => visitor.visit_expr_stmt(expr),
             Stmt::Print(expr) => visitor.visit_print_stmt(expr),
             Stmt::Var(var) => visitor.visit_var_stmt(var),
+            Stmt::Block(_stmts) => todo!(), //visitor.visit_var_stmt(var),
         }
     }
 }

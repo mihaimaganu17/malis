@@ -72,17 +72,28 @@ impl Parser {
 
     // Parses a Malis Statement
     fn statement(&mut self) -> Result<Stmt, ParserError> {
-        // We could have 2 type of statements: expression statement or print statements
+        // We could have 3 type of statements: expression statement, block statements (inside a new
+        // scoped block) and print statements
+
         // Print statements are identified by the keyword `print`
         let print_token = TokenType::Keyword(Keyword::Print);
 
         if self.any(&[&print_token])? {
             // Consume the print
             let _ = self.advance()?;
-            self.print_statement()
-        } else {
-            self.expr_statement()
+            return self.print_statement();
         }
+
+        // Block statements are starting with a left curly brace
+        let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
+
+        if self.any(&[&left_brace])? {
+            // Consume the left brace
+            let _ = self.advance()?;
+            return self.block_statement();
+        }
+
+        self.expr_statement()
     }
 
     fn print_statement(&mut self) -> Result<Stmt, ParserError> {
@@ -92,6 +103,28 @@ impl Parser {
         // We need to consume the `;` in order to parse a proper statement
         self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
         Ok(Stmt::Print(expr))
+    }
+
+    // A block statement is a block definining a new scope, which contains several statements.
+    fn block_statement(&mut self) -> Result<Stmt, ParserError> {
+        // Prepare a new vector that will hold the statement in this block
+        let mut statements = vec![];
+
+        let right_brace = TokenType::SingleChar(SingleChar::RightBrace);
+
+        // While we did not reach the ending right brace
+        while !self.any(&[&right_brace])? {
+            // Consume the next declaration
+            if let Some(declaration) = self.declaration()? {
+                // Add it to the list of statements
+                statements.push(declaration);
+            }
+        }
+
+        // We need to consume the right brace `}` which ends the block
+        self.consume(&right_brace, "Expect '}' to close the block scope".to_string())?;
+
+        Ok(Stmt::Block(statements))
     }
 
     fn expr_statement(&mut self) -> Result<Stmt, ParserError> {
