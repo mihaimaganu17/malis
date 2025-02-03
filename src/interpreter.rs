@@ -233,6 +233,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         let _ = self.environment.define(name.to_string(), value);
         Ok(())
     }
+
+    fn visit_block_stmt(&mut self, _stmts: &[Stmt]) -> Result<(), RuntimeError> {
+        Ok(())
+    }
 }
 
 impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {

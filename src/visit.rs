@@ -21,6 +21,7 @@ pub trait StmtVisitor<T> {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_print_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> T;
+    fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> T;
 }
 
 #[derive(Debug)]
@@ -92,6 +93,11 @@ impl StmtVisitor<String> for AstPrinter {
             "None".to_string()
         };
         self.parenthesize("var decl", &[id, expr])
+    }
+
+    fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> String {
+        let stmts = stmts.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
+        self.parenthesize("block scope", &stmts)
     }
 }
 
