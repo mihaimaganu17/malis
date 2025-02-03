@@ -27,10 +27,26 @@ impl Environment {
         Ok(self.values.insert(name, value))
     }
 
-    pub fn get(&self, name: &str) -> Result<&MalisObject, EnvironmentError> {
-        self.values
+    // Note: This is not ideal, as we clone the object when getting it. It would be ideal if the
+    // storage was a reference and we could do a cheap clone of the object.
+    pub fn get(&self, name: &str) -> Result<MalisObject, EnvironmentError> {
+        let value_in_current_scope = self.values
             .get(name)
-            .ok_or(EnvironmentError::UndefinedVariable(name.to_string()))
+            .ok_or(EnvironmentError::UndefinedVariable(name.to_string()));
+
+        if value_in_current_scope.is_ok() {
+            value_in_current_scope.cloned()
+        } else {
+            if let Some(enclosing) = &self.enclosing {
+                if let Some(enclosing) = enclosing.upgrade() {
+                    Ok(enclosing.borrow().get(name)?)
+                } else {
+                    Err(EnvironmentError::OutOfScope(name.to_string()))
+                }
+            } else {
+                Err(EnvironmentError::UndefinedVariable(name.to_string()))
+            }
+        }
     }
 
     pub fn insert(&mut self, name: &str, value: MalisObject) -> Result<MalisObject, EnvironmentError> {
@@ -46,4 +62,5 @@ impl Environment {
 #[derive(Debug)]
 pub enum EnvironmentError {
     UndefinedVariable(String),
+    OutOfScope(String),
 }
