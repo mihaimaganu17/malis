@@ -7,6 +7,8 @@ use crate::{
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {
@@ -185,13 +187,13 @@ impl Div for MalisObject {
 
 #[derive(Default)]
 pub struct Interpreter {
-    environment: Environment,
+    environment: Rc<RefCell<Environment>>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Self {
-            environment: Environment::new(None),
+            environment: Rc::new(RefCell::new(Environment::new(None))),
         }
     }
 
@@ -208,6 +210,10 @@ impl Interpreter {
 
     pub fn execute(&mut self, stmt: &Stmt) -> Result<(), RuntimeError> {
         stmt.walk(self)
+    }
+
+    pub fn execute_block(&mut self, _stmts: &[Stmt], _parent_env: Option<Rc<RefCell<Environment>>>) -> Result<(), RuntimeError> {
+        Ok(())
     }
 }
 
@@ -230,12 +236,12 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             MalisObject::Nil
         };
         let name = stmt.identifier().lexeme();
-        let _ = self.environment.define(name.to_string(), value);
+        let _ = self.environment.borrow_mut().define(name.to_string(), value);
         Ok(())
     }
 
-    fn visit_block_stmt(&mut self, _stmts: &[Stmt]) -> Result<(), RuntimeError> {
-        Ok(())
+    fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
+        self.execute_block(stmts, Some(self.environment.clone()))
     }
 }
 
@@ -337,7 +343,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // One type of expression is accessing a variable, previously declared, using it's identifier.
     // We do that by accessing the interpreters environment
     fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
-        Ok(self.environment.get(var.lexeme())?.clone())
+        Ok(self.environment.borrow_mut().get(var.lexeme())?.clone())
     }
 
     // Assignment is treated as an expression and not a variable. As such, we need a previously
@@ -345,6 +351,6 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<MalisObject, RuntimeError> {
         let malis_object = expr.walk(self)?;
         let lexeme = ident.lexeme();
-        Ok(self.environment.insert(lexeme, malis_object)?)
+        Ok(self.environment.borrow_mut().insert(lexeme, malis_object)?)
     }
 }

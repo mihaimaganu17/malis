@@ -1,6 +1,6 @@
 use crate::interpreter::MalisObject;
 use std::collections::HashMap;
-use std::rc::Weak;
+use std::rc::Rc;
 use std::cell:: RefCell;
 
 #[derive(Default)]
@@ -8,11 +8,11 @@ pub struct Environment {
     values: HashMap<String, MalisObject>,
     // Weak reference to the parent environment of this environment. The global environment has this
     // value None
-    enclosing: Option<Weak<RefCell<Environment>>>,
+    enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
 impl Environment {
-    pub fn new(enclosing: Option<Weak<RefCell<Environment>>>) -> Self {
+    pub fn new(enclosing: Option<Rc<RefCell<Environment>>>) -> Self {
         Self {
             values: HashMap::new(),
             enclosing,
@@ -38,11 +38,7 @@ impl Environment {
             value_in_current_scope.cloned()
         } else {
             if let Some(enclosing) = &self.enclosing {
-                if let Some(enclosing) = enclosing.upgrade() {
-                    Ok(enclosing.borrow().get(name)?)
-                } else {
-                    Err(EnvironmentError::OutOfScope(name.to_string()))
-                }
+                Ok(enclosing.borrow().get(name)?)
             } else {
                 Err(EnvironmentError::UndefinedVariable(name.to_string()))
             }
@@ -56,11 +52,7 @@ impl Environment {
         }
 
         if let Some(enclosing) = &mut self.enclosing {
-            if let Some(enclosing) = enclosing.upgrade() {
-                return enclosing.borrow_mut().insert(name, value);
-            } else {
-                return Err(EnvironmentError::OutOfScope(name.to_string()));
-            }
+            return enclosing.borrow_mut().insert(name, value);
         }
 
         Err(EnvironmentError::UndefinedVariable(name.to_string()))
