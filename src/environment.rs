@@ -1,15 +1,21 @@
 use crate::interpreter::MalisObject;
 use std::collections::HashMap;
+use std::rc::Weak;
+use std::cell:: RefCell;
 
 #[derive(Default)]
 pub struct Environment {
     values: HashMap<String, MalisObject>,
+    // Weak reference to the parent environment of this environment. The global environment has this
+    // value None
+    enclosing: Option<Weak<RefCell<Environment>>>,
 }
 
 impl Environment {
-    pub fn new() -> Self {
+    pub fn new(enclosing: Option<Weak<RefCell<Environment>>>) -> Self {
         Self {
             values: HashMap::new(),
+            enclosing,
         }
     }
 
