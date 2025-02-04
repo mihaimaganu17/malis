@@ -20,8 +20,6 @@ impl Environment {
     }
 
     pub fn define(&mut self, name: String, value: MalisObject) -> Result<(), EnvironmentError> {
-        println!("Defining {:#?}", name);
-        println!("Borrowing mut {:#?}", self);
         self.values.insert(name, value);
         Ok(())
     }

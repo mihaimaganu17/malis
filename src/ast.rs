@@ -21,15 +21,12 @@ impl Stmt {
     pub fn walk<T, V: StmtVisitor<T>>(&self, visitor: &mut V) -> T {
         match self {
             Stmt::Expr(expr) => {
-                println!("Visiting expr");
                 visitor.visit_expr_stmt(expr)
             }
             Stmt::Print(expr) => {
-                println!("Visiting print");
                 visitor.visit_print_stmt(expr)
             }
             Stmt::Var(var) => {
-                println!("Visition var");
                 visitor.visit_var_stmt(var) }
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
         }
@@ -78,7 +75,6 @@ impl Expr {
             Expr::Group(group) => visitor.visit_group(group),
             Expr::Literal(literal) => visitor.visit_literal(literal),
             Expr::Var(token) => {
-                println!("Visitin expr var");
                 visitor.visit_variable(token) }
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
         }

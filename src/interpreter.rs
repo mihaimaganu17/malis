@@ -222,9 +222,10 @@ impl Interpreter {
         // The environment for the current execution block becomes the parent environemnt, such
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
+        let parent_env = Rc::new(RefCell::new(parent_env));
         println!("parent: {:#?}", parent_env);
         let env = self.environment.replace(
-            Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
+            Environment::new(Some(parent_env.clone())));
         println!("Self: {:#?}", self.environment);
 
         for stmt in stmts {
@@ -232,7 +233,8 @@ impl Interpreter {
         }
         // Brin the initial environment back which contains the scope our interpreter had before
         // execution of this block
-        self.environment.replace(env);
+        self.environment.replace(Rc::into_inner(parent_env.clone()).unwrap().into_inner());
+        println!("Self exit: {:#?}", self.environment);
         Ok(())
     }
 }
