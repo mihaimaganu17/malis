@@ -3,12 +3,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Environment {
     values: HashMap<String, MalisObject>,
     // Weak reference to the parent environment of this environment. The global environment has this
     // value None
-    enclosing: Option<Rc<RefCell<Environment>>>,
+    pub enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
 impl Environment {
@@ -19,12 +19,11 @@ impl Environment {
         }
     }
 
-    pub fn define(
-        &mut self,
-        name: String,
-        value: MalisObject,
-    ) -> Result<Option<MalisObject>, EnvironmentError> {
-        Ok(self.values.insert(name, value))
+    pub fn define(&mut self, name: String, value: MalisObject) -> Result<(), EnvironmentError> {
+        println!("Defining {:#?}", name);
+        println!("Borrowing mut {:#?}", self);
+        self.values.insert(name, value);
+        Ok(())
     }
 
     // Note: This is not ideal, as we clone the object when getting it. It would be ideal if the
@@ -54,7 +53,7 @@ impl Environment {
             return Ok(value);
         }
 
-        if let Some(enclosing) = &mut self.enclosing {
+        if let Some(enclosing) = &self.enclosing {
             return enclosing.borrow_mut().insert(name, value);
         }
 

@@ -20,10 +20,18 @@ impl AsRef<Stmt> for Stmt {
 impl Stmt {
     pub fn walk<T, V: StmtVisitor<T>>(&self, visitor: &mut V) -> T {
         match self {
-            Stmt::Expr(expr) => visitor.visit_expr_stmt(expr),
-            Stmt::Print(expr) => visitor.visit_print_stmt(expr),
-            Stmt::Var(var) => visitor.visit_var_stmt(var),
-            Stmt::Block(_stmts) => todo!(), //visitor.visit_var_stmt(var),
+            Stmt::Expr(expr) => {
+                println!("Visiting expr");
+                visitor.visit_expr_stmt(expr)
+            }
+            Stmt::Print(expr) => {
+                println!("Visiting print");
+                visitor.visit_print_stmt(expr)
+            }
+            Stmt::Var(var) => {
+                println!("Visition var");
+                visitor.visit_var_stmt(var) }
+            Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
         }
     }
 }
@@ -69,7 +77,9 @@ impl Expr {
             Expr::Ternary(ternary) => visitor.visit_ternary(ternary),
             Expr::Group(group) => visitor.visit_group(group),
             Expr::Literal(literal) => visitor.visit_literal(literal),
-            Expr::Var(token) => visitor.visit_variable(token),
+            Expr::Var(token) => {
+                println!("Visitin expr var");
+                visitor.visit_variable(token) }
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
         }
     }

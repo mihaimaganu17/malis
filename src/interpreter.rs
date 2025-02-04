@@ -214,9 +214,25 @@ impl Interpreter {
 
     pub fn execute_block(
         &mut self,
-        _stmts: &[Stmt],
-        _parent_env: Option<Rc<RefCell<Environment>>>,
+        stmts: &[Stmt],
+        parent_env: Environment,
     ) -> Result<(), RuntimeError> {
+        // Save the current environment assigned to the interpreter. This is used to prevent losing
+        // the top environment when executing a inner scope
+        // The environment for the current execution block becomes the parent environemnt, such
+        // that we could access scope from the current block's scope and from the scope that
+        // contains this block as well
+        println!("parent: {:#?}", parent_env);
+        let env = self.environment.replace(
+            Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
+        println!("Self: {:#?}", self.environment);
+
+        for stmt in stmts {
+            self.execute(stmt)?;
+        }
+        // Brin the initial environment back which contains the scope our interpreter had before
+        // execution of this block
+        self.environment.replace(env);
         Ok(())
     }
 }
@@ -248,7 +264,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
-        self.execute_block(stmts, Some(self.environment.clone()))
+        self.execute_block(stmts, self.environment.take())
     }
 }
 
@@ -349,8 +365,9 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
 
     // One type of expression is accessing a variable, previously declared, using it's identifier.
     // We do that by accessing the interpreters environment
-    fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
-        Ok(self.environment.borrow_mut().get(var.lexeme())?.clone())
+    fn visit_variable(&self, var: &Token) -> Result<MalisObject, RuntimeError> {
+        let object = self.environment.borrow().get(var.lexeme())?.clone();
+        Ok(object)
     }
 
     // Assignment is treated as an expression and not a variable. As such, we need a previously
