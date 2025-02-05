@@ -139,6 +139,7 @@ pub enum RuntimeError {
     UnaryEvaluation(String),
     BinaryEvaluation(String),
     EnvironmentError(EnvironmentError),
+    CannotAccessParentScope,
 }
 
 impl fmt::Display for RuntimeError {
@@ -152,6 +153,7 @@ impl fmt::Display for RuntimeError {
             | RuntimeError::UnaryEvaluation(message)
             | RuntimeError::BinaryEvaluation(message) => write!(f, "{}", message),
             RuntimeError::EnvironmentError(env) => write!(f, "{:?}", env),
+            _ => write!(f, "{:?}", self),
         }
     }
 }

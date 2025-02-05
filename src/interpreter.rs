@@ -222,20 +222,20 @@ impl Interpreter {
         // The environment for the current execution block becomes the parent environemnt, such
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
-        let parent_env = Rc::new(RefCell::new(parent_env));
-        println!("parent: {:#?}", parent_env);
-        let _env = self
+        {
+        let _ = self
             .environment
-            .replace(Environment::new(Some(parent_env.clone())));
+            .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
         println!("Self: {:#?}", self.environment);
 
         for stmt in stmts {
             self.execute(stmt)?;
         }
+        }
         // Brin the initial environment back which contains the scope our interpreter had before
         // execution of this block
-        self.environment
-            .replace(Rc::into_inner(parent_env.clone()).unwrap().into_inner());
+        println!("Self enclosing {:#?}", &self.environment.borrow().enclosing);
+            //self.environment.replace(Rc::into_inner(env).unwrap().into_inner());
         println!("Self exit: {:#?}", self.environment);
         Ok(())
     }
@@ -268,7 +268,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
-        self.execute_block(stmts, self.environment.take())
+        let r = self.execute_block(stmts, self.environment.take());
+        let env = self.environment.borrow_mut().enclosing.take().ok_or(RuntimeError::CannotAccessParentScope)?;
+        self.environment.replace(Rc::into_inner(env).unwrap().into_inner());
+        r
     }
 }
 
