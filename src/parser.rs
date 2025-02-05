@@ -8,12 +8,16 @@ use crate::{
 #[derive(Debug)]
 pub struct Parser {
     tokens: Vec<Token>,
-    pub current: usize,
+    current: usize,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self { tokens, current: 0 }
+    }
+
+    pub fn reset(&mut self) {
+        self.current = 0
     }
 
     pub fn parse(&mut self) -> Result<Vec<Stmt>, ParserError> {
@@ -139,7 +143,7 @@ impl Parser {
         Ok(Stmt::Expr(expr))
     }
 
-    fn separator(&mut self) -> Result<Expr, ParserError> {
+    pub fn separator(&mut self) -> Result<Expr, ParserError> {
         let mut expr = self.assignment()?;
         // Prepare the `TokenType`s we want to match against for the operators of this production
         // rule. In this case, we want to match comma which could be used in C to chain expressions
@@ -214,7 +218,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn expression(&mut self) -> Result<Expr, ParserError> {
+    pub fn expression(&mut self) -> Result<Expr, ParserError> {
         let expr = self.equality()?;
         Ok(expr)
     }
@@ -485,6 +489,7 @@ impl Parser {
         while self.tokens_left()? {
             // If we are at a semicolon, this means the current statement ended and we just need
             // to go past it and return in order to synchronize
+            // P
             if self.check(&TokenType::SingleChar(SingleChar::SemiColon))? {
                 // Go past the faulty token which issued the panic mode
                 self.advance()?;

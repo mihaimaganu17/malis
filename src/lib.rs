@@ -29,21 +29,31 @@ impl Malis {
     pub fn execute<P: AsRef<Path>>(path: P) -> Result<(), MalisError> {
         let mut malis = Self::default();
         let source = fs::read_to_string(path)?;
-        malis.run(source.as_str())
+        malis.run(source.as_str(), false)
     }
 
-    pub fn run(&mut self, bytes: &str) -> Result<(), MalisError> {
+    pub fn run(&mut self, bytes: &str, is_repl: bool) -> Result<(), MalisError> {
         let mut scanner = Scanner::new(bytes);
         let maybe_tokens = scanner.scan_tokens();
 
         match maybe_tokens {
             Ok(tokens) => {
                 let mut parser = Parser::new(tokens);
-                let expr = parser.parse()?;
+                let stmts = parser.parse()?;
                 let mut ast_printer = AstPrinter;
-                println!("Ast: {}", ast_printer.print_stmt(&expr));
 
-                self.interpreter.interpret(expr.as_slice())?;
+                let ast = if !stmts.is_empty() || !is_repl {
+                    self.interpreter.interpret(stmts.as_slice())?;
+                    ast_printer.print_stmt(&stmts)
+                } else {
+                    // Reset the parser such that we could parse in expression form
+                    parser.reset();
+                    let expr = parser.separator()?;
+                    println!("{}", self.interpreter.evaluate(&expr)?);
+                    ast_printer.print_expr(&expr)
+                };
+
+                println!("Ast {}", ast);
             }
             // Print all the errors we found during scanning
             Err(scanner_errors) => scanner_errors.iter().for_each(|e| println!("{e:?}")),
@@ -84,9 +94,11 @@ impl Malis {
                 _ => {}
             }
 
-            // If a line is invalid, we report the error and go to the next iteration
-            if let Err(err) = malis.run(buffer.as_str()) {
-                println!("{err}");
+            // If a line is invalid, we report the error and go to the next iteration. We also
+            // specify the `is_repl` true such that we could evaluate both expressions and
+            // statements
+            if let Err(err) = malis.run(buffer.as_str(), true) {
+                println!("Interpreter: {err}");
                 stdout.flush()?;
             }
 
