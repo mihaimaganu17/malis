@@ -112,7 +112,7 @@ impl Malis {
 
 #[cfg(test)]
 mod tests {
-    use super::{Scanner, Parser, AstPrinter};
+    use super::{AstPrinter, Parser, Scanner};
 
     #[test]
     fn block_scope_test() {
@@ -126,7 +126,9 @@ mod tests {
         let expr = parser.parse().expect("Failed to parse tokens");
         let mut ast_printer = AstPrinter;
 
-        assert!(format!("{}", ast_printer.print_stmt(&expr)) ==
-            r#"(block scope (var decl (var a) LitString("global a")) (var decl (var b) LitString("global b")) (var decl (var c) LitString("global c")) (block scope (var decl (var a) LitString("outer a")) (var decl (var b) LitString("outer b")) (block scope (var decl (var a) LitString("inner a")) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c)))"#);
+        assert!(
+            format!("{}", ast_printer.print_stmt(&expr))
+                == r#"(block scope (var decl (var a) LitString("global a")) (var decl (var b) LitString("global b")) (var decl (var c) LitString("global c")) (block scope (var decl (var a) LitString("outer a")) (var decl (var b) LitString("outer b")) (block scope (var decl (var a) LitString("inner a")) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c)))"#
+        );
     }
 }
