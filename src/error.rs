@@ -140,6 +140,7 @@ pub enum RuntimeError {
     BinaryEvaluation(String),
     EnvironmentError(EnvironmentError),
     CannotAccessParentScope,
+    MultipleReferenceForEnclosingEnvironment,
 }
 
 impl fmt::Display for RuntimeError {
