@@ -99,4 +99,22 @@ impl Malis {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::{Scanner, Parser, AstPrinter};
+
+    #[test]
+    fn block_scope_test() {
+        let file_path = "testdata/block_scope_test.ms";
+        let source = std::fs::read_to_string(file_path).expect("Failed to read test file");
+
+        let mut scanner = Scanner::new(source.as_str());
+        let tokens = scanner.scan_tokens().expect("Failed to scan tokens");
+
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse().expect("Failed to parse tokens");
+        let mut ast_printer = AstPrinter;
+
+        assert!(format!("{}", ast_printer.print_stmt(&expr)) ==
+            r#"(block scope (var decl (var a) LitString("global a")) (var decl (var b) LitString("global b")) (var decl (var c) LitString("global c")) (block scope (var decl (var a) LitString("outer a")) (var decl (var b) LitString("outer b")) (block scope (var decl (var a) LitString("inner a")) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c))) (print_stmt (var a)) (print_stmt (var b)) (print_stmt (var c)))"#);
+    }
+}

@@ -223,22 +223,28 @@ impl Interpreter {
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
         {
-        let _ = self
-            .environment
-            .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
+            let _ = self
+                .environment
+                .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
 
-        for stmt in stmts {
-            self.execute(stmt)?;
-        }
+            for stmt in stmts {
+                self.execute(stmt)?;
+            }
         }
         // Bring the initial environment back which contains the scope our interpreter had before
         // execution of this block. This resides in the enclosing field
-        let env = self.environment.borrow_mut().enclosing.take().ok_or(RuntimeError::CannotAccessParentScope)?;
+        let env = self
+            .environment
+            .borrow_mut()
+            .enclosing
+            .take()
+            .ok_or(RuntimeError::CannotAccessParentScope)?;
         // Replace our current environment wit the enclosing one. Here we make sure that the
         // enclosing environment has no other reference to itself, such that we can move it.
-        self.environment.replace(Rc::into_inner(env)
-            .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-            .into_inner()
+        self.environment.replace(
+            Rc::into_inner(env)
+                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                .into_inner(),
         );
         Ok(())
     }
@@ -271,8 +277,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
-        let r = self.execute_block(stmts, self.environment.take());
-        r
+        self.execute_block(stmts, self.environment.take())
     }
 }
 
