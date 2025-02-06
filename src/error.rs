@@ -110,6 +110,7 @@ pub enum ParserError {
     NoPrimaryProduction,
     NoErrorProduction,
     PanicMode(String, Token),
+    InvalidIfStmt(String),
 }
 
 impl fmt::Display for ParserError {

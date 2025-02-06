@@ -56,6 +56,16 @@ pub struct IfStmt {
     pub else_branch: Option<Box<Stmt>>,
 }
 
+impl IfStmt {
+    pub fn new(condition: Expr, then_branch: Stmt, else_branch: Option<Stmt>) -> Self {
+        Self {
+            condition,
+            then_branch: Box::new(then_branch),
+            else_branch: else_branch.map(Box::new),
+        }
+    }
+}
+
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),

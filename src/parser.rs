@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt, IfStmt},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -88,6 +88,15 @@ impl Parser {
             return self.print_statement();
         }
 
+        // If statements are identified by the keyword `if`
+        let if_token = TokenType::Keyword(Keyword::If);
+
+        if self.any(&[&if_token])? {
+            // Consume the `if` token
+            let _ = self.advance()?;
+            return self.if_statement();
+        }
+
         // Block statements are starting with a left curly brace
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
 
@@ -110,8 +119,48 @@ impl Parser {
     }
 
     // A block statement is a block definining a new scope, which contains several statements.
+    fn if_statement(&mut self) -> Result<Stmt, ParserError> {
+        // In an if statement, we first parse the condition which is an `expression` surrounded by
+        // parenthesis.
+        let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+
+        // While we did not reach the ending right brace
+        let (condition, then_branch) = if self.any(&[&left_paren])? {
+            // Consume the left paren
+            let _ = self.advance()?;
+            // Consume the condition
+            let condition = self.separator()?;
+            // Consume the right parenthesis
+            let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+            // We need to consume the `;` in order to parse a proper statement
+            self.consume(&right_paren, "Expect ')' after `if` condition".to_string())?;
+            // Now we parse the statement for the `true` then-branch of the condition evaluation
+            let then_branch = self.statement()?;
+
+            (condition, then_branch)
+        } else {
+            return Err(ParserError::InvalidIfStmt(
+                    format!("Expected `if` followed by `(` condition `)`, found {:?}", self.peek()?)));
+        };
+
+        // At this point we have the following `if (condition) statement` logic parsed.
+        // Now, we have to also check the else keyword and branch
+        let else_token = TokenType::Keyword(Keyword::Else);
+
+        let else_branch = if self.any(&[&else_token])? {
+            // Consume the `else`
+            let _ = self.advance()?;
+            Some(self.statement()?)
+        } else {
+            None
+        };
+
+        Ok(Stmt::If(IfStmt::new(condition, then_branch, else_branch)))
+    }
+
+    // A block statement is a block definining a new scope, which contains several statements.
     fn block_statement(&mut self) -> Result<Stmt, ParserError> {
-        // Prepare a new vector that will hold the statement in this block
+        // Prepare a new vector that will hold the statements in this block
         let mut statements = vec![];
 
         let right_brace = TokenType::SingleChar(SingleChar::RightBrace);
