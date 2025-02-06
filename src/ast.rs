@@ -9,6 +9,7 @@ pub enum Stmt {
     Print(Expr),
     Var(VarStmt),
     Block(Vec<Stmt>),
+    If(IfStmt),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -24,6 +25,7 @@ impl Stmt {
             Stmt::Print(expr) => visitor.visit_print_stmt(expr),
             Stmt::Var(var) => visitor.visit_var_stmt(var),
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
+            Stmt::If(_stmts) => todo!(), //visitor.visit_block_stmt(stmts),
         }
     }
 }
@@ -43,6 +45,15 @@ impl VarStmt {
     pub fn expr(&self) -> Option<&Expr> {
         self.expr.as_ref()
     }
+}
+
+pub struct IfStmt {
+    // Condition that evaluates to true or false
+    pub condition: Expr,
+    // Branch to be executed if the condition evaluated to `true`
+    pub then_branch: Box<Stmt>,
+    // Optional branch to be executed if the condition evaluated to `false`
+    pub else_branch: Option<Box<Stmt>>,
 }
 
 pub enum Expr {
