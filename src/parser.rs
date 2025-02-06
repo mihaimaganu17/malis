@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt, IfStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, Stmt, Ternary, Unary, VarStmt},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -139,8 +139,10 @@ impl Parser {
 
             (condition, then_branch)
         } else {
-            return Err(ParserError::InvalidIfStmt(
-                    format!("Expected `if` followed by `(` condition `)`, found {:?}", self.peek()?)));
+            return Err(ParserError::InvalidIfStmt(format!(
+                "Expected `if` followed by `(` condition `)`, found {:?}",
+                self.peek()?
+            )));
         };
 
         // At this point we have the following `if (condition) statement` logic parsed.
