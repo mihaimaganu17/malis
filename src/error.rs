@@ -138,6 +138,7 @@ pub enum RuntimeError {
     Division(String),
     UnaryEvaluation(String),
     BinaryEvaluation(String),
+    VariableNotInitialized(String),
     EnvironmentError(EnvironmentError),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,

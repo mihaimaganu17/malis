@@ -380,7 +380,11 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // We do that by accessing the interpreters environment
     fn visit_variable(&self, var: &Token) -> Result<MalisObject, RuntimeError> {
         let object = self.environment.borrow().get(var.lexeme())?.clone();
-        Ok(object)
+        if let MalisObject::Nil = object {
+            Err(RuntimeError::VariableNotInitialized(format!("{var:?}")))
+        } else {
+            Ok(object)
+        }
     }
 
     // Assignment is treated as an expression and not a variable. As such, we need a previously
