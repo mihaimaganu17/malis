@@ -280,7 +280,17 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         self.execute_block(stmts, self.environment.take())
     }
 
-    fn visit_if_stmt(&mut self, _if_stmt: &IfStmt) -> Result<(), RuntimeError> {
+    fn visit_if_stmt(&mut self, if_stmt: &IfStmt) -> Result<(), RuntimeError> {
+        let cond = self.evaluate(&if_stmt.condition)?;
+
+        if cond.is_truthy() {
+            self.execute(&if_stmt.then_branch)?;
+        } else {
+            if let Some(branch) = &if_stmt.else_branch {
+                self.execute(branch)?;
+            }
+        }
+
         Ok(())
     }
 }
