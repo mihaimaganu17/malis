@@ -123,27 +123,19 @@ impl Parser {
         // In an if statement, we first parse the condition which is an `expression` surrounded by
         // parenthesis.
         let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+        // We need to consume the left parenthesis `(` in order to parse a proper statement
+        self.consume(&left_paren, "Expect '(' after `if` condition".to_string())?;
 
-        // While we did not reach the ending right brace
-        let (condition, then_branch) = if self.any(&[&left_paren])? {
-            // Consume the left paren
-            let _ = self.advance()?;
-            // Consume the condition
-            let condition = self.separator()?;
-            // Consume the right parenthesis
-            let right_paren = TokenType::SingleChar(SingleChar::RightParen);
-            // We need to consume the `;` in order to parse a proper statement
-            self.consume(&right_paren, "Expect ')' after `if` condition".to_string())?;
-            // Now we parse the statement for the `true` then-branch of the condition evaluation
-            let then_branch = self.statement()?;
-
-            (condition, then_branch)
-        } else {
-            return Err(ParserError::InvalidIfStmt(format!(
-                "Expected `if` followed by `(` condition `)`, found {:?}",
-                self.peek()?
-            )));
-        };
+        // Consume the left paren
+        let _ = self.advance()?;
+        // Consume the condition
+        let condition = self.separator()?;
+        // Consume the right parenthesis
+        let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+        // We need to consume the `;` in order to parse a proper statement
+        self.consume(&right_paren, "Expect ')' after `if` condition".to_string())?;
+        // Now we parse the statement for the `true` then-branch of the condition evaluation
+        let then_branch = self.statement()?;
 
         // At this point we have the following `if (condition) statement` logic parsed.
         // Now, we have to also check the else keyword and branch
