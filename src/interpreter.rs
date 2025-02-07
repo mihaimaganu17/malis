@@ -285,10 +285,8 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
 
         if cond.is_truthy() {
             self.execute(&if_stmt.then_branch)?;
-        } else {
-            if let Some(branch) = &if_stmt.else_branch {
-                self.execute(branch)?;
-            }
+        } else if let Some(branch) = &if_stmt.else_branch {
+            self.execute(branch)?;
         }
 
         Ok(())
