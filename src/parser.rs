@@ -32,7 +32,7 @@ impl Parser {
 
     // Parses a Malis Declaration, which is in fact a node of statement
     fn declaration(&mut self) -> Result<Option<Stmt>, ParserError> {
-        // We could have 1 type of declaration as a statemen: variable declration
+        // We could have 1 type of declaration as a statement: variable declaration
         let var_token = TokenType::Keyword(Keyword::Var);
 
         let maybe_declaration = if self.any(&[&var_token])? {
@@ -126,8 +126,6 @@ impl Parser {
         // We need to consume the left parenthesis `(` in order to parse a proper statement
         self.consume(&left_paren, "Expect '(' after `if` condition".to_string())?;
 
-        // Consume the left paren
-        let _ = self.advance()?;
         // Consume the condition
         let condition = self.separator()?;
         // Consume the right parenthesis

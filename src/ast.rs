@@ -25,7 +25,7 @@ impl Stmt {
             Stmt::Print(expr) => visitor.visit_print_stmt(expr),
             Stmt::Var(var) => visitor.visit_var_stmt(var),
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
-            Stmt::If(_stmts) => todo!(), //visitor.visit_block_stmt(stmts),
+            Stmt::If(if_stmt) => visitor.visit_if_stmt(if_stmt),
         }
     }
 }

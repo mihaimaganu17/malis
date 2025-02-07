@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, Stmt, Ternary, Unary, VarStmt},
     token::Token,
 };
 
@@ -22,6 +22,7 @@ pub trait StmtVisitor<T> {
     fn visit_print_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> T;
     fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> T;
+    fn visit_if_stmt(&mut self, stmt: &IfStmt) -> T;
 }
 
 #[derive(Debug)]
@@ -98,6 +99,20 @@ impl StmtVisitor<String> for AstPrinter {
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> String {
         let stmts = stmts.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
         self.parenthesize("block scope", &stmts)
+    }
+
+    fn visit_if_stmt(&mut self, if_stmt: &IfStmt) -> String {
+        println!("If ast");
+        let cond = if_stmt.condition.walk(self);
+        let then_branch = if_stmt.then_branch.walk(self);
+        let else_branch = if let Some(ref branch) = if_stmt.else_branch {
+            let else_branch = branch.walk(self);
+            self.parenthesize("else", &[&else_branch])
+        } else {
+            String::new()
+        };
+
+        self.parenthesize("if", &[cond, then_branch, else_branch])
     }
 }
 

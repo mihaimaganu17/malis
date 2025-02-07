@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, Literal, LiteralType, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, LiteralType, Stmt, Ternary, Unary, VarStmt},
     environment::Environment,
     error::RuntimeError,
     token::{Comparison, SingleChar, Token, TokenType},
@@ -278,6 +278,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
 
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
         self.execute_block(stmts, self.environment.take())
+    }
+
+    fn visit_if_stmt(&mut self, _if_stmt: &IfStmt) -> Result<(), RuntimeError> {
+        Ok(())
     }
 }
 
