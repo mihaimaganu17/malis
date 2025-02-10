@@ -350,8 +350,14 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             ))),
         }
     }
-    fn visit_ternary(&mut self, _ternary: &Ternary) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+    fn visit_ternary(&mut self, ternary: &Ternary) -> Result<MalisObject, RuntimeError> {
+        let cond = self.evaluate(&ternary.first)?;
+
+        if cond.is_truthy() {
+            ternary.second.walk(self)
+        } else {
+            ternary.third.walk(self)
+        }
     }
     // Evaluating literals. A literal is a `bit of syntax` that produces a vlue. A literal
     // always appears somewhere in the user's source code. Lots of values are produces by
