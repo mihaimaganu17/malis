@@ -1,6 +1,7 @@
 use crate::{
     ast::{
         Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
+        WhileStmt,
     },
     environment::Environment,
     error::RuntimeError,
@@ -289,6 +290,14 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             self.execute(&if_stmt.then_branch)?;
         } else if let Some(branch) = &if_stmt.else_branch {
             self.execute(branch)?;
+        }
+
+        Ok(())
+    }
+
+    fn visit_while_stmt(&mut self, while_stmt: &WhileStmt) -> Result<(), RuntimeError> {
+        while self.evaluate(&while_stmt.condition)?.is_truthy() {
+            self.execute(&while_stmt.stmt)?;
         }
 
         Ok(())

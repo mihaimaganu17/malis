@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt},
     token::Token,
 };
 
@@ -24,6 +24,7 @@ pub trait StmtVisitor<T> {
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> T;
     fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> T;
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> T;
+    fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> T;
 }
 
 #[derive(Debug)]
@@ -119,6 +120,12 @@ impl StmtVisitor<String> for AstPrinter {
         };
 
         self.parenthesize("if", &[cond, then_branch, else_branch])
+    }
+
+    fn visit_while_stmt(&mut self, while_stmt: &WhileStmt) -> String {
+        let cond = while_stmt.condition.walk(self);
+        let stmt = while_stmt.stmt.walk(self);
+        self.parenthesize("while", &[cond, stmt])
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -98,6 +98,15 @@ impl Parser {
             return self.if_statement();
         }
 
+        // While statements are identified by the keyword `while`
+        let while_token = TokenType::Keyword(Keyword::While);
+
+        if self.any(&[&while_token])? {
+            // Consume the `if` token
+            let _ = self.advance()?;
+            return self.while_statement();
+        }
+
         // Block statements are starting with a left curly brace
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
 
@@ -119,7 +128,7 @@ impl Parser {
         Ok(Stmt::Print(expr))
     }
 
-    // A block statement is a block definining a new scope, which contains several statements.
+    // An if statement is a statement with a condition, a then branch and an optional else branch.
     fn if_statement(&mut self) -> Result<Stmt, ParserError> {
         // In an if statement, we first parse the condition which is an `expression` surrounded by
         // parenthesis.
@@ -149,6 +158,27 @@ impl Parser {
         };
 
         Ok(Stmt::If(IfStmt::new(condition, then_branch, else_branch)))
+    }
+
+    // A while statement is a loop with a condition and a statement which executed while the
+    // condition evaluates to true
+    fn while_statement(&mut self) -> Result<Stmt, ParserError> {
+        // In an while statement, we first parse the condition which is an `expression` surrounded by
+        // parenthesis.
+        let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+        // We need to consume the left parenthesis `(` in order to parse a proper statement
+        self.consume(&left_paren, "Expect '(' after `while` condition".to_string())?;
+
+        // Consume the condition
+        let condition = self.separator()?;
+        // Consume the right parenthesis
+        let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+        // We need to consume the `;` in order to parse a proper statement
+        self.consume(&right_paren, "Expect ')' after `if` condition".to_string())?;
+        // Now we parse the statement for the `true` branch of the condition evaluation
+        let stmt = self.statement()?;
+
+        Ok(Stmt::While(WhileStmt::new(condition, stmt)))
     }
 
     // A block statement is a block definining a new scope, which contains several statements.

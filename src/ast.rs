@@ -10,6 +10,7 @@ pub enum Stmt {
     Var(VarStmt),
     Block(Vec<Stmt>),
     If(IfStmt),
+    While(WhileStmt),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -26,6 +27,7 @@ impl Stmt {
             Stmt::Var(var) => visitor.visit_var_stmt(var),
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
             Stmt::If(if_stmt) => visitor.visit_if_stmt(if_stmt),
+            Stmt::While(while_stmt) => visitor.visit_while_stmt(while_stmt),
         }
     }
 }
@@ -62,6 +64,22 @@ impl IfStmt {
             condition,
             then_branch: Box::new(then_branch),
             else_branch: else_branch.map(Box::new),
+        }
+    }
+}
+
+pub struct WhileStmt {
+    // Condition that evaluates to true or false
+    pub condition: Expr,
+    // Branch to be executed if the condition evaluated to `true`
+    pub stmt: Box<Stmt>,
+}
+
+impl WhileStmt {
+    pub fn new(condition: Expr, stmt: Stmt) -> Self {
+        Self {
+            condition,
+            stmt: Box::new(stmt),
         }
     }
 }
