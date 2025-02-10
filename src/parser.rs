@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt},
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -229,7 +229,7 @@ impl Parser {
     }
 
     fn ternary(&mut self) -> Result<Expr, ParserError> {
-        let mut expr = self.expression()?;
+        let mut expr = self.logical_or()?;
         // Prepare the `TokenType`s we want to match against for the operators of this production
         // rule. In this case, we want to match question mark first and then colon
         let question_mark = TokenType::SingleChar(SingleChar::Question);
@@ -241,7 +241,7 @@ impl Parser {
             let operator1 = self.advance()?.clone();
             // After the operator, the expression is the value to be returned if the condition
             // is true
-            let variant1 = self.expression()?;
+            let variant1 = self.logical_or()?;
             // At this point, we need to consume the colon to have a valid ternary condition
             let operator2 = if self
                 .consume(&colon, "Expect ':' after expression".to_string())
@@ -251,11 +251,47 @@ impl Parser {
             } else {
                 self.previous()?.clone()
             };
-            let variant2 = self.expression()?;
+            let variant2 = self.logical_or()?;
 
             // We create a new `ternary` expression using the two
             expr = Expr::Ternary(Ternary::new(expr, operator1, variant1, operator2, variant2));
         }
+        Ok(expr)
+    }
+
+    pub fn logical_or(&mut self) -> Result<Expr, ParserError> {
+        // We first take the first operand of the expression
+        let mut expr = self.logical_and()?;
+        // We then check if the `or` keyword is present
+        let or_token = TokenType::Keyword(Keyword::Or);
+
+        while self.any(&[&or_token])? {
+            // Consume the operator
+            let operator = self.advance()?.clone();
+            // Take the right operand
+            let right = self.logical_and()?;
+            // Create and replace the left expression with the result of the 2 expressions
+            expr = Expr::Logical(Logical::new(expr, operator, right));
+        }
+        // Return the created expression
+        Ok(expr)
+    }
+
+    pub fn logical_and(&mut self) -> Result<Expr, ParserError> {
+        // We first take the first operand of the expression
+        let mut expr = self.expression()?;
+        // We then check if the `and` keyword is present
+        let and_token = TokenType::Keyword(Keyword::And);
+
+        while self.any(&[&and_token])? {
+            // Consume the operator
+            let operator = self.advance()?.clone();
+            // Take the right operand
+            let right = self.expression()?;
+            // Create and replace the left expression with the result of the 2 expressions
+            expr = Expr::Logical(Logical::new(expr, operator, right));
+        }
+        // Return the created expression
         Ok(expr)
     }
 

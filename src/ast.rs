@@ -74,6 +74,7 @@ pub enum Expr {
     Ternary(Ternary),
     Var(Token),
     Assign(Token, Box<Expr>),
+    Logical(Logical),
 }
 
 impl AsRef<Expr> for Expr {
@@ -92,6 +93,23 @@ impl Expr {
             Expr::Literal(literal) => visitor.visit_literal(literal),
             Expr::Var(token) => visitor.visit_variable(token),
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
+            Expr::Logical(logical) => todo!(), // visitor.visit_assign(token, expr),
+        }
+    }
+}
+
+pub struct Logical {
+    pub left: Box<Expr>,
+    pub operator: Token,
+    pub right: Box<Expr>,
+}
+
+impl Logical {
+    pub fn new(left: Expr, operator: Token, right: Expr) -> Self {
+        Self {
+            left: Box::new(left),
+            operator,
+            right: Box::new(right),
         }
     }
 }
