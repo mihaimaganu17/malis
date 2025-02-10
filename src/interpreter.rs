@@ -1,8 +1,10 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt},
+    ast::{
+        Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
+    },
     environment::Environment,
     error::RuntimeError,
-    token::{Comparison, SingleChar, Token, TokenType, Keyword},
+    token::{Comparison, Keyword, SingleChar, Token, TokenType},
     visit::{ExprVisitor, StmtVisitor},
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
@@ -417,6 +419,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         }
 
         let right_object = logical.right.walk(self)?;
-        Ok(MalisObject::from(left_object_is_true || right_object.is_truthy()))
+        Ok(MalisObject::from(
+            left_object_is_true || right_object.is_truthy(),
+        ))
     }
 }

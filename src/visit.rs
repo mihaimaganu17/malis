@@ -77,7 +77,7 @@ impl ExprVisitor<String> for AstPrinter {
 
     fn visit_logical(&mut self, logical: &Logical) -> String {
         let left = logical.left.walk(self);
-        let right= logical.right.walk(self);
+        let right = logical.right.walk(self);
         self.parenthesize("or", &[left, right])
     }
 }
