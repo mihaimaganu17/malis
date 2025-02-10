@@ -109,7 +109,6 @@ impl StmtVisitor<String> for AstPrinter {
     }
 
     fn visit_if_stmt(&mut self, if_stmt: &IfStmt) -> String {
-        println!("If ast");
         let cond = if_stmt.condition.walk(self);
         let then_branch = if_stmt.then_branch.walk(self);
         let else_branch = if let Some(ref branch) = if_stmt.else_branch {

@@ -419,8 +419,6 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         }
 
         let right_object = logical.right.walk(self)?;
-        Ok(MalisObject::from(
-            left_object_is_true || right_object.is_truthy(),
-        ))
+        Ok(MalisObject::from(right_object.is_truthy()))
     }
 }

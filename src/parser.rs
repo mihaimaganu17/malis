@@ -43,6 +43,7 @@ impl Parser {
         };
 
         if maybe_declaration.is_err() {
+            println!("{:?}", maybe_declaration.err());
             self.synchronize()?;
             return Ok(None);
         }
