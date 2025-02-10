@@ -177,8 +177,8 @@ pub struct Literal {
 
 impl Literal {
     pub fn new(token: &Token) -> Result<Self, MalisError> {
-        let l_type = if let Some(token) = token.t_type.get() {
-            match token {
+        let l_type = {
+            match token.t_type() {
                 TokenType::Literal(literal) => match literal {
                     LiteralToken::Number(value) => LiteralType::Number(*value),
                     LiteralToken::LitString(value) => LiteralType::LitString(value.clone()),
@@ -191,8 +191,6 @@ impl Literal {
                 },
                 _ => Err(AstError::NotALiteral)?,
             }
-        } else {
-            return Err(MalisError::NoneTokenType);
         };
         Ok(Self { l_type })
     }

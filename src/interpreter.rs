@@ -300,21 +300,13 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // Our interpreter is doing a post-order traversal - each node evaluates its children
         // before doing its own work. As such we first evaluated the underlying expression above
         // and now we are evaluating the operator of our current value
-        if let Some(operator_type) = unary.operator.t_type.get() {
-            match operator_type {
-                TokenType::SingleChar(SingleChar::Minus) => -right_malis_object,
-                TokenType::SingleChar(SingleChar::Bang) => Ok(!right_malis_object),
-                _ => Err(RuntimeError::UnaryEvaluation(format!(
-                    "Invalid unary operator {:?}",
-                    unary.operator
-                ))),
-            }
-        } else {
-            Err(RuntimeError::UnaryEvaluation(format!(
-                "Unary operator {:?} has not TokenType {:?}",
-                unary.operator.lexeme(),
-                unary.operator.line
-            )))
+        match unary.operator.t_type() {
+            TokenType::SingleChar(SingleChar::Minus) => -right_malis_object,
+            TokenType::SingleChar(SingleChar::Bang) => Ok(!right_malis_object),
+            _ => Err(RuntimeError::UnaryEvaluation(format!(
+                "Invalid unary operator {:?}",
+                unary.operator
+            ))),
         }
     }
 
@@ -324,44 +316,36 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let left_object = binary.left.walk(self)?;
         let right_object = binary.right.walk(self)?;
 
-        if let Some(operator_type) = binary.operator.t_type.get() {
-            match operator_type {
-                TokenType::SingleChar(SingleChar::Plus) => left_object + right_object,
-                TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
-                TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
-                TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
-                TokenType::Comparison(Comparison::Greater) => {
-                    Ok(MalisObject::Boolean(left_object.gt(&right_object)))
-                }
-                TokenType::Comparison(Comparison::GreaterEqual) => {
-                    Ok(MalisObject::Boolean(left_object.ge(&right_object)))
-                }
-                TokenType::Comparison(Comparison::Less) => {
-                    Ok(MalisObject::Boolean(left_object.lt(&right_object)))
-                }
-                TokenType::Comparison(Comparison::LessEqual) => {
-                    Ok(MalisObject::Boolean(left_object.le(&right_object)))
-                }
-                TokenType::Comparison(Comparison::BangEqual) => {
-                    Ok(MalisObject::Boolean(left_object.ne(&right_object)))
-                }
-                TokenType::Comparison(Comparison::EqualEqual) => {
-                    Ok(MalisObject::Boolean(left_object.eq(&right_object)))
-                }
-                // When we have the comma separator, separating multiple expressions, similar to C,
-                // the return value is the result of the last expression
-                TokenType::SingleChar(SingleChar::Comma) => Ok(right_object),
-                _ => Err(RuntimeError::BinaryEvaluation(format!(
-                    "Invalid binary operator {:?}",
-                    binary.operator
-                ))),
+        match binary.operator.t_type() {
+            TokenType::SingleChar(SingleChar::Plus) => left_object + right_object,
+            TokenType::SingleChar(SingleChar::Minus) => left_object - right_object,
+            TokenType::SingleChar(SingleChar::Slash) => left_object / right_object,
+            TokenType::SingleChar(SingleChar::Star) => left_object * right_object,
+            TokenType::Comparison(Comparison::Greater) => {
+                Ok(MalisObject::Boolean(left_object.gt(&right_object)))
             }
-        } else {
-            Err(RuntimeError::BinaryEvaluation(format!(
-                "Binary operator {} has not TokenType {:?}",
-                binary.operator.lexeme(),
-                binary.operator.line
-            )))
+            TokenType::Comparison(Comparison::GreaterEqual) => {
+                Ok(MalisObject::Boolean(left_object.ge(&right_object)))
+            }
+            TokenType::Comparison(Comparison::Less) => {
+                Ok(MalisObject::Boolean(left_object.lt(&right_object)))
+            }
+            TokenType::Comparison(Comparison::LessEqual) => {
+                Ok(MalisObject::Boolean(left_object.le(&right_object)))
+            }
+            TokenType::Comparison(Comparison::BangEqual) => {
+                Ok(MalisObject::Boolean(left_object.ne(&right_object)))
+            }
+            TokenType::Comparison(Comparison::EqualEqual) => {
+                Ok(MalisObject::Boolean(left_object.eq(&right_object)))
+            }
+            // When we have the comma separator, separating multiple expressions, similar to C,
+            // the return value is the result of the last expression
+            TokenType::SingleChar(SingleChar::Comma) => Ok(right_object),
+            _ => Err(RuntimeError::BinaryEvaluation(format!(
+                "Invalid binary operator {:?}",
+                binary.operator
+            ))),
         }
     }
     fn visit_ternary(&mut self, _ternary: &Ternary) -> Result<MalisObject, RuntimeError> {
@@ -418,15 +402,15 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let left_object = logical.left.walk(self)?;
         let left_object_is_true = left_object.is_truthy();
 
-        match logical.operator.t_type {
+        match logical.operator.t_type() {
             TokenType::Keyword(Keyword::Or) => {
                 if left_object_is_true {
-                    Ok(MalisObject::Boolean(true));
+                    return Ok(MalisObject::Boolean(true));
                 }
             }
             TokenType::Keyword(Keyword::And) => {
                 if !left_object_is_true {
-                    Ok(MalisObject::Boolean(false));
+                    return Ok(MalisObject::Boolean(false));
                 }
             }
             _ => unreachable!(),

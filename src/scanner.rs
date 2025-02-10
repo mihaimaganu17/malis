@@ -63,7 +63,7 @@ impl<'a> Scanner<'a> {
             match maybe_token {
                 Ok(token) => {
                     // If the current token is classified as `Ignored` we move to the next iteration
-                    if let Some(TokenType::Ignored) = token.t_type() {
+                    if token.t_type() == &TokenType::Ignored {
                         continue;
                     }
                     // At this point, the token needs to be in the token list

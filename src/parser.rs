@@ -511,7 +511,7 @@ impl Parser {
     fn tokens_left(&self) -> Result<bool, ParserError> {
         let token = self.peek()?;
 
-        Ok(token.t_type.get().ok_or(ParserError::NoTokenType)? != &TokenType::Eof)
+        Ok(token.t_type() != &TokenType::Eof)
     }
 
     // Returns the token at the `current` index
@@ -523,7 +523,7 @@ impl Parser {
 
     // Returns the token type at the `current` index, without further advancing the cursor
     fn peek_type(&self) -> Result<&TokenType, ParserError> {
-        self.peek()?.t_type.get().ok_or(ParserError::NoTokenType)
+        Ok(self.peek()?.t_type())
     }
 
     // Returns the token that preceded `current` indexed token
@@ -548,7 +548,7 @@ impl Parser {
     // Returns whether the `Token` at the `current` index is of desired `t_type`
     fn check(&self, t_type: &TokenType) -> Result<bool, ParserError> {
         let check = if self.tokens_left()? {
-            self.peek()?.t_type.get().ok_or(ParserError::NoTokenType)? == t_type
+            self.peek()?.t_type() == t_type
         } else {
             false
         };
