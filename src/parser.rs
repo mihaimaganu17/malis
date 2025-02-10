@@ -1,5 +1,7 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt},
+    ast::{
+        Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+    },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
@@ -167,7 +169,10 @@ impl Parser {
         // parenthesis.
         let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
         // We need to consume the left parenthesis `(` in order to parse a proper statement
-        self.consume(&left_paren, "Expect '(' after `while` condition".to_string())?;
+        self.consume(
+            &left_paren,
+            "Expect '(' after `while` condition".to_string(),
+        )?;
 
         // Consume the condition
         let condition = self.separator()?;
