@@ -413,18 +413,18 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         match logical.operator.t_type() {
             TokenType::Keyword(Keyword::Or) => {
                 if left_object_is_true {
-                    return Ok(MalisObject::Boolean(true));
+                    return Ok(left_object)
                 }
             }
             TokenType::Keyword(Keyword::And) => {
                 if !left_object_is_true {
-                    return Ok(MalisObject::Boolean(false));
+                    return Ok(left_object)
                 }
             }
             _ => unreachable!(),
         }
 
         let right_object = logical.right.walk(self)?;
-        Ok(MalisObject::from(right_object.is_truthy()))
+        Ok(right_object)
     }
 }
