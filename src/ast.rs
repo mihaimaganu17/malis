@@ -93,7 +93,7 @@ impl Expr {
             Expr::Literal(literal) => visitor.visit_literal(literal),
             Expr::Var(token) => visitor.visit_variable(token),
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
-            Expr::Logical(logical) => todo!(), // visitor.visit_assign(token, expr),
+            Expr::Logical(logical) => visitor.visit_logical(logical),
         }
     }
 }

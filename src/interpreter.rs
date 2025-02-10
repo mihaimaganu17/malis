@@ -1,8 +1,8 @@
 use crate::{
-    ast::{Binary, Expr, Group, IfStmt, Literal, LiteralType, Stmt, Ternary, Unary, VarStmt},
+    ast::{Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt},
     environment::Environment,
     error::RuntimeError,
-    token::{Comparison, SingleChar, Token, TokenType},
+    token::{Comparison, SingleChar, Token, TokenType, Keyword},
     visit::{ExprVisitor, StmtVisitor},
 };
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
@@ -405,5 +405,34 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let malis_object = expr.walk(self)?;
         let lexeme = ident.lexeme();
         Ok(self.environment.borrow_mut().insert(lexeme, malis_object)?)
+    }
+
+    fn visit_logical(&mut self, logical: &Logical) -> Result<MalisObject, RuntimeError> {
+        // In a logical expression, we evaluate the operand from left to right and then evaulte
+        // the logical expression itself. The logical expression operators `or` and `and`
+        // short-circuit. This means that:
+        // - for the `or` operator, if the first operand evaluates to `true` we do not have to
+        // evaulate the second operand
+        // - for the `and` operator, if the first operand evaluates to `false` we do not have to
+        // evaulate the second operand
+        let left_object = logical.left.walk(self)?;
+        let left_object_is_true = left_object.is_truthy();
+
+        match logical.operator.t_type {
+            TokenType::Keyword(Keyword::Or) => {
+                if left_object_is_true {
+                    Ok(MalisObject::Boolean(true));
+                }
+            }
+            TokenType::Keyword(Keyword::And) => {
+                if !left_object_is_true {
+                    Ok(MalisObject::Boolean(false));
+                }
+            }
+            _ => unreachable!(),
+        }
+
+        let right_object = logical.right.walk(self)?;
+        Ok(MalisObject::from(left_object_is_true || right_object.is_truthy()))
     }
 }
