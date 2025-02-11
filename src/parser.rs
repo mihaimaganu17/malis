@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt, LiteralType,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -109,6 +109,15 @@ impl Parser {
             return self.while_statement();
         }
 
+        // For statements are identified by the keyword `for`
+        let for_token = TokenType::Keyword(Keyword::For);
+
+        if self.any(&[&for_token])? {
+            // Consume the `if` token
+            let _ = self.advance()?;
+            return self.for_statement();
+        }
+
         // Block statements are starting with a left curly brace
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
 
@@ -160,6 +169,95 @@ impl Parser {
         };
 
         Ok(Stmt::If(IfStmt::new(condition, then_branch, else_branch)))
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt, ParserError> {
+        // In a for statement we first parse the opening parenthesis
+        let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+        // We need to consume the left parenthesis `(` in order to parse a proper statement
+        self.consume(
+            &left_paren,
+            "Expect '(' after `while` condition".to_string(),
+        )?;
+
+        // Afterward, follows the optional initialisation
+        //
+        // We check if the next token is a semicolon
+        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        let maybe_initialiser = if self.any(&[&semi_colon])? {
+            // Consume the semicolon
+            let _ = self.advance()?;
+            // If it is, it means we do not have an initialiser
+            None
+        } else {
+            // At this point we have an initiliser
+            // We check if it is a declaration statement
+            let var = TokenType::Keyword(Keyword::Var);
+            if self.any(&[&var])? {
+                // Consume the var keyword
+                let _ = self.advance()?;
+                // Parse the declaration
+                Some(self.var_declaration()?)
+            } else {
+                // If we do not encounter the var keyword, this is a normal expression statement
+                Some(self.expr_statement()?)
+            }
+        };
+
+        // Now comes the optional condtion
+        //
+        // If the following token is a semicolon, we have no condition
+        let maybe_condition = if self.any(&[&semi_colon])? {
+            None
+        } else {
+            // Otherwise, we parse the expresssion that holds the condition
+            Some(self.separator()?)
+        };
+
+        // Consume the semicolon following (whether or not we have a condition)
+        // We need to consume the `;` in order to parsea proper for condition
+        self.consume(&semi_colon, "Expect second ';' after `for` condition".to_string())?;
+
+        // Finally, we check for the increment step
+        //
+        // If the following token is a close parethesis, we have no increment step
+        let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+        let maybe_increment = if self.any(&[&right_paren])? {
+            None
+        } else {
+            // Otherwise, we parse the expresssion that holds the condition
+            Some(self.separator()?)
+        };
+        // We need to consume the `)` in order to parse a proper for statement
+        self.consume(&right_paren, "Expect ')' after `for` increment".to_string())?;
+
+        // Now we parse the statement for the body of the for loop
+        let mut body = self.statement()?;
+
+        // Desugaring
+        //
+        // If we have an increment step, we build a new statement with the previous body and the
+        // increment step
+        if let Some(increment) = maybe_increment {
+            body = Stmt::Block(vec![body, Stmt::Expr(increment)]);
+        }
+
+
+        // If we have a condition step, we build a new while statement with that condition and the
+        // body we have so far
+        if let Some(condition) = maybe_condition {
+            body = Stmt::While(WhileStmt::new(condition, body));
+        } else {
+            body = Stmt::While(WhileStmt::new(Expr::Literal(Literal { l_type: LiteralType::True }), body));
+        }
+
+        // If we have an initialisation step, we build a block statement with the initialiser first
+        // and the body until this point second
+        if let Some(initialiser) = maybe_initialiser {
+            body = Stmt::Block(vec![initialiser, body]);
+        }
+
+        Ok(body)
     }
 
     // A while statement is a loop with a condition and a statement which executed while the
