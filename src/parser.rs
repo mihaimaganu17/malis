@@ -1,6 +1,7 @@
 use crate::{
     ast::{
-        Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt, LiteralType,
+        Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
+        WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -216,7 +217,10 @@ impl Parser {
 
         // Consume the semicolon following (whether or not we have a condition)
         // We need to consume the `;` in order to parsea proper for condition
-        self.consume(&semi_colon, "Expect second ';' after `for` condition".to_string())?;
+        self.consume(
+            &semi_colon,
+            "Expect second ';' after `for` condition".to_string(),
+        )?;
 
         // Finally, we check for the increment step
         //
@@ -242,13 +246,17 @@ impl Parser {
             body = Stmt::Block(vec![body, Stmt::Expr(increment)]);
         }
 
-
         // If we have a condition step, we build a new while statement with that condition and the
         // body we have so far
         if let Some(condition) = maybe_condition {
             body = Stmt::While(WhileStmt::new(condition, body));
         } else {
-            body = Stmt::While(WhileStmt::new(Expr::Literal(Literal { l_type: LiteralType::True }), body));
+            body = Stmt::While(WhileStmt::new(
+                Expr::Literal(Literal {
+                    l_type: LiteralType::True,
+                }),
+                body,
+            ));
         }
 
         // If we have an initialisation step, we build a block statement with the initialiser first
