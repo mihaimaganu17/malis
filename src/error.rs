@@ -109,6 +109,7 @@ pub enum ParserError {
     MissingColon,
     NoPrimaryProduction,
     NoErrorProduction,
+    TooManyFuncArg,
     PanicMode(String, Token),
     InvalidIfStmt(String),
 }

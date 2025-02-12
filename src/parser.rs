@@ -7,6 +7,8 @@ use crate::{
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
 };
 
+const FUNCTION_ARG_LIMIT: usize = 255;
+
 /// Parses the tokens according to the `malis.cfg` context-free grammar
 #[derive(Debug)]
 pub struct Parser {
@@ -401,7 +403,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn logical_or(&mut self) -> Result<Expr, ParserError> {
+    fn logical_or(&mut self) -> Result<Expr, ParserError> {
         // We first take the first operand of the expression
         let mut expr = self.logical_and()?;
         // We then check if the `or` keyword is present
@@ -419,7 +421,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn logical_and(&mut self) -> Result<Expr, ParserError> {
+    fn logical_and(&mut self) -> Result<Expr, ParserError> {
         // We first take the first operand of the expression
         let mut expr = self.expression()?;
         // We then check if the `and` keyword is present
@@ -437,7 +439,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn expression(&mut self) -> Result<Expr, ParserError> {
+    fn expression(&mut self) -> Result<Expr, ParserError> {
         let expr = self.equality()?;
         Ok(expr)
     }
@@ -578,6 +580,9 @@ impl Parser {
             let comma = TokenType::SingleChar(SingleChar::Comma);
             // Equivalent to a C's `do-while`
             while {
+                if arguments.len() >= FUNCTION_ARG_LIMIT {
+                    return Err(ParserError::TooManyFuncArg);
+                }
                 arguments.push(self.assignment()?);
                 self.any(&[&comma])?
             }{
