@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
-        WhileStmt,
+        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
+        VarStmt, WhileStmt,
     },
     environment::Environment,
     error::RuntimeError,
@@ -191,7 +191,11 @@ impl Div for MalisObject {
 pub trait MalisCallable {
     fn new(object: MalisObject) -> Self;
 
-    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<MalisObject>) -> Result<MalisObject, RuntimeError>;
+    fn call(
+        &self,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
+    ) -> Result<MalisObject, RuntimeError>;
 }
 
 pub struct MalisFunction;
@@ -201,7 +205,11 @@ impl MalisCallable for MalisFunction {
         Self
     }
 
-    fn call(&self, _interpreter: &mut Interpreter, _arguments: Vec<MalisObject>) -> Result<MalisObject, RuntimeError> {
+    fn call(
+        &self,
+        _interpreter: &mut Interpreter,
+        _arguments: Vec<MalisObject>,
+    ) -> Result<MalisObject, RuntimeError> {
         Ok(MalisObject::Nil)
     }
 }
@@ -461,7 +469,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // Next we evaluate each of the arguments
         let mut arguments = vec![];
         for arg in call.arguments.iter() {
-            arguments.push(self.evaluate(&arg)?);
+            arguments.push(self.evaluate(arg)?);
         }
 
         // We create a callable object using the callee

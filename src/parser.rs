@@ -585,14 +585,16 @@ impl Parser {
                 }
                 arguments.push(self.assignment()?);
                 self.any(&[&comma])?
-            }{
+            } {
                 // Advance past the comma
                 let _ = self.advance()?;
             }
         }
 
         // Consume the closing right parenthesis
-        let paren = self.consume(&right_paren, "Expect ')' after expression".to_string())?.clone();
+        let paren = self
+            .consume(&right_paren, "Expect ')' after expression".to_string())?
+            .clone();
 
         // Return the call expression
         Ok(Expr::Call(Call::new(callee, paren, arguments)))
