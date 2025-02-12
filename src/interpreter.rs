@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
+        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
         WhileStmt,
     },
     environment::Environment,
@@ -435,5 +435,9 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
 
         let right_object = logical.right.walk(self)?;
         Ok(right_object)
+    }
+
+    fn visit_call(&mut self, _call: &Call) -> Result<MalisObject, RuntimeError> {
+        Ok(MalisObject::Nil)
     }
 }

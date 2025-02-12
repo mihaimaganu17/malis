@@ -93,6 +93,7 @@ pub enum Expr {
     Var(Token),
     Assign(Token, Box<Expr>),
     Logical(Logical),
+    Call(Call),
 }
 
 impl AsRef<Expr> for Expr {
@@ -112,6 +113,7 @@ impl Expr {
             Expr::Var(token) => visitor.visit_variable(token),
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
             Expr::Logical(logical) => visitor.visit_logical(logical),
+            Expr::Call(call) => visitor.visit_call(call),
         }
     }
 }
@@ -128,6 +130,25 @@ impl Logical {
             left: Box::new(left),
             operator,
             right: Box::new(right),
+        }
+    }
+}
+
+pub struct Call {
+    // Function to be called
+    pub callee: Box<Expr>,
+    // Parenthesis from which the arguments for the current function start
+    pub paren: Token,
+    // Arguments taken by the function
+    pub arguments: Vec<Expr>,
+}
+
+impl Call {
+    pub fn new(callee: Expr, paren: Token, arguments: Vec<Expr>) -> Self {
+        Self {
+            callee: Box::new(callee),
+            paren,
+            arguments,
         }
     }
 }

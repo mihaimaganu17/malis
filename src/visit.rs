@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Binary, Call, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     token::Token,
 };
@@ -16,6 +16,7 @@ pub trait ExprVisitor<T> {
     fn visit_variable(&self, variable: &Token) -> T;
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> T;
     fn visit_logical(&mut self, logical: &Logical) -> T;
+    fn visit_call(&mut self, call: &Call) -> T;
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -82,6 +83,10 @@ impl ExprVisitor<String> for AstPrinter {
         let left = logical.left.walk(self);
         let right = logical.right.walk(self);
         self.parenthesize("or", &[left, right])
+    }
+
+    fn visit_call(&mut self, _call: &Call) -> String {
+        self.parenthesize("call", &["todo"])
     }
 }
 
