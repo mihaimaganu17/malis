@@ -188,9 +188,15 @@ impl Div for MalisObject {
     }
 }
 
-pub struct MalisCallable;
+pub trait MalisCallable {
+    fn new(object: MalisObject) -> Self;
 
-impl MalisCallable {
+    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<MalisObject>) -> Result<MalisObject, RuntimeError>;
+}
+
+pub struct MalisFunction;
+
+impl MalisCallable for MalisFunction {
     fn new(_object: MalisObject) -> Self {
         Self
     }
@@ -459,7 +465,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         }
 
         // We create a callable object using the callee
-        let function = MalisCallable::new(callee);
+        let function = MalisFunction::new(callee);
         function.call(self, arguments)
     }
 }
