@@ -137,7 +137,7 @@ impl Logical {
 pub struct Call {
     // Function to be called
     pub callee: Box<Expr>,
-    // Parenthesis from which the arguments for the current function start
+    // Parenthesis at which the arguments for the current function end
     pub paren: Token,
     // Arguments taken by the function
     pub arguments: Vec<Expr>,

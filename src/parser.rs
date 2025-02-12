@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary, VarStmt,
-        WhileStmt,
+        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
+        VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -541,10 +541,56 @@ impl Parser {
             Expr::Unary(Unary::new(operator, expr))
         } else {
             // Or a single primary production rule
-            self.primary()?
+            self.call()?
         };
 
         Ok(expr)
+    }
+
+    // Used to parse a function call primary production
+    fn call(&mut self) -> Result<Expr, ParserError> {
+        // First we parse the potential callee or the primary expression
+        let mut call_expr = self.primary()?;
+        // If we have a left parenthesis, we do not have a primary production, but a call
+        // production which has it's arguments after the paren
+        let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+
+        while self.any(&[&left_paren])? {
+            // Consume the left paren
+            let _ = self.advance()?;
+            // Build up the call expression with arguments
+            call_expr = self.finish_call(call_expr)?;
+        }
+
+        Ok(call_expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, ParserError> {
+        // Create a list to hold the function's arguments
+        let mut arguments = vec![];
+
+        // We stop checking for arguments when we find the right parenthesis
+        let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+
+        // If we are not at the right parenthesis yet, meaning we do have arguments
+        if !self.any(&[&right_paren])? {
+            // We gather those arguments separated by comma
+            let comma = TokenType::SingleChar(SingleChar::Comma);
+            // Equivalent to a C's `do-while`
+            while {
+                arguments.push(self.assignment()?);
+                self.any(&[&comma])?
+            }{
+                // Advance past the comma
+                let _ = self.advance()?;
+            }
+        }
+
+        // Consume the closing right parenthesis
+        let paren = self.consume(&right_paren, "Expect ')' after expression".to_string())?.clone();
+
+        // Return the call expression
+        Ok(Expr::Call(Call::new(callee, paren, arguments)))
     }
 
     fn primary(&mut self) -> Result<Expr, ParserError> {
