@@ -188,6 +188,18 @@ impl Div for MalisObject {
     }
 }
 
+pub struct MalisCallable;
+
+impl MalisCallable {
+    fn new(_object: MalisObject) -> Self {
+        Self
+    }
+
+    fn call(&self, _interpreter: &mut Interpreter, _arguments: Vec<MalisObject>) -> Result<MalisObject, RuntimeError> {
+        Ok(MalisObject::Nil)
+    }
+}
+
 #[derive(Default)]
 pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
@@ -437,7 +449,17 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         Ok(right_object)
     }
 
-    fn visit_call(&mut self, _call: &Call) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+    fn visit_call(&mut self, call: &Call) -> Result<MalisObject, RuntimeError> {
+        // First we evaluate the calle
+        let callee = self.evaluate(&call.callee)?;
+        // Next we evaluate each of the arguments
+        let mut arguments = vec![];
+        for arg in call.arguments.iter() {
+            arguments.push(self.evaluate(&arg)?);
+        }
+
+        // We create a callable object using the callee
+        let function = MalisCallable::new(callee);
+        function.call(self, arguments)
     }
 }
