@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
+        Binary, Call, Expr, Function, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
         VarStmt, WhileStmt,
     },
     error::ParserError,
@@ -40,9 +40,17 @@ impl Parser {
         // We could have 1 type of declaration as a statement: variable declaration
         let var_token = TokenType::Keyword(Keyword::Var);
 
+        // We could have another type of declaration as a statement: function declaration
+        let fun_token = TokenType::Keyword(Keyword::Fun);
+
         let maybe_declaration = if self.any(&[&var_token])? {
+            // Consume the `var` token
             self.advance()?;
             self.var_declaration()
+        } else if self.any(&[&fun_token])? {
+            // Consume the `fun` token
+            self.advance()?;
+            self.function_declaration(FunctionKind::Free)
         } else {
             self.statement()
         };
@@ -53,6 +61,59 @@ impl Parser {
             return Ok(None);
         }
         maybe_declaration.map(Some)
+    }
+
+    // Parses a Malis Function Declaration, which is in fact a node of statement. The `kind`
+    // parameter identifies what type of function it is.
+    fn function_declaration(&mut self, _kind: FunctionKind) -> Result<Stmt, ParserError> {
+        // At this point we have a `fun` keyword and we need to consume the Identifier that follows
+        // it and names the function
+        let name = self
+            .consume(&TokenType::Ident, "Expected identifier as function name".to_string())?
+            .clone();
+
+        let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+        // We need to consume the left parenthesis `(` in order to parse a proper parameter
+        // declaration
+        self.consume(&left_paren, "Expect '(' after `fun` identifier".to_string())?;
+
+        // Instantiate a vector to hold the parameters
+        let mut parameters = vec![];
+        // We stop checking for parameters when we find the right parenthesis
+        let right_paren = TokenType::SingleChar(SingleChar::RightParen);
+
+        // If we are not at the right parenthesis yet, meaning we do have arguments
+        if !self.any(&[&right_paren])? {
+            // We gather those arguments separated by comma
+            let comma = TokenType::SingleChar(SingleChar::Comma);
+            // Equivalent to a C's `do-while`
+            while {
+                if parameters.len() >= FUNCTION_ARG_LIMIT {
+                    return Err(ParserError::TooManyFuncArg);
+                }
+                let param = self
+                    .consume(&TokenType::Ident, "Expected identifier as function parameter".to_string())?;
+                parameters.push(param.clone());
+                self.any(&[&comma])?
+            } {
+                // Advance past the comma
+                let _ = self.advance()?;
+            }
+        }
+
+        // Consume the closing right parenthesis
+        self.consume(&right_paren, "Expect ')' after expression".to_string())?;
+        // Finally we now have to parse the function's body. Function's body is represented by a
+        // block statement, which is surrounded with braces
+        //
+        // Block statements are starting with a left curly brace
+        let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
+
+        // Consume the left brace
+        self.consume(&left_brace, "Expect '{' after `fun` to define it's body".to_string())?;
+        let Stmt::Block(body) = self.block_statement()? else { unreachable!() };
+
+        Ok(Stmt::Function(Function::new(name, parameters, body)))
     }
 
     // Parses a Malis Variable Declaration, which is in fact a node of statement

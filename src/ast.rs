@@ -102,6 +102,10 @@ impl Function {
     }
 }
 
+pub enum FunctionKind {
+    Free,
+}
+
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),

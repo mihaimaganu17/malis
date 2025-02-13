@@ -138,13 +138,12 @@ impl StmtVisitor<String> for AstPrinter {
     }
 
     fn visit_function(&mut self, function: &Function) -> String {
-        let params = function.params.iter().map(|p| p.lexeme());
-        let stmts = function.body.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
-        let func = [function.name.lexeme()].into_iter()
-            .chain(params)
-            .chain(stmts.iter().map(|s| s.as_ref()))
-            .collect::<Vec<_>>();
-        self.parenthesize("fun decl", &func)
+        let params = function.params.iter().map(|p| p.lexeme()).collect::<Vec<_>>();
+        let params = self.parenthesize("params", &params);
+        let body = function.body.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
+        let body = self.parenthesize("body", &body);
+        let name = function.name.lexeme();
+        self.parenthesize("fun decl", &[name, &params, &body])
     }
 }
 
