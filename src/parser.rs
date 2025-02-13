@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Function, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
-        VarStmt, WhileStmt,
+        Binary, Call, Expr, Function, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical,
+        Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -69,7 +69,10 @@ impl Parser {
         // At this point we have a `fun` keyword and we need to consume the Identifier that follows
         // it and names the function
         let name = self
-            .consume(&TokenType::Ident, "Expected identifier as function name".to_string())?
+            .consume(
+                &TokenType::Ident,
+                "Expected identifier as function name".to_string(),
+            )?
             .clone();
 
         let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
@@ -91,8 +94,10 @@ impl Parser {
                 if parameters.len() >= FUNCTION_ARG_LIMIT {
                     return Err(ParserError::TooManyFuncArg);
                 }
-                let param = self
-                    .consume(&TokenType::Ident, "Expected identifier as function parameter".to_string())?;
+                let param = self.consume(
+                    &TokenType::Ident,
+                    "Expected identifier as function parameter".to_string(),
+                )?;
                 parameters.push(param.clone());
                 self.any(&[&comma])?
             } {
@@ -110,8 +115,13 @@ impl Parser {
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
 
         // Consume the left brace
-        self.consume(&left_brace, "Expect '{' after `fun` to define it's body".to_string())?;
-        let Stmt::Block(body) = self.block_statement()? else { unreachable!() };
+        self.consume(
+            &left_brace,
+            "Expect '{' after `fun` to define it's body".to_string(),
+        )?;
+        let Stmt::Block(body) = self.block_statement()? else {
+            unreachable!()
+        };
 
         Ok(Stmt::Function(Function::new(name, parameters, body)))
     }

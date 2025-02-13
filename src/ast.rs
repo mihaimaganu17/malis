@@ -94,11 +94,7 @@ pub struct Function {
 
 impl Function {
     pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
-        Function {
-            name,
-            params,
-            body,
-        }
+        Function { name, params, body }
     }
 }
 

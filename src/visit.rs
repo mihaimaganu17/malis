@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Function, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt,
-        WhileStmt,
+        Binary, Call, Expr, Function, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary,
+        VarStmt, WhileStmt,
     },
     token::Token,
 };
@@ -138,9 +138,17 @@ impl StmtVisitor<String> for AstPrinter {
     }
 
     fn visit_function(&mut self, function: &Function) -> String {
-        let params = function.params.iter().map(|p| p.lexeme()).collect::<Vec<_>>();
+        let params = function
+            .params
+            .iter()
+            .map(|p| p.lexeme())
+            .collect::<Vec<_>>();
         let params = self.parenthesize("params", &params);
-        let body = function.body.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
+        let body = function
+            .body
+            .iter()
+            .map(|s| s.walk(self))
+            .collect::<Vec<_>>();
         let body = self.parenthesize("body", &body);
         let name = function.name.lexeme();
         self.parenthesize("fun decl", &[name, &params, &body])

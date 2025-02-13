@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Function, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
-        VarStmt, WhileStmt,
+        Binary, Call, Expr, Function, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary,
+        Unary, VarStmt, WhileStmt,
     },
     environment::Environment,
     error::RuntimeError,
