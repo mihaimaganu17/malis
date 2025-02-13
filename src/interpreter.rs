@@ -292,15 +292,23 @@ impl Interpreter {
         let environment = Rc::new(RefCell::new(Environment::new(None)));
 
         // Create a new native function
-        let clock = MalisObject::Function(Box::new(MalisFunction::new("clock <native fn>".to_string(), 0, |_interpreter, _arguments| {
-            Ok(MalisObject::Number(std::time::Instant::now().elapsed().as_secs_f32()))
-        })));
+        let clock = MalisObject::Function(Box::new(MalisFunction::new(
+            "clock <native fn>".to_string(),
+            0,
+            |_interpreter, _arguments| {
+                Ok(MalisObject::Number(
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)?
+                        .as_secs_f32(),
+                ))
+            },
+        )));
 
-        environment.borrow_mut().define("clock".to_string(), clock)?;
+        environment
+            .borrow_mut()
+            .define("clock".to_string(), clock)?;
 
-        Ok(Self {
-            environment
-        })
+        Ok(Self { environment })
     }
 
     pub fn interpret(&mut self, statements: &[Stmt]) -> Result<(), RuntimeError> {

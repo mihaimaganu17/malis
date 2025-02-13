@@ -144,8 +144,15 @@ pub enum RuntimeError {
     InvalidArgumentsNumber(String),
     NotCallable(String),
     EnvironmentError(EnvironmentError),
+    SystemTimeError(std::time::SystemTimeError),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
+}
+
+impl From<std::time::SystemTimeError> for RuntimeError {
+    fn from(value: std::time::SystemTimeError) -> Self {
+        Self::SystemTimeError(value)
+    }
 }
 
 impl fmt::Display for RuntimeError {
