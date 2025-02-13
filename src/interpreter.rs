@@ -51,10 +51,7 @@ impl MalisObject {
     }
 
     pub fn is_callable(&self) -> bool {
-        match self {
-            MalisObject::Function(_) => true,
-            _ => false,
-        }
+        matches!(self, MalisObject::Function(_))
     }
 
     pub fn as_callable(self) -> Result<impl MalisCallable, RuntimeError> {
@@ -224,8 +221,16 @@ pub struct MalisFunction {
 }
 
 impl MalisFunction {
-    pub fn new(object: MalisObject, arity: usize, call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>) -> Self {
-        Self { object, arity, call_fn }
+    pub fn new(
+        object: MalisObject,
+        arity: usize,
+        call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
+    ) -> Self {
+        Self {
+            object,
+            arity,
+            call_fn,
+        }
     }
 }
 
@@ -517,17 +522,22 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         }
 
         if !callee.is_callable() {
-            return Err(RuntimeError::NotCallable(
-                format!("[{:?}] Object {} is not callable.", call.paren, callee)));
+            return Err(RuntimeError::NotCallable(format!(
+                "[{:?}] Object {} is not callable.",
+                call.paren, callee
+            )));
         }
 
         // We create a callable object using the callee
         let function = callee.as_callable()?;
         // Check if the number of arguments matches the function's arity
         if arguments.len() != function.arity() {
-            return Err(RuntimeError::InvalidArgumentsNumber(
-                format!("[{:?}] Expected {} arguments but got {}.", call.paren, function.arity(), arguments.len())
-            ));
+            return Err(RuntimeError::InvalidArgumentsNumber(format!(
+                "[{:?}] Expected {} arguments but got {}.",
+                call.paren,
+                function.arity(),
+                arguments.len()
+            )));
         }
         function.call(self, arguments)
     }
