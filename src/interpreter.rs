@@ -29,7 +29,7 @@ impl fmt::Display for MalisObject {
             Self::StringValue(value) => write!(f, "{value}"),
             Self::Nil => write!(f, "nil"),
             Self::Number(value) => write!(f, "{}", value),
-            Self::Function(value) => write!(f, "{}", value.object),
+            Self::Function(value) => write!(f, "{}", value.name()),
         }
     }
 }
@@ -215,22 +215,26 @@ pub trait MalisCallable {
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisFunction {
-    pub object: MalisObject,
+    name: String,
     arity: usize,
     call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
 }
 
 impl MalisFunction {
     pub fn new(
-        object: MalisObject,
+        name: String,
         arity: usize,
         call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
     ) -> Self {
         Self {
-            object,
+            name,
             arity,
             call_fn,
         }
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
     }
 }
 
@@ -268,10 +272,22 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new() -> Self {
-        Self {
-            environment: Rc::new(RefCell::new(Environment::new(None))),
-        }
+    pub fn new() -> Result<Self, RuntimeError> {
+        // Define a new environment
+        let environment = Rc::new(RefCell::new(Environment::new(None)));
+
+        // Create a new native function
+        let clock = MalisObject::Function(Box::new(MalisFunction::new("clock <native fn>".to_string(), 0, |_interpreter, _arguments| {
+            Ok(MalisObject::Number(std::time::Instant::now().elapsed().as_secs_f32()))
+        })));
+
+        println!("Calling");
+
+        environment.borrow_mut().define("clock".to_string(), clock)?;
+
+        Ok(Self {
+            environment
+        })
     }
 
     pub fn interpret(&mut self, statements: &[Stmt]) -> Result<(), RuntimeError> {

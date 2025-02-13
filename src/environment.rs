@@ -20,6 +20,7 @@ impl Environment {
     }
 
     pub fn define(&mut self, name: String, value: MalisObject) -> Result<(), EnvironmentError> {
+        println!("Name {name}");
         self.values.insert(name, value);
         Ok(())
     }
