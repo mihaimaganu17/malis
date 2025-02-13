@@ -142,6 +142,7 @@ pub enum RuntimeError {
     BinaryEvaluation(String),
     VariableNotInitialized(String),
     InvalidArgumentsNumber(String),
+    NotCallable(String),
     EnvironmentError(EnvironmentError),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
@@ -157,7 +158,8 @@ impl fmt::Display for RuntimeError {
             | RuntimeError::Division(message)
             | RuntimeError::UnaryEvaluation(message)
             | RuntimeError::BinaryEvaluation(message)
-            | RuntimeError::InvalidArgumentsNumber(message) => write!(f, "{}", message),
+            | RuntimeError::InvalidArgumentsNumber(message)
+            | RuntimeError::NotCallable(message) => write!(f, "{}", message),
             RuntimeError::EnvironmentError(env) => write!(f, "{:?}", env),
             _ => write!(f, "{:?}", self),
         }

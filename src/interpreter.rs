@@ -18,6 +18,7 @@ pub enum MalisObject {
     Boolean(bool),
     Number(f32),
     StringValue(String),
+    Function(Box<MalisFunction>),
     Nil,
 }
 
@@ -28,6 +29,7 @@ impl fmt::Display for MalisObject {
             Self::StringValue(value) => write!(f, "{value}"),
             Self::Nil => write!(f, "nil"),
             Self::Number(value) => write!(f, "{}", value),
+            Self::Function(value) => write!(f, "{}", value.object),
         }
     }
 }
@@ -41,8 +43,24 @@ impl MalisObject {
             // We consider any value coming from a literal as true. What do we do about
             // 0?
             MalisObject::StringValue(_) | MalisObject::Number(_) => true,
+            // We consider function pointers as true
+            MalisObject::Function(_) => true,
             // We consider null as false
             MalisObject::Nil => false,
+        }
+    }
+
+    pub fn is_callable(&self) -> bool {
+        match self {
+            MalisObject::Function(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn as_callable(self) -> Result<impl MalisCallable, RuntimeError> {
+        match self {
+            MalisObject::Function(f) => Ok(f),
+            _ => Err(RuntimeError::NotCallable("Not callable".to_string())),
         }
     }
 }
@@ -189,9 +207,6 @@ impl Div for MalisObject {
 }
 
 pub trait MalisCallable {
-    fn new(object: MalisObject) -> Self;
-
-    // Returns the arity of the function to be called. Arity is the number of arguments.
     fn arity(&self) -> usize;
 
     fn call(
@@ -201,23 +216,44 @@ pub trait MalisCallable {
     ) -> Result<MalisObject, RuntimeError>;
 }
 
-pub struct MalisFunction;
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct MalisFunction {
+    pub object: MalisObject,
+    arity: usize,
+    call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
+}
+
+impl MalisFunction {
+    pub fn new(object: MalisObject, arity: usize, call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>) -> Self {
+        Self { object, arity, call_fn }
+    }
+}
 
 impl MalisCallable for MalisFunction {
-    fn new(_object: MalisObject) -> Self {
-        Self
-    }
-
     fn arity(&self) -> usize {
-        0
+        self.arity
     }
 
     fn call(
         &self,
-        _interpreter: &mut Interpreter,
-        _arguments: Vec<MalisObject>,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+        (self.call_fn)(interpreter, arguments)
+    }
+}
+
+impl MalisCallable for Box<MalisFunction> {
+    fn arity(&self) -> usize {
+        self.arity
+    }
+
+    fn call(
+        &self,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
+    ) -> Result<MalisObject, RuntimeError> {
+        (self.call_fn)(interpreter, arguments)
     }
 }
 
@@ -480,8 +516,13 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             arguments.push(self.evaluate(arg)?);
         }
 
+        if !callee.is_callable() {
+            return Err(RuntimeError::NotCallable(
+                format!("[{:?}] Object {} is not callable.", call.paren, callee)));
+        }
+
         // We create a callable object using the callee
-        let function = MalisFunction::new(callee);
+        let function = callee.as_callable()?;
         // Check if the number of arguments matches the function's arity
         if arguments.len() != function.arity() {
             return Err(RuntimeError::InvalidArgumentsNumber(
