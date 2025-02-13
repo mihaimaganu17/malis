@@ -266,9 +266,24 @@ impl MalisCallable for Box<MalisFunction> {
     }
 }
 
-#[derive(Default)]
 pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
+}
+
+impl Default for Interpreter {
+    fn default() -> Self {
+        let maybe_interpreter = Self::new();
+
+        match maybe_interpreter {
+            Ok(interpreter) => interpreter,
+            Err(err) => {
+                println!("Error: Native functions not available {}", err);
+                Self {
+                    ..Default::default()
+                }
+            }
+        }
+    }
 }
 
 impl Interpreter {
@@ -280,8 +295,6 @@ impl Interpreter {
         let clock = MalisObject::Function(Box::new(MalisFunction::new("clock <native fn>".to_string(), 0, |_interpreter, _arguments| {
             Ok(MalisObject::Number(std::time::Instant::now().elapsed().as_secs_f32()))
         })));
-
-        println!("Calling");
 
         environment.borrow_mut().define("clock".to_string(), clock)?;
 
