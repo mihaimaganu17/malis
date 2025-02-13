@@ -11,6 +11,7 @@ pub enum Stmt {
     Block(Vec<Stmt>),
     If(IfStmt),
     While(WhileStmt),
+    Function(Function),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -28,6 +29,7 @@ impl Stmt {
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
             Stmt::If(if_stmt) => visitor.visit_if_stmt(if_stmt),
             Stmt::While(while_stmt) => visitor.visit_while_stmt(while_stmt),
+            Stmt::Function(func) => visitor.visit_function(func),
         }
     }
 }
@@ -80,6 +82,22 @@ impl WhileStmt {
         Self {
             condition,
             stmt: Box::new(stmt),
+        }
+    }
+}
+
+pub struct Function {
+    pub name: Token,
+    pub params: Vec<Token>,
+    pub body: Vec<Stmt>,
+}
+
+impl Function {
+    pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
+        Function {
+            name,
+            params,
+            body,
         }
     }
 }

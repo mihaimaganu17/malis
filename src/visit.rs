@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt,
+        Binary, Call, Expr, Function, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary, VarStmt,
         WhileStmt,
     },
     token::Token,
@@ -29,6 +29,7 @@ pub trait StmtVisitor<T> {
     fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> T;
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> T;
     fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> T;
+    fn visit_function(&mut self, func: &Function) -> T;
 }
 
 #[derive(Debug)]
@@ -134,6 +135,16 @@ impl StmtVisitor<String> for AstPrinter {
         let cond = while_stmt.condition.walk(self);
         let stmt = while_stmt.stmt.walk(self);
         self.parenthesize("while", &[cond, stmt])
+    }
+
+    fn visit_function(&mut self, function: &Function) -> String {
+        let params = function.params.iter().map(|p| p.lexeme());
+        let stmts = function.body.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
+        let func = [function.name.lexeme()].into_iter()
+            .chain(params)
+            .chain(stmts.iter().map(|s| s.as_ref()))
+            .collect::<Vec<_>>();
+        self.parenthesize("fun decl", &func)
     }
 }
 

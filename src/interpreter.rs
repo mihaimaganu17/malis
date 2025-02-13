@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
+        Binary, Call, Expr, Function, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary, Unary,
         VarStmt, WhileStmt,
     },
     environment::Environment,
@@ -411,6 +411,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             self.execute(&while_stmt.stmt)?;
         }
 
+        Ok(())
+    }
+
+    fn visit_function(&mut self, _function: &Function) -> Result<(), RuntimeError> {
         Ok(())
     }
 }
