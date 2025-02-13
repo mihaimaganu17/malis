@@ -191,6 +191,9 @@ impl Div for MalisObject {
 pub trait MalisCallable {
     fn new(object: MalisObject) -> Self;
 
+    // Returns the arity of the function to be called. Arity is the number of arguments.
+    fn arity(&self) -> usize;
+
     fn call(
         &self,
         interpreter: &mut Interpreter,
@@ -203,6 +206,10 @@ pub struct MalisFunction;
 impl MalisCallable for MalisFunction {
     fn new(_object: MalisObject) -> Self {
         Self
+    }
+
+    fn arity(&self) -> usize {
+        0
     }
 
     fn call(
@@ -468,12 +475,19 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let callee = self.evaluate(&call.callee)?;
         // Next we evaluate each of the arguments
         let mut arguments = vec![];
+
         for arg in call.arguments.iter() {
             arguments.push(self.evaluate(arg)?);
         }
 
         // We create a callable object using the callee
         let function = MalisFunction::new(callee);
+        // Check if the number of arguments matches the function's arity
+        if arguments.len() != function.arity() {
+            return Err(RuntimeError::InvalidArgumentsNumber(
+                format!("[{:?}] Expected {} arguments but got {}.", call.paren, function.arity(), arguments.len())
+            ));
+        }
         function.call(self, arguments)
     }
 }
