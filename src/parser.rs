@@ -123,7 +123,7 @@ impl Parser {
             unreachable!()
         };
 
-        Ok(Stmt::Function(Function::new(name, parameters, body)))
+        Ok(Stmt::Function(FunctionDeclaration::new(name, parameters, body)))
     }
 
     // Parses a Malis Variable Declaration, which is in fact a node of statement

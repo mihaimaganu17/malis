@@ -266,7 +266,6 @@ impl MalisCallable for Box<MalisNativeFunction> {
     }
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisDeclaredFunction {
     function_declaration: FunctionDeclaration,
 }
@@ -424,7 +423,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         Ok(())
     }
 
-    fn visit_function(&mut self, _function: &Function) -> Result<(), RuntimeError> {
+    fn visit_function(&mut self, _function: &FunctionDeclaration) -> Result<(), RuntimeError> {
         Ok(())
     }
 }

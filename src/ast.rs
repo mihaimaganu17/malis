@@ -92,9 +92,9 @@ pub struct FunctionDeclaration {
     pub body: Vec<Stmt>,
 }
 
-impl Function {
+impl FunctionDeclaration {
     pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
-        Function { name, params, body }
+        FunctionDeclaration { name, params, body }
     }
 }
 
