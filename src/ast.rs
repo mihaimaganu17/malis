@@ -94,7 +94,11 @@ pub struct FunctionDeclaration {
 
 impl FunctionDeclaration {
     pub fn new(name: Token, parameters: Vec<Token>, body: Vec<Stmt>) -> Self {
-        FunctionDeclaration { name, parameters, body }
+        FunctionDeclaration {
+            name,
+            parameters,
+            body,
+        }
     }
 }
 

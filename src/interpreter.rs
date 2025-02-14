@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary,
-        Unary, VarStmt, WhileStmt,
+        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
+        Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     environment::Environment,
     error::RuntimeError,
@@ -419,7 +419,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         Ok(())
     }
 
-    fn visit_function(&mut self, function_declaration: &FunctionDeclaration) -> Result<(), RuntimeError> {
+    fn visit_function(
+        &mut self,
+        function_declaration: &FunctionDeclaration,
+    ) -> Result<(), RuntimeError> {
         // Get the function name
         let func_name = function_declaration.name.lexeme().to_string();
         // Create a new function
@@ -430,7 +433,11 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
                 // Create a new environment that encapsulates the parameters
                 let mut environment = Environment::new(Some(interpreter.globals.clone()));
                 // Define all the parameters of the function in the new environment
-                for (param, arg) in function_declaration.parameters.iter().zip(arguments.into_iter()) {
+                for (param, arg) in function_declaration
+                    .parameters
+                    .iter()
+                    .zip(arguments.into_iter())
+                {
                     environment.define(param.lexeme().to_string(), arg)?;
                 }
 
@@ -438,8 +445,11 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
                 interpreter.execute_block(&function_declaration.body, environment)?;
 
                 Ok(MalisObject::Nil)
-            }));
-        self.environment.borrow_mut().define(func_name, MalisObject::Function(function_decl))?;
+            },
+        ));
+        self.environment
+            .borrow_mut()
+            .define(func_name, MalisObject::Function(function_decl))?;
         Ok(())
     }
 }

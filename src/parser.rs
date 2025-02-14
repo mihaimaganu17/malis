@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical,
-        Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType,
+        Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -123,7 +123,9 @@ impl Parser {
             unreachable!()
         };
 
-        Ok(Stmt::Function(FunctionDeclaration::new(name, parameters, body)))
+        Ok(Stmt::Function(FunctionDeclaration::new(
+            name, parameters, body,
+        )))
     }
 
     // Parses a Malis Variable Declaration, which is in fact a node of statement

@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical, Stmt, Ternary, Unary,
-        VarStmt, WhileStmt,
+        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical, Stmt, Ternary,
+        Unary, VarStmt, WhileStmt,
     },
     token::Token,
 };
