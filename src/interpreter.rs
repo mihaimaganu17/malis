@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Function, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary,
+        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical, Stmt, Ternary,
         Unary, VarStmt, WhileStmt,
     },
     environment::Environment,
@@ -18,7 +18,7 @@ pub enum MalisObject {
     Boolean(bool),
     Number(f32),
     StringValue(String),
-    Function(Box<MalisFunction>),
+    Function(Box<MalisNativeFunction>),
     Nil,
 }
 
@@ -214,13 +214,13 @@ pub trait MalisCallable {
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct MalisFunction {
+pub struct MalisNativeFunction {
     name: String,
     arity: usize,
     call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
 }
 
-impl MalisFunction {
+impl MalisNativeFunction {
     pub fn new(
         name: String,
         arity: usize,
@@ -238,7 +238,7 @@ impl MalisFunction {
     }
 }
 
-impl MalisCallable for MalisFunction {
+impl MalisCallable for MalisNativeFunction {
     fn arity(&self) -> usize {
         self.arity
     }
@@ -252,7 +252,7 @@ impl MalisCallable for MalisFunction {
     }
 }
 
-impl MalisCallable for Box<MalisFunction> {
+impl MalisCallable for Box<MalisNativeFunction> {
     fn arity(&self) -> usize {
         self.arity
     }
@@ -264,9 +264,17 @@ impl MalisCallable for Box<MalisFunction> {
     ) -> Result<MalisObject, RuntimeError> {
         (self.call_fn)(interpreter, arguments)
     }
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct MalisDeclaredFunction {
+    function_declaration: FunctionDeclaration,
 }
 
 pub struct Interpreter {
+    // This is the global environment that is accessible at all times
+    globals: Rc<RefCell<Environment>>,
+    // This is the current local environment that the interepreter executes in
     environment: Rc<RefCell<Environment>>,
 }
 
@@ -289,10 +297,11 @@ impl Default for Interpreter {
 impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
-        let environment = Rc::new(RefCell::new(Environment::new(None)));
+        let globals = Rc::new(RefCell::new(Environment::new(None)));
+        let environment = globals.clone();
 
         // Create a new native function
-        let clock = MalisObject::Function(Box::new(MalisFunction::new(
+        let clock = MalisObject::Function(Box::new(MalisNativeFunction::new(
             "clock <native fn>".to_string(),
             0,
             |_interpreter, _arguments| {
@@ -304,11 +313,12 @@ impl Interpreter {
             },
         )));
 
-        environment
-            .borrow_mut()
-            .define("clock".to_string(), clock)?;
+        globals.borrow_mut().define("clock".to_string(), clock)?;
 
-        Ok(Self { environment })
+        Ok(Self {
+            globals,
+            environment,
+        })
     }
 
     pub fn interpret(&mut self, statements: &[Stmt]) -> Result<(), RuntimeError> {
@@ -553,7 +563,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     }
 
     fn visit_call(&mut self, call: &Call) -> Result<MalisObject, RuntimeError> {
-        // First we evaluate the calle
+        // First we evaluate the callee
         let callee = self.evaluate(&call.callee)?;
         // Next we evaluate each of the arguments
         let mut arguments = vec![];

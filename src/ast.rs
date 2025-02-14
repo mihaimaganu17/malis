@@ -11,7 +11,7 @@ pub enum Stmt {
     Block(Vec<Stmt>),
     If(IfStmt),
     While(WhileStmt),
-    Function(Function),
+    Function(FunctionDeclaration),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -86,7 +86,7 @@ impl WhileStmt {
     }
 }
 
-pub struct Function {
+pub struct FunctionDeclaration {
     pub name: Token,
     pub params: Vec<Token>,
     pub body: Vec<Stmt>,

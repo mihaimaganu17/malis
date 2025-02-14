@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, Function, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical,
+        Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType, Logical,
         Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
