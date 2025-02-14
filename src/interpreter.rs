@@ -266,34 +266,6 @@ impl MalisCallable for Box<MalisNativeFunction> {
     }
 }
 
-pub struct MalisDeclaredFunction {
-    function_declaration: FunctionDeclaration,
-}
-
-impl MalisCallable for MalisDeclaredFunction {
-    fn arity(&self) -> usize {
-        self.function_declaration.parameters.len()
-    }
-
-    fn call(
-        &self,
-        interpreter: &mut Interpreter,
-        arguments: Vec<MalisObject>,
-    ) -> Result<MalisObject, RuntimeError> {
-        // Create a new environment that encapsulates the parameters
-        let mut environment = Environment::new(Some(interpreter.globals.clone()));
-        // Define all the parameters of the function in the new environment
-        for (param, arg) in self.function_declaration.parameters.iter().zip(arguments.into_iter()) {
-            environment.define(param.lexeme().to_string(), arg)?;
-        }
-
-        // With the new environment defined, execute the body of the function
-        interpreter.execute_block(&self.function_declaration.body, environment)?;
-
-        Ok(MalisObject::Nil)
-    }
-}
-
 pub struct Interpreter {
     // This is the global environment that is accessible at all times
     globals: Rc<RefCell<Environment>>,
@@ -447,7 +419,27 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         Ok(())
     }
 
-    fn visit_function(&mut self, _function: &FunctionDeclaration) -> Result<(), RuntimeError> {
+    fn visit_function(&mut self, function_declaration: &FunctionDeclaration) -> Result<(), RuntimeError> {
+        // Get the function name
+        let func_name = function_declaration.name.lexeme().to_string();
+        // Create a new function
+        let function_decl = Box::new(MalisNativeFunction::new(
+            func_name,
+            function_declaration.parameters.len(),
+            |interpreter, arguments| {
+                // Create a new environment that encapsulates the parameters
+                let mut environment = Environment::new(Some(interpreter.globals.clone()));
+                // Define all the parameters of the function in the new environment
+                for (param, arg) in function_declaration.parameters.iter().zip(arguments.into_iter()) {
+                    environment.define(param.lexeme().to_string(), arg)?;
+                }
+
+                // With the new environment defined, execute the body of the function
+                interpreter.execute_block(&function_declaration.body, environment)?;
+
+                Ok(MalisObject::Nil)
+            }));
+        self.environment.borrow_mut().define(func_name, MalisObject::Function(function_decl))?;
         Ok(())
     }
 }
