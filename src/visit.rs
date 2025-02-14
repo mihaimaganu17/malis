@@ -139,7 +139,7 @@ impl StmtVisitor<String> for AstPrinter {
 
     fn visit_function(&mut self, function: &FunctionDeclaration) -> String {
         let params = function
-            .params
+            .parameters
             .iter()
             .map(|p| p.lexeme())
             .collect::<Vec<_>>();

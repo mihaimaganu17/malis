@@ -88,13 +88,13 @@ impl WhileStmt {
 
 pub struct FunctionDeclaration {
     pub name: Token,
-    pub params: Vec<Token>,
+    pub parameters: Vec<Token>,
     pub body: Vec<Stmt>,
 }
 
 impl FunctionDeclaration {
-    pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
-        FunctionDeclaration { name, params, body }
+    pub fn new(name: Token, parameters: Vec<Token>, body: Vec<Stmt>) -> Self {
+        FunctionDeclaration { name, parameters, body }
     }
 }
 
