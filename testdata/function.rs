@@ -3,9 +3,10 @@ fun add(a, b) {
 }
 
 fun count(n) {
-  if (n > 1) add(n - 1, 0);
+  if (n > 1) count(n - 1);
   print n;
 }
 
-print count(3);
+count(20);
+add(1, 2);
 

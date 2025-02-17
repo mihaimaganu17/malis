@@ -72,7 +72,6 @@ impl MalisCallable for MalisObject {
         interpreter: &mut Interpreter,
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
-        println!("Calling here {:#?}", arguments);
         match self {
             MalisObject::NativeFunction(f) => f.call(interpreter, arguments),
             MalisObject::UserFunction(f) => f.call(interpreter, arguments),
@@ -311,14 +310,13 @@ impl MalisCallable for UserFunction {
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
         // Create a new environment that encapsulates the parameters
-        let mut environment = Environment::new(Some(interpreter.globals.clone()));
+        let mut environment = interpreter.environment.take();
         // Define all the parameters of the function in the new environment
         for (param, arg) in self.function_declaration
             .parameters
             .iter()
             .zip(arguments.into_iter())
         {
-            println!("param {:?}, arg {:?}", param.lexeme(), arg);
             environment.define(param.lexeme().to_string(), arg)?;
         }
 
@@ -397,7 +395,7 @@ impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
         let globals = Rc::new(RefCell::new(Environment::new(None)));
-        let environment = globals.clone();
+        let environment = Rc::new(RefCell::new(Environment::new(Some(globals.clone()))));
 
         // Create a new native function
         let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
@@ -428,7 +426,6 @@ impl Interpreter {
     }
 
     pub fn evaluate(&mut self, expr: &Expr) -> Result<MalisObject, RuntimeError> {
-        println!("Here evaluate");
         expr.walk(self)
     }
 
@@ -446,14 +443,12 @@ impl Interpreter {
         // The environment for the current execution block becomes the parent environemnt, such
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
-        {
-            let _ = self
-                .environment
-                .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
+        let _ = self
+            .environment
+            .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
 
-            for stmt in stmts {
-                self.execute(stmt)?;
-            }
+        for stmt in stmts {
+            self.execute(stmt)?;
         }
         // Bring the initial environment back which contains the scope our interpreter had before
         // execution of this block. This resides in the enclosing field
