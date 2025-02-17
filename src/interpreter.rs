@@ -18,7 +18,8 @@ pub enum MalisObject {
     Boolean(bool),
     Number(f32),
     StringValue(String),
-    Function(Box<MalisNativeFunction>),
+    NativeFunction(Box<NativeFunction>),
+    UserFunction(UserFunction),
     Nil,
 }
 
@@ -29,7 +30,8 @@ impl fmt::Display for MalisObject {
             Self::StringValue(value) => write!(f, "{value}"),
             Self::Nil => write!(f, "nil"),
             Self::Number(value) => write!(f, "{}", value),
-            Self::Function(value) => write!(f, "{}", value.name()),
+            Self::NativeFunction(value) => write!(f, "<native fn {}>", value.name()),
+            Self::UserFunction(value) => write!(f, "<fn {}>", value.name()),
         }
     }
 }
@@ -44,20 +46,35 @@ impl MalisObject {
             // 0?
             MalisObject::StringValue(_) | MalisObject::Number(_) => true,
             // We consider function pointers as true
-            MalisObject::Function(_) => true,
+            MalisObject::NativeFunction(_) | MalisObject::UserFunction(_) => true,
             // We consider null as false
             MalisObject::Nil => false,
         }
     }
 
     pub fn is_callable(&self) -> bool {
-        matches!(self, MalisObject::Function(_))
+        matches!(self, MalisObject::NativeFunction(_)) || matches!(self, MalisObject::UserFunction(_))
+    }
+}
+
+impl MalisCallable for MalisObject {
+    fn arity(&self) -> Result<usize, RuntimeError> {
+        match self {
+            MalisObject::NativeFunction(f) => f.arity(),
+            MalisObject::UserFunction(f) => f.arity(),
+            _ => Err(RuntimeError::NotCallable(format!("Object {} has no arity.", self))),
+        }
     }
 
-    pub fn as_callable(self) -> Result<impl MalisCallable, RuntimeError> {
+    fn call(
+        &self,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
+    ) -> Result<MalisObject, RuntimeError> {
         match self {
-            MalisObject::Function(f) => Ok(f),
-            _ => Err(RuntimeError::NotCallable("Not callable".to_string())),
+            MalisObject::NativeFunction(f) => f.call(interpreter, arguments),
+            MalisObject::UserFunction(f) => f.call(interpreter, arguments),
+            _ => Err(RuntimeError::NotCallable(format!("Object {} is not callable.", self))),
         }
     }
 }
@@ -204,7 +221,7 @@ impl Div for MalisObject {
 }
 
 pub trait MalisCallable {
-    fn arity(&self) -> usize;
+    fn arity(&self) -> Result<usize, RuntimeError>;
 
     fn call(
         &self,
@@ -214,13 +231,13 @@ pub trait MalisCallable {
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct MalisNativeFunction {
+pub struct NativeFunction {
     name: String,
     arity: usize,
     call_fn: fn(&mut Interpreter, Vec<MalisObject>) -> Result<MalisObject, RuntimeError>,
 }
 
-impl MalisNativeFunction {
+impl NativeFunction {
     pub fn new(
         name: String,
         arity: usize,
@@ -238,9 +255,9 @@ impl MalisNativeFunction {
     }
 }
 
-impl MalisCallable for MalisNativeFunction {
-    fn arity(&self) -> usize {
-        self.arity
+impl MalisCallable for NativeFunction {
+    fn arity(&self) -> Result<usize, RuntimeError> {
+        Ok(self.arity)
     }
 
     fn call(
@@ -252,9 +269,9 @@ impl MalisCallable for MalisNativeFunction {
     }
 }
 
-impl MalisCallable for Box<MalisNativeFunction> {
-    fn arity(&self) -> usize {
-        self.arity
+impl MalisCallable for Box<NativeFunction> {
+    fn arity(&self) -> Result<usize, RuntimeError> {
+        Ok(self.arity)
     }
 
     fn call(
@@ -263,6 +280,49 @@ impl MalisCallable for Box<MalisNativeFunction> {
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
         (self.call_fn)(interpreter, arguments)
+    }
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct UserFunction {
+    function_declaration: FunctionDeclaration,
+}
+
+impl UserFunction {
+    pub fn new(function_declaration: FunctionDeclaration) -> Self {
+        UserFunction { function_declaration }
+    }
+
+    pub fn name(&self) -> &Token {
+        &self.function_declaration.name
+    }
+}
+
+impl MalisCallable for UserFunction {
+    fn arity(&self) -> Result<usize, RuntimeError> {
+        Ok(self.function_declaration.parameters.len())
+    }
+
+    fn call(
+        &self,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
+    ) -> Result<MalisObject, RuntimeError> {
+        // Create a new environment that encapsulates the parameters
+        let mut environment = Environment::new(Some(interpreter.globals.clone()));
+        // Define all the parameters of the function in the new environment
+        for (param, arg) in self.function_declaration
+            .parameters
+            .iter()
+            .zip(arguments.into_iter())
+        {
+            environment.define(param.lexeme().to_string(), arg)?;
+        }
+
+        // With the new environment defined, execute the body of the function
+        interpreter.execute_block(&self.function_declaration.body, environment)?;
+
+        Ok(MalisObject::Nil)
     }
 }
 
@@ -296,7 +356,7 @@ impl Interpreter {
         let environment = globals.clone();
 
         // Create a new native function
-        let clock = MalisObject::Function(Box::new(MalisNativeFunction::new(
+        let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
             "clock <native fn>".to_string(),
             0,
             |_interpreter, _arguments| {
@@ -425,31 +485,9 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     ) -> Result<(), RuntimeError> {
         // Get the function name
         let func_name = function_declaration.name.lexeme().to_string();
-        // Create a new function
-        let function_decl = Box::new(MalisNativeFunction::new(
-            func_name,
-            function_declaration.parameters.len(),
-            |interpreter, arguments| {
-                // Create a new environment that encapsulates the parameters
-                let mut environment = Environment::new(Some(interpreter.globals.clone()));
-                // Define all the parameters of the function in the new environment
-                for (param, arg) in function_declaration
-                    .parameters
-                    .iter()
-                    .zip(arguments.into_iter())
-                {
-                    environment.define(param.lexeme().to_string(), arg)?;
-                }
-
-                // With the new environment defined, execute the body of the function
-                interpreter.execute_block(&function_declaration.body, environment)?;
-
-                Ok(MalisObject::Nil)
-            },
-        ));
         self.environment
             .borrow_mut()
-            .define(func_name, MalisObject::Function(function_decl))?;
+            .define(func_name, MalisObject::UserFunction(UserFunction::new(function_declaration.clone())))?;
         Ok(())
     }
 }
@@ -603,18 +641,15 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
                 call.paren, callee
             )));
         }
-
-        // We create a callable object using the callee
-        let function = callee.as_callable()?;
         // Check if the number of arguments matches the function's arity
-        if arguments.len() != function.arity() {
+        if arguments.len() != callee.arity()? {
             return Err(RuntimeError::InvalidArgumentsNumber(format!(
                 "[{:?}] Expected {} arguments but got {}.",
                 call.paren,
-                function.arity(),
+                callee.arity()?,
                 arguments.len()
             )));
         }
-        function.call(self, arguments)
+        callee.call(self, arguments)
     }
 }
