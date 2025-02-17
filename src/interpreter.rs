@@ -12,6 +12,7 @@ use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use core::cmp::Ordering;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {
@@ -283,7 +284,7 @@ impl MalisCallable for Box<NativeFunction> {
     }
 }
 
-#[derive(PartialOrd, Clone)]
+#[derive(Clone)]
 pub struct UserFunction {
     function_declaration: FunctionDeclaration,
 }
@@ -356,6 +357,14 @@ impl PartialEq for UserFunction {
         }
 
         true
+    }
+}
+
+impl PartialOrd for UserFunction {
+    fn partial_cmp(&self, _other: &Self) -> Option<Ordering> {
+        // We do not order functions, but we need to implement this trait in order to confirm to
+        // the `MalisObject` protocol
+        None
     }
 }
 
