@@ -13,6 +13,7 @@ pub enum Stmt {
     If(IfStmt),
     While(WhileStmt),
     Function(FunctionDeclaration),
+    Return(ReturnStmt),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -31,6 +32,7 @@ impl Stmt {
             Stmt::If(if_stmt) => visitor.visit_if_stmt(if_stmt),
             Stmt::While(while_stmt) => visitor.visit_while_stmt(while_stmt),
             Stmt::Function(func) => visitor.visit_function(func),
+            Stmt::Return(return_stmt) => visitor.visit_return_stmt(return_stmt),
         }
     }
 }
@@ -86,6 +88,21 @@ impl WhileStmt {
         Self {
             condition,
             stmt: Box::new(stmt),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ReturnStmt {
+    keyword: Token,
+    expr: Option<Expr>,
+}
+
+impl ReturnStmt {
+    pub fn new(keyword: Token, expr: Option<Expr>) -> Self {
+        Self {
+            keyword,
+            expr,
         }
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType,
-        Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt, ReturnStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -148,8 +148,8 @@ impl Parser {
         };
 
         // We need to consume the `;` in order to parse a proper declaration statement
-        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
-        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
+        self.consume(&semicolon, "Expect ';' after expression".to_string())?;
         Ok(Stmt::Var(VarStmt::new(var_name, maybe_binded)))
     }
 
@@ -194,6 +194,13 @@ impl Parser {
             return self.for_statement();
         }
 
+        // Return statements are idenfitied by the keyword `return`
+        let return_keyword = TokenType::Keyword(Keyword::Return);
+
+        if self.any(&[&return_keyword])? {
+            return self.return_statement();
+        }
+
         // Block statements are starting with a left curly brace
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
 
@@ -209,9 +216,9 @@ impl Parser {
     fn print_statement(&mut self) -> Result<Stmt, ParserError> {
         // Parse the expression in the statement
         let expr = self.separator()?;
-        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
         // We need to consume the `;` in order to parse a proper statement
-        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        self.consume(&semicolon, "Expect ';' after expression".to_string())?;
         Ok(Stmt::Print(expr))
     }
 
@@ -259,8 +266,8 @@ impl Parser {
         // Afterward, follows the optional initialisation
         //
         // We check if the next token is a semicolon
-        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
-        let maybe_initialiser = if self.any(&[&semi_colon])? {
+        let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
+        let maybe_initialiser = if self.any(&[&semicolon])? {
             // Consume the semicolon
             let _ = self.advance()?;
             // If it is, it means we do not have an initialiser
@@ -283,7 +290,7 @@ impl Parser {
         // Now comes the optional condtion
         //
         // If the following token is a semicolon, we have no condition
-        let maybe_condition = if self.any(&[&semi_colon])? {
+        let maybe_condition = if self.any(&[&semicolon])? {
             None
         } else {
             // Otherwise, we parse the expresssion that holds the condition
@@ -293,7 +300,7 @@ impl Parser {
         // Consume the semicolon following (whether or not we have a condition)
         // We need to consume the `;` in order to parsea proper for condition
         self.consume(
-            &semi_colon,
+            &semicolon,
             "Expect second ';' after `for` condition".to_string(),
         )?;
 
@@ -367,6 +374,36 @@ impl Parser {
         Ok(Stmt::While(WhileStmt::new(condition, stmt)))
     }
 
+    // Parse and return a `return statement`
+    fn return_statement(&mut self) -> Result<Stmt, ParserError> {
+        // In a return statement, we first consume the `return` keyword
+        let return_keyword = TokenType::Keyword(Keyword::Return);
+        // We need to consume the left parenthesis `(` in order to parse a proper statement
+        let keyword = self.consume(
+            &return_keyword,
+            "Expect 'return' keyword".to_string(),
+        )?.clone();
+
+        let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
+        // If we do not find a semicolon right after the `return` keyword
+        let expr = if !self.any(&[&semicolon])? {
+            // We parse the expresssion
+            Some(self.separator()?)
+        } else {
+            // Return can have an optional expression to be returned. Be default we consider the
+            // expression is `None`,
+            None
+        };
+
+        // We consume the semicolon
+        self.consume(
+            &semicolon,
+            "Expect ';' semicolon at the end of 'return' statement".to_string(),
+        )?;
+
+        Ok(Stmt::Return(ReturnStmt::new(keyword, expr)))
+    }
+
     // A block statement is a block definining a new scope, which contains several statements.
     fn block_statement(&mut self) -> Result<Stmt, ParserError> {
         // Prepare a new vector that will hold the statements in this block
@@ -395,9 +432,9 @@ impl Parser {
     fn expr_statement(&mut self) -> Result<Stmt, ParserError> {
         // Parse the expression in the statement
         let expr = self.separator()?;
-        let semi_colon = TokenType::SingleChar(SingleChar::SemiColon);
+        let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
         // We need to consume the `;` in order to parse a proper statement
-        self.consume(&semi_colon, "Expect ';' after expression".to_string())?;
+        self.consume(&semicolon, "Expect ';' after expression".to_string())?;
         Ok(Stmt::Expr(expr))
     }
 
