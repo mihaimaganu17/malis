@@ -7,6 +7,10 @@ fun count(n) {
   print n;
 }
 
+fun say_hi(first, last) {
+    print "Hi, " + first + " " + last + "!";
+}
+
 count(20);
 add(1, 2);
-
+say_hi("Dear", "Reader");

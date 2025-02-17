@@ -44,7 +44,6 @@ impl Malis {
 
                 let ast = if !stmts.is_empty() || !is_repl {
                     let ast = ast_printer.print_stmt(&stmts);
-                    println!("Ast {}", ast);
                     self.interpreter.interpret(stmts.as_slice())?;
                     ast
                 } else {
