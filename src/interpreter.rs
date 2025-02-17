@@ -283,7 +283,7 @@ impl MalisCallable for Box<NativeFunction> {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Clone)]
+#[derive(PartialOrd, Clone)]
 pub struct UserFunction {
     function_declaration: FunctionDeclaration,
 }
@@ -328,13 +328,34 @@ impl MalisCallable for UserFunction {
 
 impl fmt::Debug for UserFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "<fn {}> (", self.function_declaration.name());
+        write!(f, "<fn {}> (", self.function_declaration.name)?;
 
-        for param in self.function_declaration.parameters {
-            write!(f, "{},", param);
+        for param in &self.function_declaration.parameters {
+            write!(f, "{},", param)?;
         }
 
-        write!(f, ")\n");
+        write!(f, ")\n")
+    }
+}
+
+impl PartialEq for UserFunction {
+    fn eq(&self, other: &Self) -> bool {
+        if self.function_declaration.name != other.function_declaration.name {
+            return false;
+        }
+
+        if self.function_declaration.parameters.len() != other.function_declaration.parameters.len() {
+            return false;
+        }
+
+        for (params, other_params) in self.function_declaration.parameters.iter()
+            .zip(other.function_declaration.parameters.iter()) {
+            if params != other_params {
+                return false;
+            }
+        }
+
+        true
     }
 }
 

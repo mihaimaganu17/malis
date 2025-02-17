@@ -2,7 +2,7 @@
 use core::cell::OnceCell;
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     // Token type, `type` is reserved
     t_type: TokenType,
