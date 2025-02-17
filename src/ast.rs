@@ -4,6 +4,7 @@ use crate::{
     visit::{ExprVisitor, StmtVisitor},
 };
 
+#[derive(Clone)]
 pub enum Stmt {
     Expr(Expr),
     Print(Expr),
@@ -34,6 +35,7 @@ impl Stmt {
     }
 }
 
+#[derive(Clone)]
 pub struct VarStmt {
     identifier: Token,
     expr: Option<Expr>,
@@ -51,6 +53,7 @@ impl VarStmt {
     }
 }
 
+#[derive(Clone)]
 pub struct IfStmt {
     // Condition that evaluates to true or false
     pub condition: Expr,
@@ -70,6 +73,7 @@ impl IfStmt {
     }
 }
 
+#[derive(Clone)]
 pub struct WhileStmt {
     // Condition that evaluates to true or false
     pub condition: Expr,
@@ -86,6 +90,7 @@ impl WhileStmt {
     }
 }
 
+#[derive(Clone)]
 pub struct FunctionDeclaration {
     pub name: Token,
     pub parameters: Vec<Token>,
@@ -102,10 +107,12 @@ impl FunctionDeclaration {
     }
 }
 
+#[derive(Clone)]
 pub enum FunctionKind {
     Free,
 }
 
+#[derive(Clone)]
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),
@@ -140,6 +147,7 @@ impl Expr {
     }
 }
 
+#[derive(Clone)]
 pub struct Logical {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -156,6 +164,7 @@ impl Logical {
     }
 }
 
+#[derive(Clone)]
 pub struct Call {
     // Function to be called
     pub callee: Box<Expr>,
@@ -175,6 +184,7 @@ impl Call {
     }
 }
 
+#[derive(Clone)]
 pub struct Unary {
     pub operator: Token,
     pub right: Box<Expr>,
@@ -189,6 +199,7 @@ impl Unary {
     }
 }
 
+#[derive(Clone)]
 pub struct Binary {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -205,6 +216,7 @@ impl Binary {
     }
 }
 
+#[derive(Clone)]
 pub struct Ternary {
     pub first: Box<Expr>,
     pub first_operator: Token,
@@ -231,7 +243,7 @@ impl Ternary {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Literal {
     pub l_type: LiteralType,
 }
@@ -263,7 +275,7 @@ impl From<LiteralType> for Literal {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LiteralType {
     Number(f32),
     LitString(String),
@@ -273,6 +285,7 @@ pub enum LiteralType {
 }
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
+#[derive(Clone)]
 pub struct Group {
     pub expr: Box<Expr>,
 }
