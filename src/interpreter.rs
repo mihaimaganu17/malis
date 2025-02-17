@@ -8,11 +8,11 @@ use crate::{
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
     visit::{ExprVisitor, StmtVisitor},
 };
+use core::cmp::Ordering;
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use core::cmp::Ordering;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {
@@ -54,7 +54,8 @@ impl MalisObject {
     }
 
     pub fn is_callable(&self) -> bool {
-        matches!(self, MalisObject::NativeFunction(_)) || matches!(self, MalisObject::UserFunction(_))
+        matches!(self, MalisObject::NativeFunction(_))
+            || matches!(self, MalisObject::UserFunction(_))
     }
 }
 
@@ -63,7 +64,10 @@ impl MalisCallable for MalisObject {
         match self {
             MalisObject::NativeFunction(f) => f.arity(),
             MalisObject::UserFunction(f) => f.arity(),
-            _ => Err(RuntimeError::NotCallable(format!("Object {} has no arity.", self))),
+            _ => Err(RuntimeError::NotCallable(format!(
+                "Object {} has no arity.",
+                self
+            ))),
         }
     }
 
@@ -75,7 +79,10 @@ impl MalisCallable for MalisObject {
         match self {
             MalisObject::NativeFunction(f) => f.call(interpreter, arguments),
             MalisObject::UserFunction(f) => f.call(interpreter, arguments),
-            _ => Err(RuntimeError::NotCallable(format!("Object {} is not callable.", self))),
+            _ => Err(RuntimeError::NotCallable(format!(
+                "Object {} is not callable.",
+                self
+            ))),
         }
     }
 }
@@ -291,7 +298,9 @@ pub struct UserFunction {
 
 impl UserFunction {
     pub fn new(function_declaration: FunctionDeclaration) -> Self {
-        UserFunction { function_declaration }
+        UserFunction {
+            function_declaration,
+        }
     }
 
     pub fn name(&self) -> &Token {
@@ -312,7 +321,8 @@ impl MalisCallable for UserFunction {
         // Create a new environment that encapsulates the parameters
         let mut environment = interpreter.environment.take();
         // Define all the parameters of the function in the new environment
-        for (param, arg) in self.function_declaration
+        for (param, arg) in self
+            .function_declaration
             .parameters
             .iter()
             .zip(arguments.into_iter())
@@ -335,7 +345,7 @@ impl fmt::Debug for UserFunction {
             write!(f, "{},", param)?;
         }
 
-        write!(f, ")\n")
+        writeln!(f, ")")
     }
 }
 
@@ -345,12 +355,17 @@ impl PartialEq for UserFunction {
             return false;
         }
 
-        if self.function_declaration.parameters.len() != other.function_declaration.parameters.len() {
+        if self.function_declaration.parameters.len() != other.function_declaration.parameters.len()
+        {
             return false;
         }
 
-        for (params, other_params) in self.function_declaration.parameters.iter()
-            .zip(other.function_declaration.parameters.iter()) {
+        for (params, other_params) in self
+            .function_declaration
+            .parameters
+            .iter()
+            .zip(other.function_declaration.parameters.iter())
+        {
             if params != other_params {
                 return false;
             }
@@ -370,7 +385,7 @@ impl PartialOrd for UserFunction {
 
 pub struct Interpreter {
     // This is the global environment that is accessible at all times
-    globals: Rc<RefCell<Environment>>,
+    _globals: Rc<RefCell<Environment>>,
     // This is the current local environment that the interepreter executes in
     environment: Rc<RefCell<Environment>>,
 }
@@ -413,7 +428,7 @@ impl Interpreter {
         globals.borrow_mut().define("clock".to_string(), clock)?;
 
         Ok(Self {
-            globals,
+            _globals: globals,
             environment,
         })
     }
@@ -525,9 +540,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     ) -> Result<(), RuntimeError> {
         // Get the function name
         let func_name = function_declaration.name.lexeme().to_string();
-        self.environment
-            .borrow_mut()
-            .define(func_name, MalisObject::UserFunction(UserFunction::new(function_declaration.clone())))?;
+        self.environment.borrow_mut().define(
+            func_name,
+            MalisObject::UserFunction(UserFunction::new(function_declaration.clone())),
+        )?;
         Ok(())
     }
 }
