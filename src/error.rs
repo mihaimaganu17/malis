@@ -1,6 +1,7 @@
 use crate::environment::EnvironmentError;
 use crate::token::Token;
 use std::fmt;
+use crate::interpreter::MalisObject;
 
 #[derive(Debug)]
 pub enum MalisError {
@@ -145,6 +146,9 @@ pub enum RuntimeError {
     NotCallable(String),
     EnvironmentError(EnvironmentError),
     SystemTimeError(std::time::SystemTimeError),
+    // This is used in conjunction with the `return` statement from `Malis` to return early from
+    // a function.
+    Return(MalisObject),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
 }

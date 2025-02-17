@@ -2,7 +2,7 @@ use super::{Interpreter, MalisCallable, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
-        Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Stmt, Ternary, Unary, VarStmt, WhileStmt, ReturnStmt,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -57,6 +57,18 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         }
 
         Ok(())
+    }
+
+    fn visit_return_stmt(&mut self, return_stmt: &ReturnStmt) -> Result<(), RuntimeError> {
+        let expr = if let Some(expr) = return_stmt.expr() {
+            self.evaluate(expr)?
+        } else {
+            MalisObject::Nil
+        };
+
+        // We are using the error system in `Rust` to return from a function in Malis. This is used
+        // in order to clean all the needed context
+        Err(RuntimeError::Return(expr))
     }
 
     fn visit_function(

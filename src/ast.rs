@@ -109,6 +109,10 @@ impl ReturnStmt {
     pub fn expr(&self) -> Option<&Expr> {
         self.expr.as_ref()
     }
+
+    pub fn keyword(&self) -> &Token {
+        &self.keyword
+    }
 }
 
 #[derive(Clone)]
