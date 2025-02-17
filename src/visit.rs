@@ -145,6 +145,15 @@ impl StmtVisitor<String> for AstPrinter {
         self.parenthesize("while", &[cond, stmt])
     }
 
+    fn visit_return_stmt(&mut self, return_stmt: &ReturnStmt) -> String {
+        let expr = if let Some(expr) = return_stmt.expr() {
+            expr.walk(self)
+        } else {
+            "None".to_string()
+        };
+        self.parenthesize("return", &[expr])
+    }
+
     fn visit_function(&mut self, function: &FunctionDeclaration) -> String {
         let params = function
             .parameters

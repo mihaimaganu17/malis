@@ -105,6 +105,10 @@ impl ReturnStmt {
             expr,
         }
     }
+
+    pub fn expr(&self) -> Option<&Expr> {
+        self.expr.as_ref()
+    }
 }
 
 #[derive(Clone)]
