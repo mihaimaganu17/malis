@@ -1,3 +1,4 @@
+use super::{Interpreter, MalisCallable, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
@@ -5,10 +6,8 @@ use crate::{
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
-    visit::{StmtVisitor, ExprVisitor},
+    visit::{ExprVisitor, StmtVisitor},
 };
-use super::{MalisObject, Interpreter, UserFunction, MalisCallable};
-
 
 impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {

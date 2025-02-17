@@ -1,6 +1,6 @@
+use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
-use super::{Interpreter, MalisCallable, NativeFunction, UserFunction, RuntimeError};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum MalisObject {

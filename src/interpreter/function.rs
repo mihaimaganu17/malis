@@ -1,7 +1,7 @@
 use super::{Interpreter, MalisObject, RuntimeError};
+use crate::{ast::FunctionDeclaration, token::Token};
 use core::cmp::Ordering;
 use std::fmt;
-use crate::{token::Token, ast::FunctionDeclaration};
 
 pub trait MalisCallable {
     fn arity(&self) -> Result<usize, RuntimeError>;

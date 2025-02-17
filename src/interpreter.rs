@@ -1,14 +1,14 @@
-pub mod object;
 pub mod function;
+pub mod object;
 pub mod visit;
 
-pub use object::MalisObject;
-pub use function::{NativeFunction, UserFunction, MalisCallable};
 use crate::{
-    ast::{Stmt, Expr},
+    ast::{Expr, Stmt},
     environment::Environment,
     error::RuntimeError,
 };
+pub use function::{MalisCallable, NativeFunction, UserFunction};
+pub use object::MalisObject;
 use std::cell::RefCell;
 use std::rc::Rc;
 
