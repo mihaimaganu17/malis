@@ -283,7 +283,7 @@ impl MalisCallable for Box<NativeFunction> {
     }
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(PartialEq, PartialOrd, Clone)]
 pub struct UserFunction {
     function_declaration: FunctionDeclaration,
 }
@@ -323,6 +323,18 @@ impl MalisCallable for UserFunction {
         interpreter.execute_block(&self.function_declaration.body, environment)?;
 
         Ok(MalisObject::Nil)
+    }
+}
+
+impl fmt::Debug for UserFunction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "<fn {}> (", self.function_declaration.name());
+
+        for param in self.function_declaration.parameters {
+            write!(f, "{},", param);
+        }
+
+        write!(f, ")\n");
     }
 }
 
