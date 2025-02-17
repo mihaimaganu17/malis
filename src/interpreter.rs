@@ -72,6 +72,7 @@ impl MalisCallable for MalisObject {
         interpreter: &mut Interpreter,
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
+        println!("Calling here {:#?}", arguments);
         match self {
             MalisObject::NativeFunction(f) => f.call(interpreter, arguments),
             MalisObject::UserFunction(f) => f.call(interpreter, arguments),
@@ -317,6 +318,7 @@ impl MalisCallable for UserFunction {
             .iter()
             .zip(arguments.into_iter())
         {
+            println!("param {:?}, arg {:?}", param.lexeme(), arg);
             environment.define(param.lexeme().to_string(), arg)?;
         }
 
@@ -426,6 +428,7 @@ impl Interpreter {
     }
 
     pub fn evaluate(&mut self, expr: &Expr) -> Result<MalisObject, RuntimeError> {
+        println!("Here evaluate");
         expr.walk(self)
     }
 

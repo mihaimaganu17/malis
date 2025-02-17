@@ -23,8 +23,12 @@ impl AsRef<Stmt> for Stmt {
 
 impl Stmt {
     pub fn walk<T, V: StmtVisitor<T>>(&self, visitor: &mut V) -> T {
+        println!("here");
         match self {
-            Stmt::Expr(expr) => visitor.visit_expr_stmt(expr),
+            Stmt::Expr(expr) => {
+                println!("Expr");
+                visitor.visit_expr_stmt(expr)
+            }
             Stmt::Print(expr) => visitor.visit_print_stmt(expr),
             Stmt::Var(var) => visitor.visit_var_stmt(var),
             Stmt::Block(stmts) => visitor.visit_block_stmt(stmts),
@@ -133,6 +137,7 @@ impl AsRef<Expr> for Expr {
 
 impl Expr {
     pub fn walk<T, V: ExprVisitor<T>>(&self, visitor: &mut V) -> T {
+        println!("Here walk expr");
         match self {
             Expr::Unary(unary) => visitor.visit_unary(unary),
             Expr::Binary(binary) => visitor.visit_binary(binary),

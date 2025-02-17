@@ -43,8 +43,10 @@ impl Malis {
                 let mut ast_printer = AstPrinter;
 
                 let ast = if !stmts.is_empty() || !is_repl {
+                    let ast = ast_printer.print_stmt(&stmts);
+                    println!("Ast {}", ast);
                     self.interpreter.interpret(stmts.as_slice())?;
-                    ast_printer.print_stmt(&stmts)
+                    ast
                 } else {
                     // Reset the parser such that we could parse in expression form
                     parser.reset();
