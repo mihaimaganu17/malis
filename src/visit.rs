@@ -87,8 +87,11 @@ impl ExprVisitor<String> for AstPrinter {
         self.parenthesize("or", &[left, right])
     }
 
-    fn visit_call(&mut self, _call: &Call) -> String {
-        self.parenthesize("call", &["todo"])
+    fn visit_call(&mut self, call: &Call) -> String {
+        let name = call.callee.walk(self);
+        let args = call.arguments.iter().map(|s| s.walk(self)).collect::<Vec<_>>();
+        let args = self.parenthesize("args", &args);
+        self.parenthesize("call", &[name, args])
     }
 }
 
