@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 pub struct Interpreter {
     // This is the global environment that is accessible at all times
-    _globals: Rc<RefCell<Environment>>,
+    globals: Rc<RefCell<Environment>>,
     // This is the current local environment that the interepreter executes in
     environment: Rc<RefCell<Environment>>,
 }
@@ -39,7 +39,7 @@ impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
         let globals = Rc::new(RefCell::new(Environment::new(None)));
-        let environment = Rc::new(RefCell::new(Environment::new(Some(globals.clone()))));
+        let environment = globals.clone();
 
         // Create a new native function
         let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
@@ -57,7 +57,7 @@ impl Interpreter {
         globals.borrow_mut().define("clock".to_string(), clock)?;
 
         Ok(Self {
-            _globals: globals,
+            globals,
             environment,
         })
     }
@@ -109,6 +109,8 @@ impl Interpreter {
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                 .into_inner(),
         );
+
+        println!("Before exiting block {:#?}", self.environment);
         Ok(())
     }
 }
