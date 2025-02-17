@@ -106,9 +106,11 @@ impl MalisCallable for UserFunction {
         }
 
         // With the new environment defined, execute the body of the function
-        interpreter.execute_block(&self.function_declaration.body, environment)?;
-
-        Ok(MalisObject::Nil)
+        match interpreter.execute_block(&self.function_declaration.body, environment) {
+            Ok(_) => Ok(MalisObject::Nil),
+            Err(RuntimeError::Return(return_obj)) => Ok(return_obj),
+            Err(e) => Err(e),
+        }
     }
 }
 
