@@ -94,7 +94,7 @@ impl MalisCallable for UserFunction {
         interpreter: &mut Interpreter,
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
-        // Create a new environment that encapsulates the parameters
+        // Create a new environment that encapsulates the parameters from the global environment
         let mut environment = Environment::new(Some(Rc::new(RefCell::new(interpreter.globals.take()))));
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
@@ -106,6 +106,8 @@ impl MalisCallable for UserFunction {
             environment.define(param.lexeme().to_string(), arg)?;
         }
 
+        // Afterwards, we wrap it in a `Rc` as it is required in order to share it. We also wrap it
+        // in a `RefCell` such that we obtain mutable state
         let environment = Rc::new(RefCell::new(environment));
 
         // With the new environment defined, execute the body of the function
@@ -116,7 +118,19 @@ impl MalisCallable for UserFunction {
             }
             Err(e) => Err(e),
         };
-        interpreter.globals.replace(Rc::into_inner(environment.borrow_mut().enclosing.take().unwrap()).unwrap().into_inner());
+
+        // Take out the previous globals environment
+        let previous_globals = environment
+            .borrow_mut()
+            .enclosing
+            .take()
+            .ok_or(RuntimeError::CannotAccessParentScope)?;
+
+        // Replace the globals with the originals
+        interpreter.globals.replace(
+            Rc::into_inner(previous_globals)
+            .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+            .into_inner());
 
         value
     }
