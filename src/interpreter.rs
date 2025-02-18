@@ -104,18 +104,16 @@ impl Interpreter {
                 return stmt_exec;
             }
         }
-
-        // Replace our current environment wit the enclosing one. Here we make sure that the
-        // enclosing environment has no other reference to itself, such that we can move it.
         self.environment.replace(
             previous_env
         );
-
         // Bring the initial environment back which contains the scope our interpreter had before
         // execution of this block. This resides in the enclosing field
         parent_env.replace(Rc::into_inner(parent_env_rc)
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                 .into_inner());
+        // Replace our current environment wit the enclosing one. Here we make sure that the
+        // enclosing environment has no other reference to itself, such that we can move it.
 
         Ok(())
     }
