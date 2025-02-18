@@ -82,38 +82,57 @@ impl Interpreter {
         stmts: &[Stmt],
         parent_env: Rc<RefCell<Environment>>,
     ) -> Result<(), RuntimeError> {
-        // Save the current environment assigned to the interpreter. This is used to prevent losing
-        // the top environment when executing a inner scope
+        // Executing a block requires creating a new environment, executing within that environment
+        // and restoring the environment to its previous state
+
+        // To prevent creating a cycle, we must take the value out of the parent environment.
+        // Afterwards, we wrap it in a `Rc` as it is required in order to share it. We also wrap it
+        // in a `RefCell` such that we obtain mutable state
+        let parent_env_rc = Rc::new(RefCell::new(parent_env.take()));
+
+        // Save the current environment assigned to the interpreter as `previous_env`.
+        // This is used to prevent losing the top environment when executing an inner scope.
         // The environment for the current execution block becomes the parent environemnt, such
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
-        let parent_env_rc = Rc::new(RefCell::new(parent_env.take()));
-
         let previous_env = self
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
 
-        for (idx, stmt) in stmts.iter().enumerate() {
+        // Start executing statements
+        for stmt in stmts.iter() {
+            // Execute statement
             let stmt_exec = self.execute(stmt);
 
+            // If the statement is an error, we cannot return it just yet
             if stmt_exec.is_err() {
-        self.environment.replace(previous_env);
-        parent_env.replace(Rc::into_inner(parent_env_rc)
-                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-                .into_inner());
+                // We must reverse the scope created above and replace the executing scope with
+                // the scope we have before entering the block.
+                // Order of operations is important. Replacing the current execution environment
+                // first assures that there is not any other strong reference to the previous
+                // environment
+                self.environment.replace(previous_env);
+
+                // We also replace the parent environment with the initial environment we passed
+                // when entering the scope
+                parent_env.replace(Rc::into_inner(parent_env_rc)
+                    .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                    .into_inner());
                 return stmt_exec;
             }
         }
-        self.environment.replace(
-            previous_env
-        );
-        // Bring the initial environment back which contains the scope our interpreter had before
-        // execution of this block. This resides in the enclosing field
+
+        // We must reverse the scope created above and replace the executing scope with
+        // the scope we have before entering the block.
+        // Order of operations is important. Replacing the current execution environment
+        // first assures that there is not any other strong reference to the previous
+        // environment
+        self.environment.replace(previous_env);
+        // We also replace the parent environment with the initial environment we passed
+        // when entering the scope
         parent_env.replace(Rc::into_inner(parent_env_rc)
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                 .into_inner());
-        // Replace our current environment wit the enclosing one. Here we make sure that the
-        // enclosing environment has no other reference to itself, such that we can move it.
 
         Ok(())
     }
