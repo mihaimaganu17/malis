@@ -75,7 +75,10 @@ pub struct UserFunction {
 }
 
 impl UserFunction {
-    pub fn new(function_declaration: FunctionDeclaration, closure: Rc<RefCell<Environment>>) -> Self {
+    pub fn new(
+        function_declaration: FunctionDeclaration,
+        closure: Rc<RefCell<Environment>>,
+    ) -> Self {
         UserFunction {
             function_declaration,
             // This is the environment that is active when the function is `declared` and not when
@@ -101,8 +104,7 @@ impl MalisCallable for UserFunction {
     ) -> Result<MalisObject, RuntimeError> {
         // Create a new environment that encapsulates the parameters from the environment active
         // when the function was declared
-        let mut environment =
-            Environment::new(Some(Rc::new(RefCell::new(self.closure.take()))));
+        let mut environment = Environment::new(Some(Rc::new(RefCell::new(self.closure.take()))));
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
             .function_declaration
