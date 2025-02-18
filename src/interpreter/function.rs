@@ -1,8 +1,8 @@
-use super::{Interpreter, MalisObject, RuntimeError, Environment};
+use super::{Environment, Interpreter, MalisObject, RuntimeError};
 use crate::{ast::FunctionDeclaration, token::Token};
 use core::cmp::Ordering;
 use std::fmt;
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 pub trait MalisCallable {
     fn arity(&self) -> Result<usize, RuntimeError>;
@@ -95,7 +95,8 @@ impl MalisCallable for UserFunction {
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
         // Create a new environment that encapsulates the parameters from the global environment
-        let mut environment = Environment::new(Some(Rc::new(RefCell::new(interpreter.globals.take()))));
+        let mut environment =
+            Environment::new(Some(Rc::new(RefCell::new(interpreter.globals.take()))));
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
             .function_declaration
@@ -111,13 +112,12 @@ impl MalisCallable for UserFunction {
         let environment = Rc::new(RefCell::new(environment));
 
         // With the new environment defined, execute the body of the function
-        let value = match interpreter.execute_block(&self.function_declaration.body, environment.clone()) {
-            Ok(_) => Ok(MalisObject::Nil),
-            Err(RuntimeError::Return(return_obj)) => {
-                Ok(return_obj)
-            }
-            Err(e) => Err(e),
-        };
+        let value =
+            match interpreter.execute_block(&self.function_declaration.body, environment.clone()) {
+                Ok(_) => Ok(MalisObject::Nil),
+                Err(RuntimeError::Return(return_obj)) => Ok(return_obj),
+                Err(e) => Err(e),
+            };
 
         // Take out the previous globals environment
         let previous_globals = environment
@@ -129,8 +129,9 @@ impl MalisCallable for UserFunction {
         // Replace the globals with the originals
         interpreter.globals.replace(
             Rc::into_inner(previous_globals)
-            .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-            .into_inner());
+                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                .into_inner(),
+        );
 
         value
     }

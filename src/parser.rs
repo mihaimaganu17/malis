@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType,
-        Logical, Stmt, Ternary, Unary, VarStmt, WhileStmt, ReturnStmt,
+        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -379,10 +379,9 @@ impl Parser {
         // In a return statement, we first consume the `return` keyword
         let return_keyword = TokenType::Keyword(Keyword::Return);
         // We need to consume the left parenthesis `(` in order to parse a proper statement
-        let keyword = self.consume(
-            &return_keyword,
-            "Expect 'return' keyword".to_string(),
-        )?.clone();
+        let keyword = self
+            .consume(&return_keyword, "Expect 'return' keyword".to_string())?
+            .clone();
 
         let semicolon = TokenType::SingleChar(SingleChar::SemiColon);
         // If we do not find a semicolon right after the `return` keyword

@@ -1,7 +1,7 @@
 use crate::environment::EnvironmentError;
+use crate::interpreter::MalisObject;
 use crate::token::Token;
 use std::fmt;
-use crate::interpreter::MalisObject;
 
 #[derive(Debug)]
 pub enum MalisError {

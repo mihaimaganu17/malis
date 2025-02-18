@@ -100,10 +100,7 @@ pub struct ReturnStmt {
 
 impl ReturnStmt {
     pub fn new(keyword: Token, expr: Option<Expr>) -> Self {
-        Self {
-            keyword,
-            expr,
-        }
+        Self { keyword, expr }
     }
 
     pub fn expr(&self) -> Option<&Expr> {

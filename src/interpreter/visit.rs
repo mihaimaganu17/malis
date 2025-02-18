@@ -2,7 +2,7 @@ use super::{Interpreter, MalisCallable, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
-        Stmt, Ternary, Unary, VarStmt, WhileStmt, ReturnStmt,
+        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},

@@ -115,9 +115,11 @@ impl Interpreter {
 
                 // We also replace the parent environment with the initial environment we passed
                 // when entering the scope
-                parent_env.replace(Rc::into_inner(parent_env_rc)
-                    .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-                    .into_inner());
+                parent_env.replace(
+                    Rc::into_inner(parent_env_rc)
+                        .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                        .into_inner(),
+                );
                 return stmt_exec;
             }
         }
@@ -130,9 +132,11 @@ impl Interpreter {
         self.environment.replace(previous_env);
         // We also replace the parent environment with the initial environment we passed
         // when entering the scope
-        parent_env.replace(Rc::into_inner(parent_env_rc)
+        parent_env.replace(
+            Rc::into_inner(parent_env_rc)
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-                .into_inner());
+                .into_inner(),
+        );
 
         Ok(())
     }
