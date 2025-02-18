@@ -36,7 +36,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), RuntimeError> {
-        self.execute_block(stmts, self.environment.take())
+        self.execute_block(stmts, self.environment.clone())
     }
 
     fn visit_if_stmt(&mut self, if_stmt: &IfStmt) -> Result<(), RuntimeError> {

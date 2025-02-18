@@ -80,37 +80,43 @@ impl Interpreter {
     pub fn execute_block(
         &mut self,
         stmts: &[Stmt],
-        parent_env: Environment,
+        parent_env: Rc<RefCell<Environment>>,
     ) -> Result<(), RuntimeError> {
         // Save the current environment assigned to the interpreter. This is used to prevent losing
         // the top environment when executing a inner scope
         // The environment for the current execution block becomes the parent environemnt, such
         // that we could access scope from the current block's scope and from the scope that
         // contains this block as well
-        let _ = self
-            .environment
-            .replace(Environment::new(Some(Rc::new(RefCell::new(parent_env)))));
+        let parent_env_rc = Rc::new(RefCell::new(parent_env.take()));
 
-        for stmt in stmts {
-            self.execute(stmt)?;
-        }
-        // Bring the initial environment back which contains the scope our interpreter had before
-        // execution of this block. This resides in the enclosing field
-        let env = self
+        let previous_env = self
             .environment
-            .borrow_mut()
-            .enclosing
-            .take()
-            .ok_or(RuntimeError::CannotAccessParentScope)?;
+            .replace(Environment::new(Some(parent_env_rc.clone())));
+
+        for (idx, stmt) in stmts.iter().enumerate() {
+            let stmt_exec = self.execute(stmt);
+
+            if stmt_exec.is_err() {
+        self.environment.replace(previous_env);
+        parent_env.replace(Rc::into_inner(parent_env_rc)
+                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                .into_inner());
+                return stmt_exec;
+            }
+        }
+
         // Replace our current environment wit the enclosing one. Here we make sure that the
         // enclosing environment has no other reference to itself, such that we can move it.
         self.environment.replace(
-            Rc::into_inner(env)
-                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
-                .into_inner(),
+            previous_env
         );
 
-        println!("Before exiting block {:#?}", self.environment);
+        // Bring the initial environment back which contains the scope our interpreter had before
+        // execution of this block. This resides in the enclosing field
+        parent_env.replace(Rc::into_inner(parent_env_rc)
+                .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
+                .into_inner());
+
         Ok(())
     }
 }

@@ -94,8 +94,7 @@ impl MalisCallable for UserFunction {
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
         // Create a new environment that encapsulates the parameters
-        let mut environment = interpreter.globals.take();
-        println!("Args {:#?}", &arguments);
+        let mut environment = interpreter.globals.clone();
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
             .function_declaration
@@ -103,18 +102,13 @@ impl MalisCallable for UserFunction {
             .iter()
             .zip(arguments.into_iter())
         {
-            environment.define(param.lexeme().to_string(), arg)?;
+            environment.borrow_mut().define(param.lexeme().to_string(), arg)?;
         }
 
-        println!("Environment {:#?}", environment);
-
         // With the new environment defined, execute the body of the function
-        match interpreter.execute_block(&self.function_declaration.body, environment) {
+        match interpreter.execute_block(&self.function_declaration.body, environment.clone()) {
             Ok(_) => Ok(MalisObject::Nil),
-            Err(RuntimeError::Return(return_obj)) => {
-                println!("{:#?}", return_obj);
-                Ok(return_obj)
-            }
+            Err(RuntimeError::Return(return_obj)) => Ok(return_obj),
             Err(e) => Err(e),
         }
     }

@@ -1,10 +1,8 @@
 fun fib(n) {
-    print "original =" + n;
-    if (n <= 1) return "n=" + n;
-    return fib(n-2) + fib(n-1);
+    if (n <= 1) return n;
+    return fib(n-1) + fib(n-2);
 }
 
-for (var i = 0; i < 3; i = i + 1) {
-    print "i = " + i;
+for (var i = 0; i < 20; i = i + 1) {
     print fib(i);
 }
