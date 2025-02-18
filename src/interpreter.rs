@@ -99,6 +99,7 @@ impl Interpreter {
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
 
+        println!("Current env {:#?}", self.environment);
         // Start executing statements
         for stmt in stmts.iter() {
             // Execute statement
@@ -120,6 +121,7 @@ impl Interpreter {
                         .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                         .into_inner(),
                 );
+        println!("Parent env before exit {:#?}", parent_env);
                 return stmt_exec;
             }
         }
@@ -137,6 +139,7 @@ impl Interpreter {
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                 .into_inner(),
         );
+        println!("Parent env before exit {:#?}", parent_env);
 
         Ok(())
     }

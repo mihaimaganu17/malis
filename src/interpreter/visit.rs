@@ -76,12 +76,17 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         function_declaration: &FunctionDeclaration,
     ) -> Result<(), RuntimeError> {
         // Get the function name
+        use std::rc::Rc;
+        use std::cell::RefCell;
         let func_name = function_declaration.name.lexeme().to_string();
+        let env = self.environment.take();
+        self.environment.replace(env.clone());
+        println!("Env {:#?}", env);
         self.environment.borrow_mut().define(
             func_name,
             MalisObject::UserFunction(UserFunction::new(
                 function_declaration.clone(),
-                self.environment.clone(),
+                Rc::new(RefCell::new(env)),
             )),
         )?;
         Ok(())
