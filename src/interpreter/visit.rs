@@ -79,7 +79,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         let func_name = function_declaration.name.lexeme().to_string();
         self.environment.borrow_mut().define(
             func_name,
-            MalisObject::UserFunction(UserFunction::new(function_declaration.clone())),
+            MalisObject::UserFunction(UserFunction::new(
+                function_declaration.clone(),
+                self.environment.clone(),
+            )),
         )?;
         Ok(())
     }

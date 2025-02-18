@@ -70,12 +70,17 @@ impl MalisCallable for Box<NativeFunction> {
 #[derive(Clone)]
 pub struct UserFunction {
     function_declaration: FunctionDeclaration,
+    // In order to support closures, we also need to save the state when the function is declared
+    closure: Rc<RefCell<Environment>>,
 }
 
 impl UserFunction {
-    pub fn new(function_declaration: FunctionDeclaration) -> Self {
+    pub fn new(function_declaration: FunctionDeclaration, closure: Rc<RefCell<Environment>>) -> Self {
         UserFunction {
             function_declaration,
+            // This is the environment that is active when the function is `declared` and not when
+            // it is `called`
+            closure,
         }
     }
 
@@ -94,9 +99,10 @@ impl MalisCallable for UserFunction {
         interpreter: &mut Interpreter,
         arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
-        // Create a new environment that encapsulates the parameters from the global environment
+        // Create a new environment that encapsulates the parameters from the environment active
+        // when the function was declared
         let mut environment =
-            Environment::new(Some(Rc::new(RefCell::new(interpreter.globals.take()))));
+            Environment::new(Some(Rc::new(RefCell::new(self.closure.take()))));
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
             .function_declaration
