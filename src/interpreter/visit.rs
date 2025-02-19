@@ -76,10 +76,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         function_declaration: &FunctionDeclaration,
     ) -> Result<(), RuntimeError> {
         // Get the function name
-        use std::rc::Rc;
-        use std::cell::RefCell;
         let func_name = function_declaration.name.lexeme().to_string();
         let env = self.environment.clone();
+        //use std::rc::Rc;
+        //use std::cell::RefCell;
         //self.environment.replace(env.clone());
         println!("Env {:#?}", env);
         self.environment.borrow_mut().define(

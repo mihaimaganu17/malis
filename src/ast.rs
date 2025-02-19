@@ -113,6 +113,21 @@ impl ReturnStmt {
 }
 
 #[derive(Clone)]
+pub struct Lambda {
+    pub parameters: Vec<Token>,
+    pub body: Vec<Stmt>,
+}
+
+impl Lambda {
+    pub fn new(parameters: Vec<Token>, body: Vec<Stmt>) -> Self {
+        Lambda {
+            parameters,
+            body,
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct FunctionDeclaration {
     pub name: Token,
     pub parameters: Vec<Token>,
