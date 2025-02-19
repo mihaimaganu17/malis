@@ -15,11 +15,8 @@ impl Clone for Environment {
     // Yes, this is very very idiotic, but it is the only way to replicate Java behaviour :)
     fn clone(&self) -> Self {
         let values = self.values.clone();
-        let enclosing = if let Some(enclosing) = &self.enclosing {
-            Some(Rc::new(RefCell::new(enclosing.borrow().clone())))
-        } else {
-            None
-        };
+        let enclosing = self.enclosing.as_ref()
+            .map(|enclosing| Rc::new(RefCell::new(enclosing.borrow().clone())));
         Environment { values, enclosing }
     }
 }

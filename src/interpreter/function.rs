@@ -75,10 +75,7 @@ pub struct UserFunction {
 }
 
 impl UserFunction {
-    pub fn new(
-        function_declaration: FunctionDeclaration,
-        closure: Environment,
-    ) -> Self {
+    pub fn new(function_declaration: FunctionDeclaration, closure: Environment) -> Self {
         UserFunction {
             function_declaration,
             // This is the environment that is active when the function is `declared` and not when

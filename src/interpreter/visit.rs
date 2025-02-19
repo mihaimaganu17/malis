@@ -85,10 +85,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         // We define the function with the environment present at the time of declaration
         self.environment.borrow_mut().define(
             func_name,
-            MalisObject::UserFunction(UserFunction::new(
-                function_declaration.clone(),
-                closure_env,
-            )),
+            MalisObject::UserFunction(UserFunction::new(function_declaration.clone(), closure_env)),
         )?;
         Ok(())
     }

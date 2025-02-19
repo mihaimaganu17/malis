@@ -120,10 +120,7 @@ pub struct Lambda {
 
 impl Lambda {
     pub fn new(parameters: Vec<Token>, body: Vec<Stmt>) -> Self {
-        Lambda {
-            parameters,
-            body,
-        }
+        Lambda { parameters, body }
     }
 }
 
