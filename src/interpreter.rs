@@ -39,7 +39,7 @@ impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
         let globals = Rc::new(RefCell::new(Environment::new(None)));
-        let environment = globals.clone();
+        let environment = Rc::new(RefCell::new(Environment::new(Some(globals.clone()))));
 
         // Create a new native function
         let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
@@ -99,6 +99,8 @@ impl Interpreter {
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
 
+        println!("Environment before executing block stmts {:#?}", self.environment);
+
         // Start executing statements
         for stmt in stmts.iter() {
             // Execute statement
@@ -112,6 +114,7 @@ impl Interpreter {
                 // first assures that there is not any other strong reference to the previous
                 // environment
                 self.environment.replace(previous_env);
+                println!("Environment at returning err {:#?}", self.environment);
 
                 // We also replace the parent environment with the initial environment we passed
                 // when entering the scope
@@ -120,6 +123,7 @@ impl Interpreter {
                         .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                         .into_inner(),
                 );
+                println!("Parent at returning err {:#?}", parent_env);
                 return stmt_exec;
             }
         }

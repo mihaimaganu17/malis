@@ -81,12 +81,18 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         // function declaration is in, we need to do a complete clone of the `Environment` object.
         // This is because cloning the `Rc` alone would just give us a reference that could change
         // after exiting this function due to other statements.
-        let closure_env = self.environment.borrow().clone();
+        use std::rc::Rc;
+        use std::cell::RefCell;
+        let closure_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
         // We define the function with the environment present at the time of declaration
         self.environment.borrow_mut().define(
             func_name,
-            MalisObject::UserFunction(UserFunction::new(function_declaration.clone(), closure_env)),
+            MalisObject::UserFunction(UserFunction::new(function_declaration.clone(), closure_env.clone())),
         )?;
+        closure_env.replace(self.environment.borrow().clone());
+        println!("Self env {:#?}", self.environment);
+        println!("Closure env {:#?}", closure_env);
+        println!("Global env {:#?}", self._globals);
         Ok(())
     }
 }
