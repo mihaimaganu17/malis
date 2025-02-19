@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug)]
 pub struct Environment {
     pub values: HashMap<String, MalisObject>,
     // Weak reference to the parent environment of this environment. The global environment has this
