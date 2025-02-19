@@ -75,7 +75,10 @@ pub struct UserFunction {
 }
 
 impl UserFunction {
-    pub fn new(function_declaration: FunctionDeclaration, closure: Rc<RefCell<Environment>>) -> Self {
+    pub fn new(
+        function_declaration: FunctionDeclaration,
+        closure: Rc<RefCell<Environment>>,
+    ) -> Self {
         UserFunction {
             function_declaration,
             // This is the environment that is active when the function is `declared` and not when
@@ -102,9 +105,8 @@ impl MalisCallable for UserFunction {
         // Create a new environment that encapsulates the parameters from the environment active
         // when the function was declared. In order to support multi-level recursion, we have to
         // duplicate the closure environment
-        let mut environment = Environment::new(Some(Rc::new(RefCell::new(self.closure.borrow().clone()))));
-        println!("Environment {:#?}", environment);
-        println!("Args {:#?}", arguments);
+        let mut environment =
+            Environment::new(Some(Rc::new(RefCell::new(self.closure.borrow().clone()))));
         // Define all the parameters of the function in the new environment
         for (param, arg) in self
             .function_declaration
@@ -118,7 +120,6 @@ impl MalisCallable for UserFunction {
         // Afterwards, we wrap it in a `Rc` as it is required in order to share it. We also wrap it
         // in a `RefCell` such that we obtain mutable state
         let environment = Rc::new(RefCell::new(environment));
-        println!("Environemnt after populating {:#?}", environment);
 
         // With the new environment defined, execute the body of the function
         let value =
@@ -127,7 +128,6 @@ impl MalisCallable for UserFunction {
                 Err(RuntimeError::Return(return_obj)) => Ok(return_obj),
                 Err(e) => Err(e),
             };
-        println!("Environemnt after execution {:#?}", environment);
 
         // Take out the previous globals environment
         let previous_globals = environment
@@ -135,7 +135,6 @@ impl MalisCallable for UserFunction {
             .enclosing
             .take()
             .ok_or(RuntimeError::CannotAccessParentScope)?;
-        println!("Previous globals {:#?}", previous_globals);
 
         // Replace the globals with the originals
         self.closure.replace(
