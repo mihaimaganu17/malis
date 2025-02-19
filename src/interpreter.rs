@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 pub struct Interpreter {
     // This is the global environment that is accessible at all times
-    globals: Rc<RefCell<Environment>>,
+    _globals: Rc<RefCell<Environment>>,
     // This is the current local environment that the interepreter executes in
     environment: Rc<RefCell<Environment>>,
 }
@@ -57,7 +57,7 @@ impl Interpreter {
         globals.borrow_mut().define("clock".to_string(), clock)?;
 
         Ok(Self {
-            globals,
+            _globals: globals,
             environment,
         })
     }
@@ -99,7 +99,6 @@ impl Interpreter {
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
 
-        println!("Current env {:#?}", self.environment);
         // Start executing statements
         for stmt in stmts.iter() {
             // Execute statement
@@ -121,7 +120,6 @@ impl Interpreter {
                         .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                         .into_inner(),
                 );
-        println!("Parent env before exit {:#?}", parent_env);
                 return stmt_exec;
             }
         }
@@ -139,7 +137,6 @@ impl Interpreter {
                 .ok_or(RuntimeError::MultipleReferenceForEnclosingEnvironment)?
                 .into_inner(),
         );
-        println!("Parent env before exit {:#?}", parent_env);
 
         Ok(())
     }

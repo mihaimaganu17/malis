@@ -8,8 +8,6 @@ use crate::{
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
     visit::{ExprVisitor, StmtVisitor},
 };
-use std::rc::Rc;
-use std::cell::RefCell;
 
 impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
@@ -79,15 +77,17 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     ) -> Result<(), RuntimeError> {
         // Get the function name
         let func_name = function_declaration.name.lexeme().to_string();
-        let env = self.environment.borrow().clone();
-        //self.environment.replace(env.clone());
-        //println!("Env {:#?}", env);
+        // Since we want the closure environment to remain a snapshot of the scope this current
+        // function declaration is in, we need to do a complete clone of the `Environment` object.
+        // This is because cloning the `Rc` alone would just give us a reference that could change
+        // after exiting this function due to other statements.
+        let closure_env = self.environment.borrow().clone();
+        // We define the function with the environment present at the time of declaration
         self.environment.borrow_mut().define(
             func_name,
             MalisObject::UserFunction(UserFunction::new(
                 function_declaration.clone(),
-                //env,
-                Rc::new(RefCell::new(env)),
+                closure_env,
             )),
         )?;
         Ok(())

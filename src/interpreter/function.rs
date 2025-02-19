@@ -77,13 +77,13 @@ pub struct UserFunction {
 impl UserFunction {
     pub fn new(
         function_declaration: FunctionDeclaration,
-        closure: Rc<RefCell<Environment>>,
+        closure: Environment,
     ) -> Self {
         UserFunction {
             function_declaration,
             // This is the environment that is active when the function is `declared` and not when
             // it is `called`
-            closure,
+            closure: Rc::new(RefCell::new(closure)),
         }
     }
 
@@ -115,8 +115,6 @@ impl MalisCallable for UserFunction {
             environment.define(param.lexeme().to_string(), arg)?;
         }
 
-        println!("Env with closure {:#?}", environment);
-
         // Afterwards, we wrap it in a `Rc` as it is required in order to share it. We also wrap it
         // in a `RefCell` such that we obtain mutable state
         let environment = Rc::new(RefCell::new(environment));
@@ -129,15 +127,12 @@ impl MalisCallable for UserFunction {
                 Err(e) => Err(e),
             };
 
-        println!("value {:#?}", value);
-        println!("Before cannot {:#?}", environment);
         // Take out the previous globals environment
         let previous_globals = environment
             .borrow_mut()
             .enclosing
             .take()
             .ok_or(RuntimeError::CannotAccessParentScope)?;
-        println!("After cannot");
 
         // Replace the globals with the originals
         self.closure.replace(
