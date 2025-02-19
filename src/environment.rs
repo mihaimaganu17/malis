@@ -11,6 +11,19 @@ pub struct Environment {
     pub enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
+impl Clone for Environment {
+    // Yes, this is very very idiotic, but it is the only way to replicate Java behaviour :)
+    fn clone(&self) -> Self {
+        let values = self.values.clone();
+        let enclosing = if let Some(enclosing) = &self.enclosing {
+            Some(Rc::new(RefCell::new(enclosing.borrow().clone())))
+        } else {
+            None
+        };
+        Environment { values, enclosing }
+    }
+}
+
 impl Environment {
     pub fn new(enclosing: Option<Rc<RefCell<Environment>>>) -> Self {
         Self {

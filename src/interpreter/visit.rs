@@ -8,6 +8,8 @@ use crate::{
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
     visit::{ExprVisitor, StmtVisitor},
 };
+use std::rc::Rc;
+use std::cell::RefCell;
 
 impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
@@ -77,17 +79,15 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     ) -> Result<(), RuntimeError> {
         // Get the function name
         let func_name = function_declaration.name.lexeme().to_string();
-        let env = self.environment.clone();
-        //use std::rc::Rc;
-        //use std::cell::RefCell;
+        let env = self.environment.borrow().clone();
         //self.environment.replace(env.clone());
-        println!("Env {:#?}", env);
+        //println!("Env {:#?}", env);
         self.environment.borrow_mut().define(
             func_name,
             MalisObject::UserFunction(UserFunction::new(
                 function_declaration.clone(),
-                env,
-                //Rc::new(RefCell::new(env)),
+                //env,
+                Rc::new(RefCell::new(env)),
             )),
         )?;
         Ok(())
