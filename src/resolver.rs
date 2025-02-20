@@ -4,8 +4,8 @@ use crate::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical, ReturnStmt, Stmt,
         Ternary, Unary, VarStmt, WhileStmt,
     },
-    token::Token,
     error::ResolverError,
+    token::Token,
     visit::{ExprVisitor, StmtVisitor},
 };
 use std::collections::{HashMap, LinkedList};
@@ -28,7 +28,10 @@ pub struct Resolver {
 
 impl Resolver {
     pub fn new(interpreter: Interpreter) -> Self {
-        Self { interpreter, scope: LinkedList::new() }
+        Self {
+            interpreter,
+            scope: LinkedList::new(),
+        }
     }
 
     fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
@@ -91,7 +94,6 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
     fn visit_call(&mut self, call: &Call) -> Result<(), ResolverError> {
         Ok(())
     }
-
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -134,5 +136,4 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     fn visit_function(&mut self, func: &FunctionDeclaration) -> Result<(), ResolverError> {
         Ok(())
     }
-
 }

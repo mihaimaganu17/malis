@@ -133,8 +133,7 @@ impl fmt::Display for ParserError {
 }
 
 #[derive(Debug)]
-pub enum ResolverError {
-}
+pub enum ResolverError {}
 
 #[derive(Debug)]
 pub enum RuntimeError {
