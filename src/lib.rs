@@ -2,13 +2,14 @@ pub mod ast;
 mod environment;
 mod error;
 pub mod interpreter;
+pub mod resolver;
 mod parser;
 mod scanner;
 mod token;
 mod visit;
 
 pub use error::MalisError;
-use interpreter::Interpreter;
+pub use interpreter::Interpreter;
 use parser::Parser;
 use scanner::Scanner;
 use std::{
