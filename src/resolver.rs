@@ -8,6 +8,7 @@ use crate::{
     error::ResolverError,
     visit::{ExprVisitor, StmtVisitor},
 };
+use std::collections::{HashMap, LinkedList};
 
 // The resolver visits every node in the syntax tree and could perform the following actions:
 // - Define a new scope
@@ -22,11 +23,35 @@ use crate::{
 // - Variable and assignment expressions need to have their variables resolved.
 pub struct Resolver {
     interpreter: Interpreter,
+    scope: LinkedList<HashMap<String, bool>>,
 }
 
 impl Resolver {
     pub fn new(interpreter: Interpreter) -> Self {
-        Self { interpreter }
+        Self { interpreter, scope: LinkedList::new() }
+    }
+
+    fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
+        for stmt in stmts {
+            self.resolve_stmt(stmt)?;
+        }
+        Ok(())
+    }
+
+    fn resolve_stmt(&mut self, stmt: &Stmt) -> Result<(), ResolverError> {
+        stmt.walk(self)
+    }
+
+    fn resolve_expr(&mut self, expr: &Expr) -> Result<(), ResolverError> {
+        expr.walk(self)
+    }
+
+    fn begin_scope(&mut self) {
+        self.scope.push_back(HashMap::new());
+    }
+
+    fn end_scope(&mut self) {
+        self.scope.pop_back();
     }
 }
 
@@ -84,7 +109,13 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
         Ok(())
     }
 
-    fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> Result<(), ResolverError> {
+    fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
+        // A block begins a new scope
+        self.begin_scope();
+        // It resolves the statement inside it
+        self.resolve(stmts)?;
+        // And finished the scope afterwards
+        self.end_scope();
         Ok(())
     }
 

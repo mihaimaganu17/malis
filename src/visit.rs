@@ -26,7 +26,7 @@ pub trait StmtVisitor<T> {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_print_stmt(&mut self, stmt: &Expr) -> T;
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> T;
-    fn visit_block_stmt(&mut self, stmt: &[Stmt]) -> T;
+    fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> T;
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> T;
     fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> T;
     fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> T;
