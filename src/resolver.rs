@@ -69,8 +69,8 @@ impl Resolver {
 
         // We first declare and define each of the function's parameters
         for param in function.parameters.iter() {
-            self.declare(&param);
-            self.define(&param);
+            self.declare(param);
+            self.define(param);
         }
 
         // Afterards, we resolve the function body
@@ -140,7 +140,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
             // If the variable is in this scope but it's initializer flag is false, it means it
             // was declared but not defined yet. We consider this an error and we report it.
             if current_scope.get(variable.lexeme()) == Some(&false) {
-                return Err(ResolverError::NotInitialized(format!("Can't access local variable {} in it own initializer.", variable)));
+                return Err(ResolverError::NotInitialized(format!(
+                    "Can't access local variable {} in it own initializer.",
+                    variable
+                )));
             }
         }
         // At this point, we know we should have a value for the variable and we resolve it
@@ -173,11 +176,11 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
 /// `Stmt` statement of the Malis lanaguage
 impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), ResolverError> {
-        self.resolve_expr(&stmt)
+        self.resolve_expr(stmt)
     }
 
     fn visit_print_stmt(&mut self, stmt: &Expr) -> Result<(), ResolverError> {
-        self.resolve_expr(&stmt)
+        self.resolve_expr(stmt)
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), ResolverError> {

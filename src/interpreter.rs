@@ -5,7 +5,7 @@ pub mod visit;
 use crate::{
     ast::{Expr, Stmt},
     environment::Environment,
-    error::{RuntimeError, ResolverError},
+    error::{ResolverError, RuntimeError},
 };
 pub use function::{MalisCallable, NativeFunction, UserFunction};
 pub use object::MalisObject;
