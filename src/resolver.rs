@@ -53,7 +53,10 @@ impl Resolver {
         // Iterate through all the scopes from the innermost (top of the stack) to the outer most
         // (bottom of the stack)
         for (idx, scope) in self.scopes.iter().rev().enumerate() {
+            // If we find the variable in one of the scopes
             if scope.get(name.lexeme()).is_some() {
+                // We resolve it, passing in the number of scopes between the current innermost
+                // scope and the scope where the varaible was found.
                 self.interpreter.resolve(expr, idx)?;
             }
         }
@@ -124,6 +127,8 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<(), ResolverError> {
+        self.resolve_expr(expr);
+        self.resolve_local(expr, ident)?;
         Ok(())
     }
 
