@@ -63,6 +63,24 @@ impl Resolver {
         Ok(())
     }
 
+    fn resolve_function(&mut self, function: &FunctionDeclaration) -> Result<(), ResolverError> {
+        // Each function declaration creates a new scope
+        self.begin_scope();
+
+        // We first declare and define each of the function's parameters
+        for param in function.parameters.iter() {
+            self.declare(&param);
+            self.define(&param);
+        }
+
+        // Afterards, we resolve the function body
+        self.resolve(&function.body)?;
+
+        self.end_scope();
+        // Each function exit, end a scope
+        Ok(())
+    }
+
     fn begin_scope(&mut self) {
         self.scopes.push_back(HashMap::new());
     }
@@ -184,7 +202,15 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
         Ok(())
     }
 
-    fn visit_function(&mut self, func: &FunctionDeclaration) -> Result<(), ResolverError> {
-        Ok(())
+    fn visit_function(&mut self, function: &FunctionDeclaration) -> Result<(), ResolverError> {
+        // Functions both bind names and introduce a scope. When a function is declared, the name
+        // of the function is bound in the current scope where the function is declared. And when
+        // we step into the function's body, we also bind its parameters to the new scope introduced
+        // by the function's body.
+        self.declare(&function.name);
+        // We define the function eagerly, just after declaration. This enables a function to call
+        // itself and do recursion.
+        self.define(&function.name);
+        self.resolve_function(function)
     }
 }
