@@ -69,7 +69,7 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
+    pub fn resolve(&mut self, _expr: &Expr, _scope_level: usize) -> Result<(), ResolverError> {
         Ok(())
     }
 

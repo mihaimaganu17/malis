@@ -89,7 +89,7 @@ impl Resolver {
         // We get a mutable reference to the top stack scope. This way the variable will be
         // declared in the the innermost scope and will shadow any other existing variable with the
         // same name
-        if let Some(mut current_scope) = self.scopes.back_mut() {
+        if let Some(current_scope) = self.scopes.back_mut() {
             // And insert the new declaration in this scope. Because we did not resolve the variable
             // yet, we insert it with a `false` flag in the scopes `HashMap`.
             current_scope.insert(name.lexeme().to_string(), false);
@@ -99,7 +99,7 @@ impl Resolver {
     fn define(&mut self, name: &Token) {
         // At this point, initializer for the variable represented by name should have been run
         // and we mark it as such in the scope
-        if let Some(mut current_scope) = self.scopes.back_mut() {
+        if let Some(current_scope) = self.scopes.back_mut() {
             current_scope.insert(name.lexeme().to_string(), true);
         }
     }
@@ -125,7 +125,7 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
         self.resolve_expr(&ternary.third)
     }
 
-    fn visit_literal(&mut self, literal: &Literal) -> Result<(), ResolverError> {
+    fn visit_literal(&mut self, _literal: &Literal) -> Result<(), ResolverError> {
         // Literals could only resolve to themselves
         Ok(())
     }
@@ -149,7 +149,7 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<(), ResolverError> {
-        self.resolve_expr(expr);
+        self.resolve_expr(expr)?;
         self.resolve_local(expr, ident)?;
         Ok(())
     }
