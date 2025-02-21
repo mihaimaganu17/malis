@@ -49,28 +49,30 @@ impl Resolver {
         expr.walk(self)
     }
 
+    fn resolve_local(&mut self, expr: &Expr, name: &Token) -> Result<(), ResolverError> {
+        Ok(())
+    }
+
     fn begin_scope(&mut self) {
         self.scopes.push_back(HashMap::new());
     }
 
     fn declare(&mut self, name: &Token) {
-        // We remove the top stack scope. This way the variable will be declared in the the
-        // innermost scope and will shadow any other existing variable with the same name
-        if let Some(mut current_scope) = self.scopes.pop_back() {
+        // We get a mutable reference to the top stack scope. This way the variable will be
+        // declared in the the innermost scope and will shadow any other existing variable with the
+        // same name
+        if let Some(mut current_scope) = self.scopes.back_mut() {
             // And insert the new declaration in this scope. Because we did not resolve the variable
             // yet, we insert it with a `false` flag in the scopes `HashMap`.
             current_scope.insert(name.lexeme().to_string(), false);
-            // And then we put the scope back on top of the stack
-            self.scopes.push_back(current_scope);
         }
     }
 
     fn define(&mut self, name: &Token) {
         // At this point, initializer for the variable represented by name should have been run
         // and we mark it as such in the scope
-        if let Some(mut current_scope) = self.scopes.pop_back() {
+        if let Some(mut current_scope) = self.scopes.back_mut() {
             current_scope.insert(name.lexeme().to_string(), true);
-            self.scopes.push_back(current_scope);
         }
     }
 
@@ -100,7 +102,16 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
         Ok(())
     }
 
-    fn visit_variable(&self, variable: &Token) -> Result<(), ResolverError> {
+    fn visit_variable(&mut self, variable: &Token) -> Result<(), ResolverError> {
+        // We read the scope map and check whether the variable is defined in the current scope.
+        if let Some(current_scope) = self.scopes.back() {
+            // If the variable is in this scope but it's initializer flag is false, it means it
+            // was declared but not defined yet. We consider this an error and we report it.
+            if current_scope.get(variable.lexeme()) == Some(&false) {
+                return Err(ResolverError::NotInitialized(format!("Can't access local variable {} in it own initializer.", variable)));
+            }
+        }
+        self.resolve_local(&Expr::Var(variable.clone()), variable)?;
         Ok(())
     }
 

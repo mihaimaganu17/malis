@@ -14,7 +14,7 @@ pub trait ExprVisitor<T> {
     fn visit_ternary(&mut self, ternary: &Ternary) -> T;
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_group(&mut self, group: &Group) -> T;
-    fn visit_variable(&self, variable: &Token) -> T;
+    fn visit_variable(&mut self, variable: &Token) -> T;
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> T;
     fn visit_logical(&mut self, logical: &Logical) -> T;
     fn visit_call(&mut self, call: &Call) -> T;
@@ -71,7 +71,7 @@ impl ExprVisitor<String> for AstPrinter {
         self.parenthesize("group", &[expr])
     }
 
-    fn visit_variable(&self, variable: &Token) -> String {
+    fn visit_variable(&mut self, variable: &Token) -> String {
         let lexeme = variable.lexeme();
         self.parenthesize("var", &[lexeme])
     }
