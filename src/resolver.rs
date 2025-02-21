@@ -111,23 +111,27 @@ impl Resolver {
 
 impl ExprVisitor<Result<(), ResolverError>> for Resolver {
     fn visit_unary(&mut self, unary: &Unary) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&unary.right)
     }
 
     fn visit_binary(&mut self, binary: &Binary) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&binary.left)?;
+        self.resolve_expr(&binary.right)
     }
 
     fn visit_ternary(&mut self, ternary: &Ternary) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&ternary.first)?;
+        self.resolve_expr(&ternary.second)?;
+        self.resolve_expr(&ternary.third)
     }
 
     fn visit_literal(&mut self, literal: &Literal) -> Result<(), ResolverError> {
+        // Literals could only resolve to themselves
         Ok(())
     }
 
     fn visit_group(&mut self, group: &Group) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&group.expr)
     }
 
     fn visit_variable(&mut self, variable: &Token) -> Result<(), ResolverError> {
@@ -151,10 +155,16 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_logical(&mut self, logical: &Logical) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&logical.left)?;
+        self.resolve_expr(&logical.right)
     }
 
     fn visit_call(&mut self, call: &Call) -> Result<(), ResolverError> {
+        self.resolve_expr(&call.callee)?;
+
+        for arg in call.arguments.iter() {
+            self.resolve_expr(arg)?;
+        }
         Ok(())
     }
 }
