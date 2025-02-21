@@ -108,6 +108,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), ResolverError> {
+        self.declare(stmt.identifier())?;
+        if let Some(expr) = &stmt.expr() {
+            self.resolve_expr(expr)?;
+        }
+        self.define(stmt.identifier())?;
         Ok(())
     }
 

@@ -36,3 +36,48 @@ are stubbed out and have no effect.
 
 There is no control flow. Loops are visited only once. Both branches are visited in if statements.
 Logic operators are not short-circuited.
+
+## Resolving variable declarations
+
+We split binding into two steps, declaring then defining, in order to handle funny edge cases like
+this:
+
+```
+var a = "outer";
+{
+  var a = a;
+}
+```
+
+What happens when the initializer for a local variable refers to a variable with the same name as
+the variable being declared? We have a few options:
+
+1. Run the initializer, then put the new variable in scope. Here, the new local a would be
+initialized with “outer”, the value of the global one. In other words, the previous declaration
+would desugar to:
+
+```
+var temp = a; // Run the initializer.
+var a;        // Declare the variable.
+a = temp;     // Initialize it.
+```
+
+2. Put the new variable in scope, then run the initializer. This means you could observe a variable
+before it’s initialized, so we would need to figure out what value it would have then. Probably nil.
+That means the new local a would be re-initialized to its own implicitly initialized value, nil.
+Now the desugaring would look like:
+
+```
+var a; // Define the variable.
+a = a; // Run the initializer.
+```
+
+3. Make it an error to reference a variable in its initializer. Have the interpreter fail either at
+compile time or runtime if an initializer mentions the variable being initialized.
+
+Do either of those first two options look like something a user actually wants? Shadowing is rare
+and often an error, so initializing a shadowing variable based on the value of the shadowed one
+seems unlikely to be deliberate.
+
+The second option is even less useful. The new variable will always have the value nil. There is
+never any point in mentioning it by name. You could use an explicit nil instead.
