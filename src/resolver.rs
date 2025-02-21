@@ -163,11 +163,11 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
 /// `Stmt` statement of the Malis lanaguage
 impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&stmt)
     }
 
     fn visit_print_stmt(&mut self, stmt: &Expr) -> Result<(), ResolverError> {
-        Ok(())
+        self.resolve_expr(&stmt)
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), ResolverError> {
@@ -191,14 +191,31 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<(), ResolverError> {
+        // In an if statement we resolve 1 expression for the condition
+        self.resolve_expr(&stmt.condition)?;
+        // And then we resolve the then branch
+        self.resolve_stmt(&stmt.then_branch)?;
+        // optional 3rd expression which is the else branch. Here we do not care about control flow
+        // and we resolve any branch
+        if let Some(else_branch) = &stmt.else_branch {
+            self.resolve_stmt(else_branch)?;
+        }
         Ok(())
     }
 
     fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> Result<(), ResolverError> {
-        Ok(())
+        // Resolve the condition of the while
+        self.resolve_expr(&stmt.condition)?;
+        // Resolve the body/statemet of the while
+        self.resolve_stmt(&stmt.stmt)
     }
 
     fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<(), ResolverError> {
+        // If return also comes with a value to be returned
+        if let Some(value) = stmt.expr() {
+            // We return it
+            self.resolve_expr(value)?;
+        }
         Ok(())
     }
 
