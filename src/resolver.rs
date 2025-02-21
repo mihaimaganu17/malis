@@ -23,14 +23,14 @@ use std::collections::{HashMap, LinkedList};
 // - Variable and assignment expressions need to have their variables resolved.
 pub struct Resolver {
     interpreter: Interpreter,
-    scope: LinkedList<HashMap<String, bool>>,
+    scopes: LinkedList<HashMap<String, bool>>,
 }
 
 impl Resolver {
     pub fn new(interpreter: Interpreter) -> Self {
         Self {
             interpreter,
-            scope: LinkedList::new(),
+            scopes: LinkedList::new(),
         }
     }
 
@@ -50,11 +50,32 @@ impl Resolver {
     }
 
     fn begin_scope(&mut self) {
-        self.scope.push_back(HashMap::new());
+        self.scopes.push_back(HashMap::new());
+    }
+
+    fn declare(&mut self, name: &Token) {
+        // We remove the top stack scope. This way the variable will be declared in the the
+        // innermost scope and will shadow any other existing variable with the same name
+        if let Some(mut current_scope) = self.scopes.pop_back() {
+            // And insert the new declaration in this scope. Because we did not resolve the variable
+            // yet, we insert it with a `false` flag in the scopes `HashMap`.
+            current_scope.insert(name.lexeme().to_string(), false);
+            // And then we put the scope back on top of the stack
+            self.scopes.push_back(current_scope);
+        }
+    }
+
+    fn define(&mut self, name: &Token) {
+        // At this point, initializer for the variable represented by name should have been run
+        // and we mark it as such in the scope
+        if let Some(mut current_scope) = self.scopes.pop_back() {
+            current_scope.insert(name.lexeme().to_string(), true);
+            self.scopes.push_back(current_scope);
+        }
     }
 
     fn end_scope(&mut self) {
-        self.scope.pop_back();
+        self.scopes.pop_back();
     }
 }
 
@@ -108,11 +129,12 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver {
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), ResolverError> {
-        self.declare(stmt.identifier())?;
+        // We spilt variable initialization into 2 steps: declaring and defining.
+        self.declare(stmt.identifier());
         if let Some(expr) = &stmt.expr() {
             self.resolve_expr(expr)?;
         }
-        self.define(stmt.identifier())?;
+        self.define(stmt.identifier());
         Ok(())
     }
 
