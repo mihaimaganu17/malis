@@ -5,7 +5,7 @@ pub mod visit;
 use crate::{
     ast::{Expr, Stmt},
     environment::Environment,
-    error::RuntimeError,
+    error::{RuntimeError, ResolverError},
 };
 pub use function::{MalisCallable, NativeFunction, UserFunction};
 pub use object::MalisObject;
@@ -66,6 +66,10 @@ impl Interpreter {
         for stmt in statements.iter() {
             self.execute(stmt)?;
         }
+        Ok(())
+    }
+
+    pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
         Ok(())
     }
 

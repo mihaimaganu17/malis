@@ -50,6 +50,13 @@ impl Resolver {
     }
 
     fn resolve_local(&mut self, expr: &Expr, name: &Token) -> Result<(), ResolverError> {
+        // Iterate through all the scopes from the innermost (top of the stack) to the outer most
+        // (bottom of the stack)
+        for (idx, scope) in self.scopes.iter().rev().enumerate() {
+            if scope.get(name.lexeme()).is_some() {
+                self.interpreter.resolve(expr, idx)?;
+            }
+        }
         Ok(())
     }
 
@@ -111,6 +118,7 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
                 return Err(ResolverError::NotInitialized(format!("Can't access local variable {} in it own initializer.", variable)));
             }
         }
+        // At this point, we know we should have a value for the variable and we resolve it
         self.resolve_local(&Expr::Var(variable.clone()), variable)?;
         Ok(())
     }
