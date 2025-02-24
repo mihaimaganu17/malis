@@ -21,20 +21,20 @@ use std::collections::{HashMap, LinkedList};
 // scope.
 // - A variable declaration adds a new variable to the current scope.
 // - Variable and assignment expressions need to have their variables resolved.
-pub struct Resolver {
-    interpreter: Interpreter,
+pub struct Resolver<'a> {
+    interpreter: &'a mut Interpreter,
     scopes: LinkedList<HashMap<String, bool>>,
 }
 
-impl Resolver {
-    pub fn new(interpreter: Interpreter) -> Self {
+impl<'a> Resolver<'a> {
+    pub fn new(interpreter: &'a mut Interpreter) -> Self {
         Self {
             interpreter,
             scopes: LinkedList::new(),
         }
     }
 
-    fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
+    pub fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
         for stmt in stmts {
             self.resolve_stmt(stmt)?;
         }
@@ -109,7 +109,7 @@ impl Resolver {
     }
 }
 
-impl ExprVisitor<Result<(), ResolverError>> for Resolver {
+impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     fn visit_unary(&mut self, unary: &Unary) -> Result<(), ResolverError> {
         self.resolve_expr(&unary.right)
     }
@@ -174,7 +174,7 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver {
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
 /// `Stmt` statement of the Malis lanaguage
-impl StmtVisitor<Result<(), ResolverError>> for Resolver {
+impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), ResolverError> {
         self.resolve_expr(stmt)
     }

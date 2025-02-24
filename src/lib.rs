@@ -18,6 +18,7 @@ use std::{
     path::Path,
 };
 use visit::AstPrinter;
+use resolver::Resolver;
 
 #[derive(Default)]
 pub struct Malis {
@@ -41,6 +42,8 @@ impl Malis {
             Ok(tokens) => {
                 let mut parser = Parser::new(tokens);
                 let stmts = parser.parse()?;
+                let mut resolver = Resolver::new(&mut self.interpreter);
+                resolver.resolve(&stmts)?;
                 let mut ast_printer = AstPrinter;
 
                 let ast = if !stmts.is_empty() || !is_repl {

@@ -10,6 +10,7 @@ pub enum MalisError {
     NoneTokenType,
     AstError(AstError),
     ParserError(ParserError),
+    ResolverError(ResolverError),
     RuntimeError(RuntimeError),
 }
 
@@ -50,6 +51,12 @@ impl From<ParserError> for MalisError {
 impl From<RuntimeError> for MalisError {
     fn from(err: RuntimeError) -> Self {
         Self::RuntimeError(err)
+    }
+}
+
+impl From<ResolverError> for MalisError {
+    fn from(err: ResolverError) -> Self {
+        Self::ResolverError(err)
     }
 }
 
