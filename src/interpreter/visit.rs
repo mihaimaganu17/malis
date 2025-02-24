@@ -185,12 +185,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // One type of expression is accessing a variable, previously declared, using it's identifier.
     // We do that by accessing the interpreters environment
     fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
-        let object = self.environment.borrow().get(var.lexeme())?.clone();
-        if let MalisObject::Nil = object {
-            Err(RuntimeError::VariableNotInitialized(format!("{var:?}")))
-        } else {
-            Ok(object)
-        }
+        Ok(self.lookup_variable(var)?)
     }
 
     // Assignment is treated as an expression and not a variable. As such, we need a previously

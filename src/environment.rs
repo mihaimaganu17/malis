@@ -53,6 +53,11 @@ impl Environment {
         }
     }
 
+    // Get the object identified by `name` which lives at the `distance` environment up
+    pub fn get_at(&self, distance: usize, name: &str) -> Result<MalisObject, EnvironmentError> {
+        Ok(MalisObject::Nil)
+    }
+
     pub fn insert(
         &mut self,
         name: &str,

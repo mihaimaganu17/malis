@@ -135,6 +135,13 @@ impl fmt::Display for ParserError {
 #[derive(Debug)]
 pub enum ResolverError {
     NotInitialized(String),
+    EnvironmentError(EnvironmentError),
+}
+
+impl From<EnvironmentError> for ResolverError {
+    fn from(value: EnvironmentError) -> Self {
+        Self::EnvironmentError(value)
+    }
 }
 
 #[derive(Debug)]
@@ -154,8 +161,15 @@ pub enum RuntimeError {
     // This is used in conjunction with the `return` statement from `Malis` to return early from
     // a function.
     Return(MalisObject),
+    ResolverError(ResolverError),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
+}
+
+impl From<ResolverError> for RuntimeError {
+    fn from(value: ResolverError) -> Self {
+        Self::ResolverError(value)
+    }
 }
 
 impl From<std::time::SystemTimeError> for RuntimeError {
