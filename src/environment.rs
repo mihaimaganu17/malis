@@ -57,7 +57,7 @@ impl Environment {
     pub fn get_at(&self, distance: usize, name: &str) -> Result<MalisObject, EnvironmentError> {
         while distance != 0 {
             if let Some(enclosing) = &self.enclosing {
-                return self.get_at(distance, name);
+                return enclosing.borrow().get_at(distance-1, name);
             } else {
                 return Err(EnvironmentError::InvalidDistance(distance));
             }
@@ -80,6 +80,22 @@ impl Environment {
         }
 
         Err(EnvironmentError::UndefinedVariable(name.to_string()))
+    }
+
+    pub fn insert_at(
+        &mut self,
+        distance: usize,
+        name: &str,
+        value: MalisObject,
+    ) -> Result<MalisObject, EnvironmentError> {
+        while distance != 0 {
+            if let Some(enclosing) = &self.enclosing {
+                return enclosing.borrow_mut().insert_at(distance-1, name, value);
+            } else {
+                return Err(EnvironmentError::InvalidDistance(distance));
+            }
+        }
+        self.insert(name, value)
     }
 }
 

@@ -192,8 +192,16 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // defined identifier which mutates state to the new value
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<MalisObject, RuntimeError> {
         let malis_object = expr.walk(self)?;
-        let lexeme = ident.lexeme();
-        Ok(self.environment.borrow_mut().insert(lexeme, malis_object)?)
+
+        // If there is a distance, it means the variable was in an specific environment
+        let object = if let Some(distance) = self.locals.get(&crate::AstPrinter.print_expr(expr)) {
+            // We traverse `distance` environments in order to get the value
+            self.environment.borrow_mut().insert_at(*distance, ident.lexeme(), malis_object)?
+        } else {
+            self._globals.borrow_mut().insert(ident.lexeme(), malis_object)?
+        };
+
+        Ok(object)
     }
 
     fn visit_logical(&mut self, logical: &Logical) -> Result<MalisObject, RuntimeError> {

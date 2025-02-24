@@ -56,7 +56,7 @@ impl Resolver {
             // If we find the variable in one of the scopes
             if scope.get(name.lexeme()).is_some() {
                 // We resolve it, passing in the number of scopes between the current innermost
-                // scope and the scope where the varaible was found.
+                // scope and the scope where the variable was found.
                 self.interpreter.resolve(expr, idx)?;
             }
         }
