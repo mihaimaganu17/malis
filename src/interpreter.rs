@@ -10,6 +10,7 @@ use crate::{
 pub use function::{MalisCallable, NativeFunction, UserFunction};
 pub use object::MalisObject;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct Interpreter {
@@ -17,6 +18,10 @@ pub struct Interpreter {
     _globals: Rc<RefCell<Environment>>,
     // This is the current local environment that the interepreter executes in
     environment: Rc<RefCell<Environment>>,
+    // Stores resolution information about variables and how many scopes we have to traverse
+    // between the current scope (the one in which the variable is accessed) and the resolution
+    // scope (the one that contains the value for the variable)
+    locals: HashMap<String, usize>,
 }
 
 impl Default for Interpreter {
@@ -59,6 +64,7 @@ impl Interpreter {
         Ok(Self {
             _globals: globals,
             environment,
+            locals: HashMap::new(),
         })
     }
 
@@ -69,7 +75,8 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn resolve(&mut self, _expr: &Expr, _scope_level: usize) -> Result<(), ResolverError> {
+    pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
+        self.locals.insert(crate::AstPrinter.print_expr(expr), scope_level);
         Ok(())
     }
 
