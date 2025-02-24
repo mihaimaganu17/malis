@@ -55,7 +55,14 @@ impl Environment {
 
     // Get the object identified by `name` which lives at the `distance` environment up
     pub fn get_at(&self, distance: usize, name: &str) -> Result<MalisObject, EnvironmentError> {
-        Ok(MalisObject::Nil)
+        while distance != 0 {
+            if let Some(enclosing) = &self.enclosing {
+                return self.get_at(distance, name);
+            } else {
+                return Err(EnvironmentError::InvalidDistance(distance));
+            }
+        }
+        self.get(name)
     }
 
     pub fn insert(
@@ -80,4 +87,5 @@ impl Environment {
 pub enum EnvironmentError {
     UndefinedVariable(String),
     OutOfScope(String),
+    InvalidDistance(usize),
 }
