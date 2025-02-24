@@ -54,7 +54,7 @@ impl<'a> Resolver<'a> {
         // (bottom of the stack)
         for (idx, scope) in self.scopes.iter().rev().enumerate() {
             // If we find the variable in one of the scopes
-            if scope.get(name.lexeme()).is_some() {
+            if scope.contains_key(name.lexeme()) {
                 // We resolve it, passing in the number of scopes between the current innermost
                 // scope and the scope where the variable was found.
                 self.interpreter.resolve(expr, idx)?;
@@ -90,6 +90,11 @@ impl<'a> Resolver<'a> {
         // declared in the the innermost scope and will shadow any other existing variable with the
         // same name
         if let Some(current_scope) = self.scopes.back_mut() {
+            // If the variable was already declared, the user should've just assigned to it.
+            if current_scope.contains_key(name.lexeme()) {
+                // At this point we have a double initialisation
+                panic!("Already a variable with this name in this scoep {:?}", name);
+            }
             // And insert the new declaration in this scope. Because we did not resolve the variable
             // yet, we insert it with a `false` flag in the scopes `HashMap`.
             current_scope.insert(name.lexeme().to_string(), false);

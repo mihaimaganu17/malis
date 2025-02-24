@@ -142,6 +142,7 @@ impl fmt::Display for ParserError {
 #[derive(Debug)]
 pub enum ResolverError {
     NotInitialized(String),
+    DoubleInitialise(String),
     EnvironmentError(EnvironmentError),
 }
 
