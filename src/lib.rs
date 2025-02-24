@@ -11,6 +11,7 @@ mod visit;
 pub use error::MalisError;
 pub use interpreter::Interpreter;
 use parser::Parser;
+use resolver::Resolver;
 use scanner::Scanner;
 use std::{
     fs,
@@ -18,7 +19,6 @@ use std::{
     path::Path,
 };
 use visit::AstPrinter;
-use resolver::Resolver;
 
 #[derive(Default)]
 pub struct Malis {

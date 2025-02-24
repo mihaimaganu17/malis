@@ -55,14 +55,15 @@ impl Environment {
 
     // Get the object identified by `name` which lives at the `distance` environment up
     pub fn get_at(&self, distance: usize, name: &str) -> Result<MalisObject, EnvironmentError> {
-        while distance > 1 {
+        if distance > 1 {
             if let Some(enclosing) = &self.enclosing {
-                return enclosing.borrow().get_at(distance-1, name);
+                return enclosing.borrow().get_at(distance - 1, name);
             } else {
                 return Err(EnvironmentError::InvalidDistance(distance));
             }
         }
-        self.get(name)
+        self
+            .get(name)
     }
 
     pub fn insert(
@@ -88,9 +89,9 @@ impl Environment {
         name: &str,
         value: MalisObject,
     ) -> Result<MalisObject, EnvironmentError> {
-        while distance != 0 {
+        if distance > 0 {
             if let Some(enclosing) = &self.enclosing {
-                return enclosing.borrow_mut().insert_at(distance-1, name, value);
+                return enclosing.borrow_mut().insert_at(distance - 1, name, value);
             } else {
                 return Err(EnvironmentError::InvalidDistance(distance));
             }

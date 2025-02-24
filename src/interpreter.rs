@@ -4,9 +4,9 @@ pub mod visit;
 
 use crate::{
     ast::{Expr, Stmt},
-    token::Token,
     environment::Environment,
     error::{ResolverError, RuntimeError},
+    token::Token,
 };
 pub use function::{MalisCallable, NativeFunction, UserFunction};
 pub use object::MalisObject;
@@ -77,15 +77,22 @@ impl Interpreter {
     }
 
     pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
-        self.locals.insert(crate::AstPrinter.print_expr(expr), scope_level);
+        self.locals
+            .insert(crate::AstPrinter.print_expr(expr), scope_level);
         Ok(())
     }
 
     fn lookup_variable(&mut self, var: &Token) -> Result<MalisObject, ResolverError> {
         // If there is a distance, it means the variable was in an specific environment
-        let object = if let Some(distance) = self.locals.get(&crate::AstPrinter.print_expr(&Expr::Var(var.clone()))) {
+        let object = if let Some(distance) = self
+            .locals
+            .get(&crate::AstPrinter.print_expr(&Expr::Var(var.clone())))
+        {
             // We traverse `distance` environments in order to get the value
-            self.environment.borrow().get_at(*distance, var.lexeme())?.clone()
+            self.environment
+                .borrow()
+                .get_at(*distance, var.lexeme())?
+                .clone()
         } else {
             self._globals.borrow().get(var.lexeme())?.clone()
         };

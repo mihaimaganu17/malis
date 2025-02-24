@@ -196,9 +196,13 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // If there is a distance, it means the variable was in an specific environment
         let object = if let Some(distance) = self.locals.get(&crate::AstPrinter.print_expr(expr)) {
             // We traverse `distance` environments in order to get the value
-            self.environment.borrow_mut().insert_at(*distance, ident.lexeme(), malis_object)?
+            self.environment
+                .borrow_mut()
+                .insert_at(*distance, ident.lexeme(), malis_object)?
         } else {
-            self._globals.borrow_mut().insert(ident.lexeme(), malis_object)?
+            self._globals
+                .borrow_mut()
+                .insert(ident.lexeme(), malis_object)?
         };
 
         Ok(object)
