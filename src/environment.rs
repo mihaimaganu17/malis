@@ -55,7 +55,7 @@ impl Environment {
 
     // Get the object identified by `name` which lives at the `distance` environment up
     pub fn get_at(&self, distance: usize, name: &str) -> Result<MalisObject, EnvironmentError> {
-        while distance != 0 {
+        while distance > 1 {
             if let Some(enclosing) = &self.enclosing {
                 return enclosing.borrow().get_at(distance-1, name);
             } else {
