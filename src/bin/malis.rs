@@ -1,4 +1,4 @@
-use malis::{Malis, MalisError};
+use malis::Malis;
 
 fn main() {
     let mut args = std::env::args();
@@ -9,7 +9,7 @@ fn main() {
         // If we do have a second argument, we execute it
         Some(arg) => {
             let execution = Malis::execute(&arg);
-            if let Err(MalisError::RuntimeError(e)) = execution {
+            if let Err(e) = execution {
                 println!("{}", e);
                 std::process::exit(70);
             }
