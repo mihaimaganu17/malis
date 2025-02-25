@@ -33,6 +33,7 @@ pub struct Resolver<'a> {
     current_function: ResolverFunctionType,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResolverFunctionType {
     Function,
     None,
@@ -76,7 +77,15 @@ impl<'a> Resolver<'a> {
         Ok(())
     }
 
-    fn resolve_function(&mut self, function: &FunctionDeclaration) -> Result<(), ResolverError> {
+    fn resolve_function(
+        &mut self,
+        function: &FunctionDeclaration,
+        func_type: ResolverFunctionType,
+    ) -> Result<(), ResolverError> {
+        // We first save the state of the current function
+        let func_state = self.current_function.clone();
+        // We then replace the state with the type sent in the function call
+        self.current_function = func_type;
         // Each function declaration creates a new scope
         self.begin_scope();
 
@@ -90,6 +99,9 @@ impl<'a> Resolver<'a> {
         self.resolve(&function.body)?;
 
         self.end_scope();
+        // We revert the current function back to the state it was in before calling this
+        // `resolve_function`
+        self.current_function = func_state;
         // Each function exit, end a scope
         Ok(())
     }
@@ -242,6 +254,10 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<(), ResolverError> {
+        // We first check if we are in a function's scope
+        if self.current_function == ResolverFunctionType::None {
+            return Err(ResolverError::ReturnOutsideFunction(format!("Can't return from top-level code: {:?}", stmt.keyword())));
+        }
         // If return also comes with a value to be returned
         if let Some(value) = stmt.expr() {
             // We return it
@@ -259,6 +275,6 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // We define the function eagerly, just after declaration. This enables a function to call
         // itself and do recursion.
         self.define(&function.name);
-        self.resolve_function(function)
+        self.resolve_function(function, ResolverFunctionType::Function)
     }
 }
