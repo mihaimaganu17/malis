@@ -1,0 +1,423 @@
+For loop body "(block scope (var decl (var i) Number(0.0)) (while (< (var i) Number(3.0)) (block scope (block scope (print_stmt (call (var fib) (args (var i))))) (expr_stmt (assign i (+ (var i) Number(1.0)))))))"
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "n",
+    line: OnceCell(
+        2,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Token { t_type: Ident, lexeme: "n", line: OnceCell(2) }: 0. {
+    "n": true,
+} distance 0
+{
+    "(var n)": 0,
+}
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "n",
+    line: OnceCell(
+        2,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Token { t_type: Ident, lexeme: "n", line: OnceCell(2) }: 0. {
+    "n": true,
+} distance 0
+{
+    "(var n)": 0,
+}
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "fib",
+    line: OnceCell(
+        3,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "n",
+    line: OnceCell(
+        3,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Token { t_type: Ident, lexeme: "n", line: OnceCell(3) }: 0. {
+    "n": true,
+} distance 0
+{
+    "(var n)": 0,
+}
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "fib",
+    line: OnceCell(
+        3,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "n",
+    line: OnceCell(
+        3,
+    ),
+}
+Scope [
+    {
+        "n": true,
+    },
+]
+Token { t_type: Ident, lexeme: "n", line: OnceCell(3) }: 0. {
+    "n": true,
+} distance 0
+{
+    "(var n)": 0,
+}
+Block resolver (var decl (var i) Number(0.0))
+(while (< (var i) Number(3.0)) (block scope (block scope (print_stmt (call (var fib) (args (var i))))) (expr_stmt (assign i (+ (var i) Number(1.0))))))
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "i",
+    line: OnceCell(
+        6,
+    ),
+}
+Scope [
+    {
+        "i": true,
+    },
+]
+Token { t_type: Ident, lexeme: "i", line: OnceCell(6) }: 0. {
+    "i": true,
+} distance 0
+{
+    "(var n)": 0,
+    "(var i)": 0,
+}
+Block resolver (block scope (print_stmt (call (var fib) (args (var i)))))
+(expr_stmt (assign i (+ (var i) Number(1.0))))
+Block resolver (print_stmt (call (var fib) (args (var i))))
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "fib",
+    line: OnceCell(
+        7,
+    ),
+}
+Scope [
+    {
+        "i": true,
+    },
+    {},
+    {},
+]
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "i",
+    line: OnceCell(
+        7,
+    ),
+}
+Scope [
+    {
+        "i": true,
+    },
+    {},
+    {},
+]
+Token { t_type: Ident, lexeme: "i", line: OnceCell(7) }: 0. {
+    "i": true,
+} distance 2
+{
+    "(var n)": 0,
+    "(var i)": 2,
+}
+Variable to visit Token {
+    t_type: Ident,
+    lexeme: "i",
+    line: OnceCell(
+        6,
+    ),
+}
+Scope [
+    {
+        "i": true,
+    },
+    {},
+]
+Token { t_type: Ident, lexeme: "i", line: OnceCell(6) }: 0. {
+    "i": true,
+} distance 1
+{
+    "(var n)": 0,
+    "(var i)": 1,
+}
+Token { t_type: Ident, lexeme: "i", line: OnceCell(6) }: 0. {
+    "i": true,
+} distance 1
+{
+    "(var n)": 0,
+    "(+ (var i) Number(1.0))": 1,
+    "(var i)": 1,
+}
+Global block env RefCell {
+    value: Environment {
+        values: {
+            "clock": NativeFunction(
+                NativeFunction {
+                    name: "clock <native fn>",
+                    arity: 0,
+                    call_fn: 0x0000000100db50cc,
+                },
+            ),
+        },
+        enclosing: None,
+    },
+}
+Excution block env RefCell {
+    value: Environment {
+        values: {},
+        enclosing: Some(
+            RefCell {
+                value: Environment {
+                    values: {
+                        "fib": UserFunction(
+                            <fn Ident "fib"> (Ident "n",)
+                            ,
+                        ),
+                    },
+                    enclosing: Some(
+                        RefCell {
+                            value: Environment {
+                                values: {
+                                    "clock": NativeFunction(
+                                        NativeFunction {
+                                            name: "clock <native fn>",
+                                            arity: 0,
+                                            call_fn: 0x0000000100db50cc,
+                                        },
+                                    ),
+                                },
+                                enclosing: None,
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+    },
+}
+VAr env RefCell {
+    value: Environment {
+        values: {},
+        enclosing: Some(
+            RefCell {
+                value: Environment {
+                    values: {
+                        "fib": UserFunction(
+                            <fn Ident "fib"> (Ident "n",)
+                            ,
+                        ),
+                    },
+                    enclosing: Some(
+                        RefCell {
+                            value: Environment {
+                                values: {
+                                    "clock": NativeFunction(
+                                        NativeFunction {
+                                            name: "clock <native fn>",
+                                            arity: 0,
+                                            call_fn: 0x0000000100db50cc,
+                                        },
+                                    ),
+                                },
+                                enclosing: None,
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+    },
+}
+[Get] Distance 1, name "i", self Environment {
+    values: {
+        "i": Number(
+            0.0,
+        ),
+    },
+    enclosing: Some(
+        RefCell {
+            value: Environment {
+                values: {
+                    "fib": UserFunction(
+                        <fn Ident "fib"> (Ident "n",)
+                        ,
+                    ),
+                },
+                enclosing: Some(
+                    RefCell {
+                        value: Environment {
+                            values: {
+                                "clock": NativeFunction(
+                                    NativeFunction {
+                                        name: "clock <native fn>",
+                                        arity: 0,
+                                        call_fn: 0x0000000100db50cc,
+                                    },
+                                ),
+                            },
+                            enclosing: None,
+                        },
+                    },
+                ),
+            },
+        },
+    ),
+}
+Global block env RefCell {
+    value: Environment {
+        values: {
+            "clock": NativeFunction(
+                NativeFunction {
+                    name: "clock <native fn>",
+                    arity: 0,
+                    call_fn: 0x0000000100db50cc,
+                },
+            ),
+        },
+        enclosing: None,
+    },
+}
+Excution block env RefCell {
+    value: Environment {
+        values: {},
+        enclosing: Some(
+            RefCell {
+                value: Environment {
+                    values: {
+                        "i": Number(
+                            0.0,
+                        ),
+                    },
+                    enclosing: Some(
+                        RefCell {
+                            value: Environment {
+                                values: {
+                                    "fib": UserFunction(
+                                        <fn Ident "fib"> (Ident "n",)
+                                        ,
+                                    ),
+                                },
+                                enclosing: Some(
+                                    RefCell {
+                                        value: Environment {
+                                            values: {
+                                                "clock": NativeFunction(
+                                                    NativeFunction {
+                                                        name: "clock <native fn>",
+                                                        arity: 0,
+                                                        call_fn: 0x0000000100db50cc,
+                                                    },
+                                                ),
+                                            },
+                                            enclosing: None,
+                                        },
+                                    },
+                                ),
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+    },
+}
+Global block env RefCell {
+    value: Environment {
+        values: {
+            "clock": NativeFunction(
+                NativeFunction {
+                    name: "clock <native fn>",
+                    arity: 0,
+                    call_fn: 0x0000000100db50cc,
+                },
+            ),
+        },
+        enclosing: None,
+    },
+}
+Excution block env RefCell {
+    value: Environment {
+        values: {},
+        enclosing: Some(
+            RefCell {
+                value: Environment {
+                    values: {},
+                    enclosing: Some(
+                        RefCell {
+                            value: Environment {
+                                values: {
+                                    "i": Number(
+                                        0.0,
+                                    ),
+                                },
+                                enclosing: Some(
+                                    RefCell {
+                                        value: Environment {
+                                            values: {
+                                                "fib": UserFunction(
+                                                    <fn Ident "fib"> (Ident "n",)
+                                                    ,
+                                                ),
+                                            },
+                                            enclosing: Some(
+                                                RefCell {
+                                                    value: Environment {
+                                                        values: {
+                                                            "clock": NativeFunction(
+                                                                NativeFunction {
+                                                                    name: "clock <native fn>",
+                                                                    arity: 0,
+                                                                    call_fn: 0x0000000100db50cc,
+                                                                },
+                                                            ),
+                                                        },
+                                                        enclosing: None,
+                                                    },
+                                                },
+                                            ),
+                                        },
+                                    },
+                                ),
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+    },
+}
+ResolverError(EnvironmentError(UndefinedVariable("fib")))

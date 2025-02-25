@@ -45,7 +45,7 @@ impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
         let globals = Rc::new(RefCell::new(Environment::new(None)));
-        let environment = globals.clone();
+        let environment = Rc::new(RefCell::new(Environment::new(Some(globals.clone()))));
 
         // Create a new native function
         let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
@@ -79,6 +79,8 @@ impl Interpreter {
     pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
         self.locals
             .insert(crate::AstPrinter.print_expr(expr), scope_level);
+
+        println!("{:#?}",self.locals);
         Ok(())
     }
 
@@ -128,6 +130,9 @@ impl Interpreter {
         let previous_env = self
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
+
+        println!("Global block env {:#?}", self._globals);
+        println!("Excution block env {:#?}", self.environment);
 
         // Start executing statements
         for stmt in stmts.iter() {

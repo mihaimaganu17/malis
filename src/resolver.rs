@@ -69,6 +69,7 @@ impl<'a> Resolver<'a> {
         for (idx, scope) in self.scopes.iter().enumerate().rev() {
             // If we find the variable in one of the scopes
             if scope.contains_key(name.lexeme()) {
+                println!("{name:?}: {idx}. {scope:#?} distance {}", self.scopes.len() - 1 - idx);
                 // We resolve it, passing in the number of scopes between the current innermost
                 // scope and the scope where the variable was found.
                 return self.interpreter.resolve(expr, self.scopes.len() - 1 - idx);
@@ -165,6 +166,8 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_variable(&mut self, variable: &Token) -> Result<(), ResolverError> {
+        println!("Variable to visit {:#?}", variable);
+        println!("Scope {:#?}", self.scopes);
         // We read the scope map and check whether the variable is defined in the current scope.
         if let Some(current_scope) = self.scopes.back() {
             // If the variable is in this scope but it's initializer flag is false, it means it
@@ -226,6 +229,7 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     fn visit_block_stmt(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
         // A block begins a new scope
         self.begin_scope();
+        println!("Block resolver {}", crate::AstPrinter.print_stmt(stmts));
         // It resolves the statement inside it
         self.resolve(stmts)?;
         // And finished the scope afterwards

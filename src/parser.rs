@@ -347,6 +347,8 @@ impl Parser {
             body = Stmt::Block(vec![initialiser, body]);
         }
 
+        println!("For loop body {:#?}", crate::AstPrinter.print_stmt(&[body.clone()]));
+
         Ok(body)
     }
 
