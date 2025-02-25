@@ -22,8 +22,20 @@ use std::collections::{HashMap, LinkedList};
 // - A variable declaration adds a new variable to the current scope.
 // - Variable and assignment expressions need to have their variables resolved.
 pub struct Resolver<'a> {
+    // Reference to the `Interpreter` used to store variable names and the scope level distance at
+    // which their resolution is found.
     interpreter: &'a mut Interpreter,
+    // Keeps track of all scopes in the form of a stack. Top most element is the innermost scope
     scopes: LinkedList<HashMap<String, bool>>,
+    // Keeps track if for this current point in time, the resolver is whithin a function scope or
+    // not. This is used in order to prevent invalid `return` statements, as the ones which are not
+    // inside a function.
+    current_function: ResolverFunctionType,
+}
+
+pub enum ResolverFunctionType {
+    Function,
+    None,
 }
 
 impl<'a> Resolver<'a> {
@@ -31,6 +43,7 @@ impl<'a> Resolver<'a> {
         Self {
             interpreter,
             scopes: LinkedList::new(),
+            current_function: ResolverFunctionType::None,
         }
     }
 
