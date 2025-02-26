@@ -22,7 +22,6 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), RuntimeError> {
-        println!("VAr env {:#?}", self.environment);
         let value = if let Some(expr) = stmt.expr() {
             self.evaluate(expr)?
         } else {

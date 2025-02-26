@@ -129,9 +129,6 @@ impl Interpreter {
             .environment
             .replace(Environment::new(Some(parent_env_rc.clone())));
 
-        println!("Global block env {:#?}", self._globals);
-        println!("Excution block env {:#?}", self.environment);
-
         // Start executing statements
         for stmt in stmts.iter() {
             // Execute statement

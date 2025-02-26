@@ -117,8 +117,6 @@ impl MalisCallable for UserFunction {
             environment.define(param.lexeme().to_string(), arg)?;
         }
 
-        println!("Environment {:#?}", environment);
-
         // Afterwards, we wrap it in a `Rc` as it is required in order to share it. We also wrap it
         // in a `RefCell` such that we obtain mutable state
         let environment = Rc::new(RefCell::new(environment));
