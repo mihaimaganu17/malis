@@ -25,8 +25,11 @@ pub struct Resolver<'a> {
     // Reference to the `Interpreter` used to store variable names and the scope level distance at
     // which their resolution is found.
     interpreter: &'a mut Interpreter,
-    // Keeps track of all scopes in the form of a stack. Top most element is the innermost scope
-    scopes: LinkedList<HashMap<String, bool>>,
+    // Keeps track of all scopes in the form of a stack. Top most element is the innermost scope.
+    // We use the key `String` as the name of the variable. The value is split in 2:
+    // 1. First one flags that the variable was declared but not defined
+    // 2. Second one defines that the variable was declared and defined but it is never used
+    scopes: LinkedList<HashMap<String, (bool, bool)>>,
     // Keeps track if for this current point in time, the resolver is whithin a function scope or
     // not. This is used in order to prevent invalid `return` statements, as the ones which are not
     // inside a function.
@@ -49,9 +52,13 @@ impl<'a> Resolver<'a> {
     }
 
     pub fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), ResolverError> {
+        // Begin a new scope, the global scope
+        self.begin_scope();
         for stmt in stmts {
             self.resolve_stmt(stmt)?;
         }
+        // End the scope before exiting
+        self.end_scope();
         Ok(())
     }
 
@@ -124,7 +131,7 @@ impl<'a> Resolver<'a> {
             }
             // And insert the new declaration in this scope. Because we did not resolve the variable
             // yet, we insert it with a `false` flag in the scopes `HashMap`.
-            current_scope.insert(name.lexeme().to_string(), false);
+            current_scope.insert(name.lexeme().to_string(), (false, false));
         }
     }
 
@@ -132,12 +139,20 @@ impl<'a> Resolver<'a> {
         // At this point, initializer for the variable represented by name should have been run
         // and we mark it as such in the scope
         if let Some(current_scope) = self.scopes.back_mut() {
-            current_scope.insert(name.lexeme().to_string(), true);
+            current_scope.insert(name.lexeme().to_string(), (true, false));
         }
     }
 
     fn end_scope(&mut self) {
-        self.scopes.pop_back();
+        // Pop the inner most scope
+        if let Some(scope) = self.scopes.pop_back() {
+            // Verify all the names defined in the scope
+            for (key, (defined, accessed)) in scope.iter() {
+                if defined == &true && accessed == &false {
+                    panic!("Variable defined in this scope is not used {:?}", key);
+                }
+            }
+        }
     }
 }
 
@@ -167,15 +182,19 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_variable(&mut self, variable: &Token) -> Result<(), ResolverError> {
+        println!("{:?}", variable);
         // We read the scope map and check whether the variable is defined in the current scope.
-        if let Some(current_scope) = self.scopes.back() {
+        if let Some(current_scope) = self.scopes.back_mut() {
             // If the variable is in this scope but it's initializer flag is false, it means it
             // was declared but not defined yet. We consider this an error and we report it.
-            if current_scope.get(variable.lexeme()) == Some(&false) {
+            if current_scope.get(variable.lexeme()) == Some(&(false, false)) {
                 return Err(ResolverError::NotInitialized(format!(
                     "Can't access local variable {} in it own initializer.",
                     variable
                 )));
+            } else {
+                // We mark the variable as accessed
+                current_scope.insert(variable.lexeme().to_string(), (true, true));
             }
         }
         // At this point, we know we should have a value for the variable and we resolve it

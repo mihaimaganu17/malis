@@ -144,6 +144,7 @@ pub enum ResolverError {
     NotInitialized(String),
     DoubleInitialise(String),
     ReturnOutsideFunction(String),
+    UnusedName(String),
     EnvironmentError(EnvironmentError),
 }
 
