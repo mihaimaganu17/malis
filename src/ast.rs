@@ -146,7 +146,7 @@ pub enum FunctionKind {
     Free,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),
@@ -181,7 +181,7 @@ impl Expr {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Logical {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -198,7 +198,7 @@ impl Logical {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Call {
     // Function to be called
     pub callee: Box<Expr>,
@@ -218,7 +218,7 @@ impl Call {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Unary {
     pub operator: Token,
     pub right: Box<Expr>,
@@ -233,7 +233,7 @@ impl Unary {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Binary {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -250,7 +250,7 @@ impl Binary {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Ternary {
     pub first: Box<Expr>,
     pub first_operator: Token,
@@ -277,7 +277,7 @@ impl Ternary {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Literal {
     pub l_type: LiteralType,
 }
@@ -309,9 +309,9 @@ impl From<LiteralType> for Literal {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub enum LiteralType {
-    Number(f32),
+    Number([u8; 4]),
     LitString(String),
     True,
     False,
@@ -319,7 +319,7 @@ pub enum LiteralType {
 }
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Group {
     pub expr: Box<Expr>,
 }

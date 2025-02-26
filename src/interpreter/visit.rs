@@ -169,7 +169,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // runtime's world.
     fn visit_literal(&mut self, literal: &Literal) -> Result<MalisObject, RuntimeError> {
         let malis_object = match &literal.l_type {
-            LiteralType::Number(n) => MalisObject::Number(*n),
+            LiteralType::Number(n) => MalisObject::Number(f32::from_le_bytes(*n)),
             LiteralType::LitString(s) => MalisObject::StringValue(s.to_string()),
             LiteralType::True => MalisObject::Boolean(true),
             LiteralType::False => MalisObject::Boolean(false),
@@ -195,7 +195,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let malis_object = expr.walk(self)?;
 
         // If there is a distance, it means the variable was in an specific environment
-        let object = if let Some(distance) = self.locals.get(&crate::AstPrinter.print_expr(expr)) {
+        let object = if let Some(distance) = self.locals.get(&expr) {
             // We traverse `distance` environments in order to get the value
             self.environment
                 .borrow_mut()

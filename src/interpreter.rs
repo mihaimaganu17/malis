@@ -22,7 +22,7 @@ pub struct Interpreter {
     // Stores resolution information about variables and how many scopes we have to traverse
     // between the current scope (the one in which the variable is accessed) and the resolution
     // scope (the one that contains the value for the variable)
-    locals: HashMap<String, usize>,
+    locals: HashMap<Expr, usize>,
 }
 
 impl Default for Interpreter {
@@ -77,10 +77,8 @@ impl Interpreter {
     }
 
     pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
-        self.locals
-            .insert(crate::AstPrinter.print_expr(expr), scope_level);
+        self.locals.insert(expr.clone(), scope_level);
 
-        println!("{:#?}",self.locals);
         Ok(())
     }
 
@@ -88,7 +86,7 @@ impl Interpreter {
         // If there is a distance, it means the variable was in an specific environment
         let object = if let Some(distance) = self
             .locals
-            .get(&crate::AstPrinter.print_expr(&Expr::Var(var.clone())))
+            .get(&Expr::Var(var.clone()))
         {
             // We traverse `distance` environments in order to get the value
             self.environment

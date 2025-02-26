@@ -2,7 +2,7 @@
 use core::cell::OnceCell;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Token {
     // Token type, `type` is reserved
     t_type: TokenType,
@@ -49,7 +49,7 @@ impl Token {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum TokenType {
     SingleChar(SingleChar),
     Comparison(Comparison),
@@ -60,7 +60,7 @@ pub enum TokenType {
     Eof,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum SingleChar {
     LeftParen,
     RightParen,
@@ -79,7 +79,7 @@ pub enum SingleChar {
     Equal,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Comparison {
     BangEqual,
     EqualEqual,
@@ -89,14 +89,14 @@ pub enum Comparison {
     LessEqual,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Literal {
     // Because `String` is reserved in Rust
     LitString(String),
-    Number(f32),
+    Number([u8; 4]),
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Keyword {
     And,
     Or,

@@ -345,7 +345,7 @@ impl<'a> Scanner<'a> {
             .data
             .get(start..self.offset)
             .ok_or(ScannerError::FailedToIndexSlice)?;
-        let value = value.parse()?;
+        let value = value.parse::<f32>()?.to_le_bytes();
         self.create_token(TokenType::Literal(Literal::Number(value)), start)
     }
 
