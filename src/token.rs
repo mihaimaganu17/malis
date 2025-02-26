@@ -1,5 +1,4 @@
 //! Defines and manipulates source code tokens
-use core::cell::OnceCell;
 use std::fmt;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

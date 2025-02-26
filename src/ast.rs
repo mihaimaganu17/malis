@@ -309,7 +309,7 @@ impl From<LiteralType> for Literal {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum LiteralType {
     Number([u8; 4]),
     LitString(String),

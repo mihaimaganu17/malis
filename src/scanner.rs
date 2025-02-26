@@ -377,7 +377,7 @@ impl<'a> Scanner<'a> {
 
         // Check if the parsed token is a keyword for `Malis`
         let token_type = if let Some(keyword) = self.keywords.get(value) {
-            TokenType::Keyword(*keyword)
+            TokenType::Keyword(keyword.clone())
         } else {
             TokenType::Ident
         };
