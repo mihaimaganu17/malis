@@ -129,7 +129,7 @@ impl fmt::Display for ParserError {
                 write!(
                     f,
                     "Error on line {} for {}: {:#?}",
-                    token.line.get().unwrap(),
+                    token.line(),
                     token.lexeme(),
                     message
                 )

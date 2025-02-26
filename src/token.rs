@@ -9,7 +9,7 @@ pub struct Token {
     // Substring from the source code from which the token was parsed.
     lexeme: String,
     // Line on which the token occurs
-    pub line: OnceCell<usize>,
+    line: usize,
 }
 
 impl fmt::Display for Token {
@@ -20,14 +20,10 @@ impl fmt::Display for Token {
 
 impl Token {
     pub fn new(t_type: TokenType, lexeme: String, line: usize) -> Self {
-        // Technically this is an initializer so there is no possible way of the unwrap to fail.
-        // (There are ways, but you have to try really hard)
-        let line_cell = OnceCell::new();
-        line_cell.set(line).unwrap();
         Self {
             t_type,
             lexeme,
-            line: line_cell,
+            line,
         }
     }
 
@@ -39,12 +35,16 @@ impl Token {
         self.lexeme.as_str()
     }
 
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
     pub fn create(t_type: TokenType, new_lexeme: &str) -> Self {
         let lexeme = new_lexeme.to_string();
         Self {
             t_type,
             lexeme,
-            line: OnceCell::new(),
+            line: 0,
         }
     }
 }
