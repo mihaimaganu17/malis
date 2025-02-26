@@ -71,7 +71,9 @@ impl<'a> Resolver<'a> {
             if scope.contains_key(name.lexeme()) {
                 // We resolve it, passing in the number of scopes between the current innermost
                 // scope and the scope where the variable was found.
-                return self.interpreter.resolve(expr_addr, self.scopes.len() - 1 - idx);
+                return self
+                    .interpreter
+                    .resolve(expr_addr, self.scopes.len() - 1 - idx);
             }
         }
         Ok(())
@@ -256,7 +258,10 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<(), ResolverError> {
         // We first check if we are in a function's scope
         if self.current_function == ResolverFunctionType::None {
-            return Err(ResolverError::ReturnOutsideFunction(format!("Can't return from top-level code: {:?}", stmt.keyword())));
+            return Err(ResolverError::ReturnOutsideFunction(format!(
+                "Can't return from top-level code: {:?}",
+                stmt.keyword()
+            )));
         }
         // If return also comes with a value to be returned
         if let Some(value) = stmt.expr() {

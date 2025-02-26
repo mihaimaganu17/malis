@@ -84,10 +84,7 @@ impl Interpreter {
 
     fn lookup_variable(&mut self, var: &Token) -> Result<MalisObject, ResolverError> {
         // If there is a distance, it means the variable was in an specific environment
-        let object = if let Some(distance) = self
-            .locals
-            .get(&format!("{:p}", var))
-        {
+        let object = if let Some(distance) = self.locals.get(&format!("{:p}", var)) {
             // We traverse `distance` environments in order to get the value
             self.environment
                 .borrow()
