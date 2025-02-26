@@ -182,7 +182,6 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_variable(&mut self, variable: &Token) -> Result<(), ResolverError> {
-        println!("{:?}", variable);
         // We read the scope map and check whether the variable is defined in the current scope.
         if let Some(current_scope) = self.scopes.back_mut() {
             // If the variable is in this scope but it's initializer flag is false, it means it
