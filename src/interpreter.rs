@@ -22,7 +22,7 @@ pub struct Interpreter {
     // Stores resolution information about variables and how many scopes we have to traverse
     // between the current scope (the one in which the variable is accessed) and the resolution
     // scope (the one that contains the value for the variable)
-    locals: HashMap<Expr, usize>,
+    locals: HashMap<String, usize>,
 }
 
 impl Default for Interpreter {
@@ -45,7 +45,7 @@ impl Interpreter {
     pub fn new() -> Result<Self, RuntimeError> {
         // Define a new environment
         let globals = Rc::new(RefCell::new(Environment::new(None)));
-        let environment = Rc::new(RefCell::new(Environment::new(Some(globals.clone()))));
+        let environment = globals.clone();
 
         // Create a new native function
         let clock = MalisObject::NativeFunction(Box::new(NativeFunction::new(
@@ -76,8 +76,8 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn resolve(&mut self, expr: &Expr, scope_level: usize) -> Result<(), ResolverError> {
-        self.locals.insert(expr.clone(), scope_level);
+    pub fn resolve(&mut self, expr: String, scope_level: usize) -> Result<(), ResolverError> {
+        self.locals.insert(expr, scope_level);
 
         Ok(())
     }
@@ -86,7 +86,7 @@ impl Interpreter {
         // If there is a distance, it means the variable was in an specific environment
         let object = if let Some(distance) = self
             .locals
-            .get(&Expr::Var(var.clone()))
+            .get(&format!("{:p}", var))
         {
             // We traverse `distance` environments in order to get the value
             self.environment

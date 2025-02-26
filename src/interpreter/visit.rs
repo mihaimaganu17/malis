@@ -195,7 +195,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         let malis_object = expr.walk(self)?;
 
         // If there is a distance, it means the variable was in an specific environment
-        let object = if let Some(distance) = self.locals.get(&expr) {
+        let object = if let Some(distance) = self.locals.get(&format!("{:p}", expr)) {
             // We traverse `distance` environments in order to get the value
             self.environment
                 .borrow_mut()

@@ -63,7 +63,7 @@ impl<'a> Resolver<'a> {
         expr.walk(self)
     }
 
-    fn resolve_local(&mut self, expr: &Expr, name: &Token) -> Result<(), ResolverError> {
+    fn resolve_local(&mut self, expr_addr: String, name: &Token) -> Result<(), ResolverError> {
         // Iterate through all the scopes from the innermost (top of the stack) to the outer most
         // (bottom of the stack)
         for (idx, scope) in self.scopes.iter().enumerate().rev() {
@@ -72,7 +72,7 @@ impl<'a> Resolver<'a> {
                 println!("{name:?}: {idx}. {scope:#?} distance {}", self.scopes.len() - 1 - idx);
                 // We resolve it, passing in the number of scopes between the current innermost
                 // scope and the scope where the variable was found.
-                return self.interpreter.resolve(expr, self.scopes.len() - 1 - idx);
+                return self.interpreter.resolve(expr_addr, self.scopes.len() - 1 - idx);
             }
         }
         Ok(())
@@ -180,13 +180,13 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
             }
         }
         // At this point, we know we should have a value for the variable and we resolve it
-        self.resolve_local(&Expr::Var(variable.clone()), variable)?;
+        self.resolve_local(format!("{:p}", variable), variable)?;
         Ok(())
     }
 
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<(), ResolverError> {
         self.resolve_expr(expr)?;
-        self.resolve_local(expr, ident)?;
+        self.resolve_local(format!("{:p}", expr), ident)?;
         Ok(())
     }
 
