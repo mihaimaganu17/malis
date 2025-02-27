@@ -151,11 +151,11 @@ pub enum FunctionKind {
 #[derive(Clone)]
 pub struct ClassDeclaration {
     pub name: Token,
-    pub methods: Vec<FunctionDeclaration>,
+    pub methods: Vec<Stmt>,
 }
 
 impl ClassDeclaration {
-    pub fn new(name: Token, methods: Vec<FunctionDeclaration>) -> Self {
+    pub fn new(name: Token, methods: Vec<Stmt>) -> Self {
         Self {
             name,
             methods,

@@ -176,7 +176,7 @@ impl StmtVisitor<String> for AstPrinter {
         let methods = class
             .methods
             .iter()
-            .map(|s| self.visit_function(s))
+            .map(|s| s.walk(self))
             .collect::<Vec<_>>();
         let methods = self.parenthesize("methods", &methods);
         let name = class.name.lexeme();

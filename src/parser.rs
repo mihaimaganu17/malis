@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType,
-        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -43,6 +43,9 @@ impl Parser {
         // We could have another type of declaration as a statement: function declaration
         let fun_token = TokenType::Keyword(Keyword::Fun);
 
+        // We could have another type of declaration as a statement: class declaration
+        let class_token = TokenType::Keyword(Keyword::Class);
+
         let maybe_declaration = if self.any(&[&var_token])? {
             // Consume the `var` token
             self.advance()?;
@@ -51,6 +54,10 @@ impl Parser {
             // Consume the `fun` token
             self.advance()?;
             self.function_declaration(FunctionKind::Free)
+        } else if self.any(&[&class_token])? {
+            // Consume the `class` token
+            self.advance()?;
+            self.class_declaration()
         } else {
             self.statement()
         };
@@ -61,6 +68,44 @@ impl Parser {
             return Ok(None);
         }
         maybe_declaration.map(Some)
+    }
+
+    // Parses a Malis class declaration and it's respective methods
+    fn class_declaration(&mut self) -> Result<Stmt, ParserError> {
+        // At this point we have a `class` keyword and we need to consume the Identifier that
+        // follows it and names the class
+        let class_name = self
+            .consume(
+                &TokenType::Ident,
+                "Expected identifier as class name".to_string(),
+            )?
+            .clone();
+
+        // We need to consume the opening brace that starts the class scope
+        let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
+        // We need to consume the left parenthesis `(` in order to parse a proper parameter
+        // declaration
+        self.consume(&left_brace, "Expect '{' after `class` identifier".to_string())?;
+
+        // Instantiate storage that will hold the classes methods
+        let mut methods = vec![];
+        // Here we consume methods of the class, as long as we find the `fun` keyword
+        let fun_token = TokenType::Keyword(Keyword::Fun);
+        while self.any(&[&fun_token])? {
+            // Consume the `fun` token
+            self.advance()?;
+            methods.push(self.function_declaration(FunctionKind::Free)?);
+        }
+
+        // Finally, we need to consume the closing brace that ends the class declaration and its
+        // scope
+        let right_brace = TokenType::SingleChar(SingleChar::RightBrace);
+        // We need to consume the left parenthesis `(` in order to parse a proper parameter
+        // declaration
+        self.consume(&right_brace, "Expect '}' after `class` identifier".to_string())?;
+
+        // We now construct and return the class declaration
+        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods)))
     }
 
     // Parses a Malis Function Declaration, which is in fact a node of statement. The `kind`
