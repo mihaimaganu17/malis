@@ -1,9 +1,9 @@
 class Breakfast {
-    cook() {
+    fun cook() {
         print "Eier werden gebraten'!";
     }
 
-    serve(who) {
+    fun serve(who) {
         print "Genieße dein Frühstück, " + who + ".";
     }
 }

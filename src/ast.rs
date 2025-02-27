@@ -146,6 +146,7 @@ impl FunctionDeclaration {
 #[derive(Clone)]
 pub enum FunctionKind {
     Free,
+    Method,
 }
 
 #[derive(Clone)]

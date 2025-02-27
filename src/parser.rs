@@ -94,7 +94,7 @@ impl Parser {
         while self.any(&[&fun_token])? {
             // Consume the `fun` token
             self.advance()?;
-            methods.push(self.function_declaration(FunctionKind::Free)?);
+            methods.push(self.function_declaration(FunctionKind::Method)?);
         }
 
         // Finally, we need to consume the closing brace that ends the class declaration and its
