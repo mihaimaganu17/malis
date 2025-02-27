@@ -14,6 +14,7 @@ pub enum Stmt {
     While(WhileStmt),
     Function(FunctionDeclaration),
     Return(ReturnStmt),
+    Class(ClassDeclaration),
 }
 
 impl AsRef<Stmt> for Stmt {
@@ -33,6 +34,7 @@ impl Stmt {
             Stmt::While(while_stmt) => visitor.visit_while_stmt(while_stmt),
             Stmt::Function(func) => visitor.visit_function(func),
             Stmt::Return(return_stmt) => visitor.visit_return_stmt(return_stmt),
+            Stmt::Class(class_declaration) => visitor.visit_class(class_declaration),
         }
     }
 }
@@ -144,6 +146,21 @@ impl FunctionDeclaration {
 #[derive(Clone)]
 pub enum FunctionKind {
     Free,
+}
+
+#[derive(Clone)]
+pub struct ClassDeclaration {
+    pub name: Token,
+    pub methods: Vec<FunctionDeclaration>,
+}
+
+impl ClassDeclaration {
+    pub fn new(name: Token, methods: Vec<FunctionDeclaration>) -> Self {
+        Self {
+            name,
+            methods,
+        }
+    }
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]

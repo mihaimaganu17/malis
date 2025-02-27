@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical, ReturnStmt, Stmt,
-        Ternary, Unary, VarStmt, WhileStmt,
+        Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
     },
     error::ResolverError,
     token::Token,
@@ -299,5 +299,9 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // itself and do recursion.
         self.define(&function.name);
         self.resolve_function(function, ResolverFunctionType::Function)
+    }
+
+    fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), ResolverError> {
+        Ok(())
     }
 }

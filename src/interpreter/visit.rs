@@ -2,7 +2,7 @@ use super::{Interpreter, MalisCallable, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
-        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -93,6 +93,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             )),
         )?;
         closure_env.replace(self.environment.borrow().clone());
+        Ok(())
+    }
+
+    fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), RuntimeError> {
         Ok(())
     }
 }

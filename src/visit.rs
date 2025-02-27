@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical, ReturnStmt, Stmt,
-        Ternary, Unary, VarStmt, WhileStmt,
+        Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
     },
     token::Token,
 };
@@ -31,6 +31,7 @@ pub trait StmtVisitor<T> {
     fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> T;
     fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> T;
     fn visit_function(&mut self, func: &FunctionDeclaration) -> T;
+    fn visit_class(&mut self, class: &ClassDeclaration) -> T;
 }
 
 #[derive(Debug)]
@@ -169,6 +170,17 @@ impl StmtVisitor<String> for AstPrinter {
         let body = self.parenthesize("body", &body);
         let name = function.name.lexeme();
         self.parenthesize("fun decl", &[name, &params, &body])
+    }
+
+    fn visit_class(&mut self, class: &ClassDeclaration) -> String {
+        let methods = class
+            .methods
+            .iter()
+            .map(|s| self.visit_function(s))
+            .collect::<Vec<_>>();
+        let methods = self.parenthesize("methods", &methods);
+        let name = class.name.lexeme();
+        self.parenthesize("class decl", &[name, &methods])
     }
 }
 
