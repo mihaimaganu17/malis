@@ -302,6 +302,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), ResolverError> {
+        // The Malis resolver essentially sees this class as just a variable
+        // Declare the class
+        self.declare(&class.name);
+        // Define the class
+        self.define(&class.name);
         Ok(())
     }
 }
