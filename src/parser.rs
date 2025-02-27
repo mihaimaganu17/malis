@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        Binary, Call, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt, Literal, LiteralType,
-        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
+        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt,
+        Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -85,7 +85,10 @@ impl Parser {
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
         // We need to consume the left parenthesis `(` in order to parse a proper parameter
         // declaration
-        self.consume(&left_brace, "Expect '{' after `class` identifier".to_string())?;
+        self.consume(
+            &left_brace,
+            "Expect '{' after `class` identifier".to_string(),
+        )?;
 
         // Instantiate storage that will hold the classes methods
         let mut methods = vec![];
@@ -96,7 +99,10 @@ impl Parser {
         }
         // We need to consume the left parenthesis `(` in order to parse a proper parameter
         // declaration
-        self.consume(&right_brace, "Expect '}' after `class` identifier".to_string())?;
+        self.consume(
+            &right_brace,
+            "Expect '}' after `class` identifier".to_string(),
+        )?;
 
         // We now construct and return the class declaration
         Ok(Stmt::Class(ClassDeclaration::new(class_name, methods)))

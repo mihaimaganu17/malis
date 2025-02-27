@@ -1,8 +1,8 @@
 use super::{Interpreter, MalisCallable, MalisObject, UserFunction};
 use crate::{
     ast::{
-        Binary, Call, Expr, FunctionDeclaration, Group, IfStmt, Literal, LiteralType, Logical,
-        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, ClassDeclaration,
+        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, Group, IfStmt, Literal,
+        LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -96,7 +96,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         Ok(())
     }
 
-    fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), RuntimeError> {
+    fn visit_class(&mut self, _class: &ClassDeclaration) -> Result<(), RuntimeError> {
         Ok(())
     }
 }
