@@ -89,17 +89,11 @@ impl Parser {
 
         // Instantiate storage that will hold the classes methods
         let mut methods = vec![];
-        // Here we consume methods of the class, as long as we find the `fun` keyword
-        let fun_token = TokenType::Keyword(Keyword::Fun);
-        while self.any(&[&fun_token])? {
-            // Consume the `fun` token
-            self.advance()?;
+        // Here we consume methods of the class, as long as we do not reach the ending brace
+        let right_brace = TokenType::SingleChar(SingleChar::RightBrace);
+        while !self.any(&[&right_brace])? {
             methods.push(self.function_declaration(FunctionKind::Method)?);
         }
-
-        // Finally, we need to consume the closing brace that ends the class declaration and its
-        // scope
-        let right_brace = TokenType::SingleChar(SingleChar::RightBrace);
         // We need to consume the left parenthesis `(` in order to parse a proper parameter
         // declaration
         self.consume(&right_brace, "Expect '}' after `class` identifier".to_string())?;
