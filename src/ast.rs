@@ -351,4 +351,21 @@ impl Group {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct GetExpr;
+pub struct GetExpr {
+    name: Token,
+    object: Box<Expr>,
+}
+
+impl GetExpr {
+    pub fn new(name: Token, object: Expr) -> Self {
+        Self { name, object: Box::new(object) }
+    }
+
+    pub fn object(&self) -> &Expr {
+        &self.object
+    }
+
+    pub fn name(&self) -> &Token {
+        &self.name
+    }
+}
