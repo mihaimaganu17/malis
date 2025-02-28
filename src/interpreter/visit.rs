@@ -98,12 +98,12 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), RuntimeError> {
         // Define the class name as a new `Nil` object
-        self.environment.borrow_mut().define(class.name.lexeme().to_string(), MalisObject::Nil);
+        self.environment.borrow_mut().define(class.name.lexeme().to_string(), MalisObject::Nil)?;
         // Instantiate a new `MalisClass` object. Because we already defined this class name, this
         // allows methods inside the class to reference the class they are contained in
         let malis_class = MalisClass::new(class.name.lexeme());
         // Insert the new object
-        self.environment.borrow_mut().insert(class.name.lexeme(), MalisObject::Class(malis_class));
+        self.environment.borrow_mut().insert(class.name.lexeme(), MalisObject::Class(malis_class))?;
         Ok(())
     }
 }
