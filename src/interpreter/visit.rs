@@ -276,7 +276,18 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         callee.call(self, arguments)
     }
 
-    fn visit_get(&mut self, _get: &GetExpr) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+    fn visit_get(&mut self, get: &GetExpr) -> Result<MalisObject, RuntimeError> {
+        // Evaulate the object to the left of the dot
+        let object = self.evaluate(get.object())?;
+
+        // If the object is a class instance object, this means we are trying to access a property.
+        // And only instances have properties
+        if let MalisObject::Instance(instance) = object {
+            // We access the property
+            instance.get(get.name())
+        } else {
+            Err(RuntimeError::InvalidAccess(format!("Only instances have properties: {:?}", get.name())
+            ))
+        }
     }
 }

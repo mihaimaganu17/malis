@@ -1,4 +1,6 @@
 use super::{MalisCallable, RuntimeError, MalisObject, Interpreter};
+use crate::token::Token;
+use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisClass {
@@ -38,14 +40,21 @@ impl MalisCallable for MalisClass {
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisInstance {
     class: MalisClass,
+    // Each field in this class intance has a property name (key in the map) and a propery value
+    fields: BTreeMap<String, MalisObject>,
 }
 
 impl MalisInstance {
     pub fn new(class: MalisClass) -> Self {
-        Self { class }
+        Self { class, fields: BTreeMap::new() }
     }
 
     pub fn name(&self) -> &str {
         &self.class.name()
+    }
+
+    pub fn get(&self, key: &Token) -> Result<MalisObject, RuntimeError> {
+        self.fields.get(key.lexeme())
+            .ok_or(RuntimeError::PropertyNotPresent(format!("Property {:?} not present in instance of class {:?}", key.lexeme(), self.class.name()))).cloned()
     }
 }

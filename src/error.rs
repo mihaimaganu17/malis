@@ -172,6 +172,8 @@ pub enum RuntimeError {
     // a function.
     Return(MalisObject),
     ResolverError(ResolverError),
+    InvalidAccess(String),
+    PropertyNotPresent(String),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
 }

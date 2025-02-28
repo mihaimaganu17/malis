@@ -222,6 +222,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_get(&mut self, get: &GetExpr) -> Result<(), ResolverError> {
+        // Properties are looked up dynamically, so there is not much to resolve. During resolution
+        // we only resolve the expression to the left of the dot. This is in order to check if
+        // the object we want to access state into is actually in the scope. The property access
+        // actually happens in the interpreter
         self.resolve_expr(get.object())
     }
 }
