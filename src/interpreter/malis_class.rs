@@ -32,7 +32,9 @@ impl MalisCallable for MalisClass {
     }
 }
 
-/// Represents an instance of the `MalisClass`
+/// Represents an insobject tance of the `MalisClass`
+// Every instance is an open collection of named values. Methods on the instance's class can access
+// and modify properties, but so can outside code.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisInstance {
     class: MalisClass,
