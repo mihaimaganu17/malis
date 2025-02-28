@@ -221,8 +221,8 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         Ok(())
     }
 
-    fn visit_get(&mut self, _get: &GetExpr) -> Result<(), ResolverError> {
-        Ok(())
+    fn visit_get(&mut self, get: &GetExpr) -> Result<(), ResolverError> {
+        self.resolve_expr(get.object())
     }
 }
 
