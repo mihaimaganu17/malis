@@ -1,4 +1,4 @@
-use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction, MalisClass};
+use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction, MalisClass, MalisInstance};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -10,6 +10,7 @@ pub enum MalisObject {
     NativeFunction(Box<NativeFunction>),
     UserFunction(UserFunction),
     Class(MalisClass),
+    Instance(MalisInstance),
     Nil,
 }
 
@@ -23,6 +24,7 @@ impl fmt::Display for MalisObject {
             Self::NativeFunction(value) => write!(f, "<native fn {}>", value.name()),
             Self::UserFunction(value) => write!(f, "<fn {}>", value.name()),
             Self::Class(value) => write!(f, "<class {}>", value.name()),
+            Self::Instance(value) => write!(f, "<class instance {}>", value.name()),
         }
     }
 }
@@ -38,7 +40,8 @@ impl MalisObject {
             MalisObject::StringValue(_) | MalisObject::Number(_) => true,
             // We consider function pointers as true
             MalisObject::NativeFunction(_) | MalisObject::UserFunction(_)
-            | MalisObject::Class(_) => true,
+            | MalisObject::Class(_)
+            | MalisObject::Instance(_) => true,
             // We consider null as false
             MalisObject::Nil => false,
         }
@@ -47,6 +50,7 @@ impl MalisObject {
     pub fn is_callable(&self) -> bool {
         matches!(self, MalisObject::NativeFunction(_))
             || matches!(self, MalisObject::UserFunction(_))
+            || matches!(self, MalisObject::Class(_))
     }
 }
 
@@ -55,6 +59,7 @@ impl MalisCallable for MalisObject {
         match self {
             MalisObject::NativeFunction(f) => f.arity(),
             MalisObject::UserFunction(f) => f.arity(),
+            MalisObject::Class(f) => f.arity(),
             _ => Err(RuntimeError::NotCallable(format!(
                 "Object {} has no arity.",
                 self
@@ -70,6 +75,7 @@ impl MalisCallable for MalisObject {
         match self {
             MalisObject::NativeFunction(f) => f.call(interpreter, arguments),
             MalisObject::UserFunction(f) => f.call(interpreter, arguments),
+            MalisObject::Class(f) => f.call(interpreter, arguments),
             _ => Err(RuntimeError::NotCallable(format!(
                 "Object {} is not callable.",
                 self

@@ -5,7 +5,7 @@ pub mod visit;
 
 pub use function::{MalisCallable, NativeFunction, UserFunction};
 pub use object::MalisObject;
-pub use malis_class::MalisClass;
+pub use malis_class::{MalisClass, MalisInstance};
 use crate::{
     ast::{Expr, Stmt},
     environment::Environment,

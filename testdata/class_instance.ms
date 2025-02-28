@@ -1,2 +1,3 @@
 class Bagel {}
-Bagel();
+var bagel = Bagel();
+print bagel;
