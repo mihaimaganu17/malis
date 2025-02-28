@@ -1,4 +1,7 @@
-use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction, MalisClass, MalisInstance};
+use super::{
+    Interpreter, MalisCallable, MalisClass, MalisInstance, NativeFunction, RuntimeError,
+    UserFunction,
+};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -39,7 +42,8 @@ impl MalisObject {
             // 0?
             MalisObject::StringValue(_) | MalisObject::Number(_) => true,
             // We consider function pointers as true
-            MalisObject::NativeFunction(_) | MalisObject::UserFunction(_)
+            MalisObject::NativeFunction(_)
+            | MalisObject::UserFunction(_)
             | MalisObject::Class(_)
             | MalisObject::Instance(_) => true,
             // We consider null as false

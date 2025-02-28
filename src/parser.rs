@@ -1,7 +1,8 @@
 use crate::{
     ast::{
-        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt,
-        Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
+        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, GetExpr, Group,
+        IfStmt, Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt,
+        WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},

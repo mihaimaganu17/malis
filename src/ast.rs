@@ -358,7 +358,10 @@ pub struct GetExpr {
 
 impl GetExpr {
     pub fn new(name: Token, object: Expr) -> Self {
-        Self { name, object: Box::new(object) }
+        Self {
+            name,
+            object: Box::new(object),
+        }
     }
 
     pub fn object(&self) -> &Expr {

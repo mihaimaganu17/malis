@@ -1,8 +1,8 @@
 use crate::Interpreter;
 use crate::{
     ast::{
-        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical,
-        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
+        Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
+        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ResolverError,
     token::Token,
