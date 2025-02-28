@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical,
-        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
     },
     token::Token,
 };
@@ -18,6 +18,7 @@ pub trait ExprVisitor<T> {
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> T;
     fn visit_logical(&mut self, logical: &Logical) -> T;
     fn visit_call(&mut self, call: &Call) -> T;
+    fn visit_get(&mut self, get: &GetExpr) -> T;
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -98,6 +99,11 @@ impl ExprVisitor<String> for AstPrinter {
             .collect::<Vec<_>>();
         let args = self.parenthesize("args", &args);
         self.parenthesize("call", &[name, args])
+    }
+
+    fn visit_get(&mut self, get: &GetExpr) -> String {
+        let object = &get.object().walk(self);
+        self.parenthesize("get", &[get.name().lexeme(), object])
     }
 }
 

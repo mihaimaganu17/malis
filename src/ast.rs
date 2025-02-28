@@ -194,7 +194,7 @@ impl Expr {
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
             Expr::Logical(logical) => visitor.visit_logical(logical),
             Expr::Call(call) => visitor.visit_call(call),
-            Expr::Get(get_expr) => todo!(),//visitor.visit_get(get_expr),
+            Expr::Get(get_expr) => visitor.visit_get(get_expr),
         }
     }
 }
