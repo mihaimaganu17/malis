@@ -2,7 +2,7 @@ use super::{Interpreter, MalisCallable, MalisObject, UserFunction, MalisClass};
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, Group, IfStmt, Literal,
-        LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -274,5 +274,9 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             )));
         }
         callee.call(self, arguments)
+    }
+
+    fn visit_get(&mut self, _get: &GetExpr) -> Result<MalisObject, RuntimeError> {
+        Ok(MalisObject::Nil)
     }
 }

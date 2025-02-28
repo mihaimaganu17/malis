@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, Group, IfStmt, Literal, Logical,
-        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
     },
     error::ResolverError,
     token::Token,
@@ -218,6 +218,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         for arg in call.arguments.iter() {
             self.resolve_expr(arg)?;
         }
+        Ok(())
+    }
+
+    fn visit_get(&mut self, _get: &GetExpr) -> Result<(), ResolverError> {
         Ok(())
     }
 }
