@@ -161,7 +161,7 @@ impl ClassDeclaration {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Expr {
     Unary(Unary),
     Binary(Binary),
@@ -172,6 +172,8 @@ pub enum Expr {
     Assign(Token, Box<Expr>),
     Logical(Logical),
     Call(Call),
+    // State access expresion on classes
+    Get(GetExpr),
 }
 
 impl AsRef<Expr> for Expr {
@@ -192,11 +194,12 @@ impl Expr {
             Expr::Assign(token, expr) => visitor.visit_assign(token, expr),
             Expr::Logical(logical) => visitor.visit_logical(logical),
             Expr::Call(call) => visitor.visit_call(call),
+            Expr::Get(get_expr) => todo!(),//visitor.visit_get(get_expr),
         }
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Logical {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -213,7 +216,7 @@ impl Logical {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Call {
     // Function to be called
     pub callee: Box<Expr>,
@@ -233,7 +236,7 @@ impl Call {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Unary {
     pub operator: Token,
     pub right: Box<Expr>,
@@ -248,7 +251,7 @@ impl Unary {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Binary {
     pub left: Box<Expr>,
     pub operator: Token,
@@ -265,7 +268,7 @@ impl Binary {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Ternary {
     pub first: Box<Expr>,
     pub first_operator: Token,
@@ -292,7 +295,7 @@ impl Ternary {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Literal {
     pub l_type: LiteralType,
 }
@@ -324,7 +327,7 @@ impl From<LiteralType> for Literal {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LiteralType {
     Number([u8; 4]),
     LitString(String),
@@ -334,7 +337,7 @@ pub enum LiteralType {
 }
 
 // Grouping matches any expression derivation inside a parenthasis -> "(" expression ")"
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Group {
     pub expr: Box<Expr>,
 }
@@ -346,3 +349,6 @@ impl Group {
         }
     }
 }
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct GetExpr;
