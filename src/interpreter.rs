@@ -1,15 +1,17 @@
 pub mod function;
 pub mod object;
+pub mod malis_class;
 pub mod visit;
 
+pub use function::{MalisCallable, NativeFunction, UserFunction};
+pub use object::MalisObject;
+pub use malis_class::MalisClass;
 use crate::{
     ast::{Expr, Stmt},
     environment::Environment,
     error::{ResolverError, RuntimeError},
     token::Token,
 };
-pub use function::{MalisCallable, NativeFunction, UserFunction};
-pub use object::MalisObject;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;

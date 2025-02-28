@@ -1,4 +1,4 @@
-use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction};
+use super::{Interpreter, MalisCallable, NativeFunction, RuntimeError, UserFunction, MalisClass};
 use core::ops::{Add, Div, Mul, Neg, Not, Sub};
 use std::fmt;
 
@@ -9,6 +9,7 @@ pub enum MalisObject {
     StringValue(String),
     NativeFunction(Box<NativeFunction>),
     UserFunction(UserFunction),
+    Class(MalisClass),
     Nil,
 }
 
@@ -21,6 +22,7 @@ impl fmt::Display for MalisObject {
             Self::Number(value) => write!(f, "{}", value),
             Self::NativeFunction(value) => write!(f, "<native fn {}>", value.name()),
             Self::UserFunction(value) => write!(f, "<fn {}>", value.name()),
+            Self::Class(value) => write!(f, "<class {}>", value.name()),
         }
     }
 }
@@ -35,7 +37,8 @@ impl MalisObject {
             // 0?
             MalisObject::StringValue(_) | MalisObject::Number(_) => true,
             // We consider function pointers as true
-            MalisObject::NativeFunction(_) | MalisObject::UserFunction(_) => true,
+            MalisObject::NativeFunction(_) | MalisObject::UserFunction(_)
+            | MalisObject::Class(_) => true,
             // We consider null as false
             MalisObject::Nil => false,
         }
