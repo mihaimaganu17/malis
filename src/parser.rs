@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, Group, IfStmt,
-        Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, GetExpr,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -715,12 +715,32 @@ impl Parser {
         // If we have a left parenthesis, we do not have a primary production, but a call
         // production which has it's arguments after the paren
         let left_paren = TokenType::SingleChar(SingleChar::LeftParen);
+        // Equivalently, we could have a `.` dot, which is also a call production accessing a class
+        // instance's state
+        let dot = TokenType::SingleChar(SingleChar::Dot);
 
-        while self.any(&[&left_paren])? {
-            // Consume the left paren
-            let _ = self.advance()?;
-            // Build up the call expression with arguments
-            call_expr = self.finish_call(call_expr)?;
+        loop {
+            if self.any(&[&left_paren])? {
+                // Consume the left paren
+                let _ = self.advance()?;
+                // Build up the call expression with arguments
+                call_expr = self.finish_call(call_expr)?;
+            } else if self.any(&[&dot])? {
+                // Move past the dot
+                self.advance()?;
+                // Consume the identifier of the state in the class that we want to access
+                let name = self
+                    .consume(
+                        &TokenType::Ident,
+                        "Expected identifier as class state access".to_string(),
+                    )?
+                    .clone();
+                // Create a new class, where we want to access `name` from the expression object
+                // identified by previously parsed `call_expr`
+                call_expr = Expr::Get(GetExpr::new(name, call_expr));
+            } else {
+                break;
+            }
         }
 
         Ok(call_expr)

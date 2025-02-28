@@ -102,8 +102,8 @@ impl ExprVisitor<String> for AstPrinter {
     }
 
     fn visit_get(&mut self, get: &GetExpr) -> String {
-        let object = &get.object().walk(self);
-        self.parenthesize("get", &[get.name().lexeme(), object])
+        let object = get.object().walk(self);
+        self.parenthesize("get", &[object.as_str(), get.name().lexeme()])
     }
 }
 
