@@ -283,6 +283,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_get(&mut self, get: &GetExpr) -> Result<MalisObject, RuntimeError> {
         // Evaulate the object to the left of the dot
         let object = self.evaluate(get.object())?;
+        println!("object {object:?}");
 
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
@@ -299,15 +300,18 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
 
     fn visit_set(&mut self, set: &SetExpr) -> Result<MalisObject, RuntimeError> {
         // Evaulate the object to the left of the last dot of the getter
-        let object = self.evaluate(set.object())?;
+        let mut object = self.evaluate(set.object())?;
 
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
-        if let MalisObject::Instance(mut instance) = object {
+        if let MalisObject::Instance(ref mut instance) = object {
             // Evaluate the value we want to set
             let value = self.evaluate(set.value())?;
             // We set the property to the new value
-            instance.set(set.name(), value)
+            let value = instance.set(set.name(), value);
+            println!("object {object:?}");
+            println!("Value {:?}", value);
+            value
         } else {
             Err(RuntimeError::InvalidAccess(format!(
                 "Only instances have properties: {:?}",

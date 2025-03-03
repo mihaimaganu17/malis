@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 #[derive(Default, Debug)]
 pub struct Environment {
+    // Note: Keys need to be `RefCell`s
     pub values: HashMap<String, MalisObject>,
     // Weak reference to the parent environment of this environment. The global environment has this
     // value None
