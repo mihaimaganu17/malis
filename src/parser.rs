@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, GetExpr, Group,
-        IfStmt, Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt,
+        IfStmt, Literal, LiteralType, Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, SetExpr,
         WhileStmt,
     },
     error::ParserError,
@@ -518,11 +518,12 @@ impl Parser {
             // Get the next value
             let value = self.assignment()?;
             // If the top expression that we parsed, is actualy a variable name
-            if let Expr::Var(var) = expr {
+            match expr {
                 // We return a new assign expression with that variable name and the value
-                Ok(Expr::Assign(var, Box::new(value)))
-            } else {
-                Err(ParserError::PanicMode(
+                Expr::Var(var) => Ok(Expr::Assign(var, Box::new(value))),
+                // Otherwise, if we have a class instance getter, we construct a set expression
+                Expr::Get(get) => Ok(Expr::Set(SetExpr::new(get.object().clone(), get.name().clone(), value))),
+                _ => Err(ParserError::PanicMode(
                     "Invalid assignment target".to_string(),
                     equals,
                 ))
