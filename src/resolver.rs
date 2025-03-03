@@ -229,8 +229,9 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         self.resolve_expr(get.object())
     }
 
-    fn visit_set(&mut self, _set: &SetExpr) -> Result<(), ResolverError> {
-        Ok(())
+    fn visit_set(&mut self, set: &SetExpr) -> Result<(), ResolverError> {
+        self.resolve_expr(set.value())?;
+        self.resolve_expr(set.object())
     }
 }
 
