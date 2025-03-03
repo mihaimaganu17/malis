@@ -66,4 +66,15 @@ impl MalisInstance {
             )))
             .cloned()
     }
+
+    // Set the property identified by `key` to `value`
+    pub fn set(&mut self, key: &Token, value: MalisObject) -> Result<MalisObject, RuntimeError> {
+        self.fields
+            .insert(key.lexeme().to_string(), value)
+            .ok_or(RuntimeError::PropertyNotPresent(format!(
+                "Property {:?} not present in instance of class {:?}",
+                key.lexeme(),
+                self.class.name()
+            )))
+    }
 }
