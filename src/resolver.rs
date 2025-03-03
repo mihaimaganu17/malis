@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, SetExpr,
     },
     error::ResolverError,
     token::Token,
@@ -227,6 +227,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // the object we want to access state into is actually in the scope. The property access
         // actually happens in the interpreter
         self.resolve_expr(get.object())
+    }
+
+    fn visit_set(&mut self, _set: &SetExpr) -> Result<(), ResolverError> {
+        Ok(())
     }
 }
 

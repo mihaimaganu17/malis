@@ -172,8 +172,10 @@ pub enum Expr {
     Assign(Token, Box<Expr>),
     Logical(Logical),
     Call(Call),
-    // State access expresion on classes
+    // State getter expresion on classes
     Get(GetExpr),
+    // State setter expresion on classes
+    Set(SetExpr),
 }
 
 impl AsRef<Expr> for Expr {
@@ -195,6 +197,7 @@ impl Expr {
             Expr::Logical(logical) => visitor.visit_logical(logical),
             Expr::Call(call) => visitor.visit_call(call),
             Expr::Get(get_expr) => visitor.visit_get(get_expr),
+            Expr::Set(set_expr) => visitor.visit_set(set_expr),
         }
     }
 }
@@ -370,5 +373,37 @@ impl GetExpr {
 
     pub fn name(&self) -> &Token {
         &self.name
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct SetExpr {
+    // Object state to be set
+    object: Box<Expr>,
+    // Name of the variable
+    name: Token,
+    // Value to set the state to
+    value: Box<Expr>,
+}
+
+impl SetExpr {
+    pub fn new(object: Expr, name: Token, value: Expr) -> Self {
+        Self {
+            object: Box::new(object),
+            name,
+            value: Box::new(value),
+        }
+    }
+
+    pub fn object(&self) -> &Expr {
+        &self.object
+    }
+
+    pub fn name(&self) -> &Token {
+        &self.name
+    }
+
+    pub fn value(&self) -> &Expr {
+        &self.value
     }
 }
