@@ -107,8 +107,10 @@ impl ExprVisitor<String> for AstPrinter {
         self.parenthesize("get", &[object.as_str(), get.name().lexeme()])
     }
 
-    fn visit_set(&mut self, _set: &SetExpr) -> String {
-        String::new()
+    fn visit_set(&mut self, set: &SetExpr) -> String {
+        let object = set.object().walk(self);
+        let value = set.value().walk(self);
+        self.parenthesize("set", &[object.as_str(), set.name().lexeme(), "=", value.as_str()])
     }
 }
 
