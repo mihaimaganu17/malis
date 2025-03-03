@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        Logical, ReturnStmt, Stmt, Ternary, Unary, VarStmt, WhileStmt, SetExpr,
+        Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ResolverError,
     token::Token,

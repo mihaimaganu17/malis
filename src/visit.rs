@@ -110,7 +110,10 @@ impl ExprVisitor<String> for AstPrinter {
     fn visit_set(&mut self, set: &SetExpr) -> String {
         let object = set.object().walk(self);
         let value = set.value().walk(self);
-        self.parenthesize("set", &[object.as_str(), set.name().lexeme(), "=", value.as_str()])
+        self.parenthesize(
+            "set",
+            &[object.as_str(), set.name().lexeme(), "=", value.as_str()],
+        )
     }
 }
 
