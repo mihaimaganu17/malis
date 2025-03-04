@@ -17,6 +17,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
 
     fn visit_print_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
         let expr = self.evaluate(stmt)?;
+        println!("{expr}");
         Ok(())
     }
 
@@ -306,13 +307,16 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             // Evaluate the value we want to set
             let value = self.evaluate(set.value())?;
             // We set the property to the new value
-            let value = instance.set(set.name(), value);
+            instance.set(set.name(), value)?;
         } else {
             return Err(RuntimeError::InvalidAccess(format!(
                 "Only instances have properties: {:?}",
                 set.name()
             )));
         };
+        // Because we clone all the object, because we are in Rust and this Java-like paradigm does
+        // not got too well with the overall borrow checker we must return the altered object in
+        // order to be assigned
         Ok(object)
     }
 }
