@@ -5,5 +5,6 @@ print torino;
 torino.benzina = "Cam scump";
 print torino.benzina;
 
-torion.hotel = "Ok";
-print torion.hotel;
+torino.hotel = "Ok";
+print torino.hotel;
+print torino.benzina;
