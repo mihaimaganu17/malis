@@ -9,8 +9,8 @@ use crate::{
     visit::{ExprVisitor, StmtVisitor},
 };
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::collections::BTreeMap;
+use std::rc::Rc;
 
 impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {

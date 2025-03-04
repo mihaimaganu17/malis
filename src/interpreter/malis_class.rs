@@ -21,7 +21,8 @@ impl MalisClass {
     }
 
     pub fn get(&self, name: &Token) -> Result<UserFunction, RuntimeError> {
-        self.methods.get(name.lexeme())
+        self.methods
+            .get(name.lexeme())
             .ok_or(RuntimeError::PropertyNotPresent(format!(
                 "Property {:?} not present in instance of class {:?}",
                 name.lexeme(),
