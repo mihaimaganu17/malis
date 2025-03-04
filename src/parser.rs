@@ -522,11 +522,19 @@ impl Parser {
                 // We return a new assign expression with that variable name and the value
                 Expr::Var(var) => Ok(Expr::Assign(var, Box::new(value))),
                 // Otherwise, if we have a class instance getter, we construct a set expression
-                Expr::Get(get) => Ok(Expr::Set(SetExpr::new(
-                    get.object().clone(),
-                    get.name().clone(),
-                    value,
-                ))),
+                Expr::Get(get) => {
+                    let Expr::Var(var) = get.object().clone() else {
+                        return Err(ParserError::PanicMode(
+                            "Invalid assignment object is not a class for setter".to_string(),
+                            equals,
+                        ));
+                    };
+                    Ok(Expr::Assign(var, Box::new(Expr::Set(SetExpr::new(
+                        get.object().clone(),
+                        get.name().clone(),
+                        value,
+                    )))))
+                }
                 _ => Err(ParserError::PanicMode(
                     "Invalid assignment target".to_string(),
                     equals,
@@ -748,6 +756,8 @@ impl Parser {
                 break;
             }
         }
+
+        println!("{:#?}", crate::AstPrinter.print_expr(&call_expr));
 
         Ok(call_expr)
     }

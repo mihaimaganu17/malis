@@ -200,6 +200,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // One type of expression is accessing a variable, previously declared, using it's identifier.
     // We do that by accessing the interpreters environment
     fn visit_variable(&mut self, var: &Token) -> Result<MalisObject, RuntimeError> {
+        println!("Visiting variable {var:#?}");
         Ok(self.lookup_variable(var)?)
     }
 
@@ -207,6 +208,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     // defined identifier which mutates state to the new value
     fn visit_assign(&mut self, ident: &Token, expr: &Expr) -> Result<MalisObject, RuntimeError> {
         let malis_object = expr.walk(self)?;
+
+        println!("Malis object {:#?}", malis_object);
 
         // If there is a distance, it means the variable was in an specific environment
         let object = if let Some(distance) = self.locals.get(&format!("{:p}", expr)) {
@@ -283,7 +286,6 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_get(&mut self, get: &GetExpr) -> Result<MalisObject, RuntimeError> {
         // Evaulate the object to the left of the dot
         let object = self.evaluate(get.object())?;
-        println!("object {object:?}");
 
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
@@ -301,6 +303,7 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     fn visit_set(&mut self, set: &SetExpr) -> Result<MalisObject, RuntimeError> {
         // Evaulate the object to the left of the last dot of the getter
         let mut object = self.evaluate(set.object())?;
+        println!("Object {:#?}", object);
 
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
@@ -309,14 +312,12 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
             let value = self.evaluate(set.value())?;
             // We set the property to the new value
             let value = instance.set(set.name(), value);
-            println!("object {object:?}");
-            println!("Value {:?}", value);
-            value
         } else {
-            Err(RuntimeError::InvalidAccess(format!(
+            return Err(RuntimeError::InvalidAccess(format!(
                 "Only instances have properties: {:?}",
                 set.name()
-            )))
-        }
+            )));
+        };
+        Ok(object)
     }
 }
