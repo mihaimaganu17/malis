@@ -19,6 +19,16 @@ impl MalisClass {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn get(&self, name: &Token) -> Result<UserFunction, RuntimeError> {
+        self.methods.get(name.lexeme())
+            .ok_or(RuntimeError::PropertyNotPresent(format!(
+                "Property {:?} not present in instance of class {:?}",
+                name.lexeme(),
+                self.name()
+            )))
+            .cloned()
+    }
 }
 
 impl MalisCallable for MalisClass {
@@ -59,14 +69,14 @@ impl MalisInstance {
     }
 
     pub fn get(&self, key: &Token) -> Result<MalisObject, RuntimeError> {
-        self.fields
-            .get(key.lexeme())
-            .ok_or(RuntimeError::PropertyNotPresent(format!(
-                "Property {:?} not present in instance of class {:?}",
-                key.lexeme(),
-                self.class.name()
-            )))
-            .cloned()
+        let maybe_value = self.fields.get(key.lexeme());
+        // If the name is a property of the class, we should find it in the fields map
+        if let Some(value) = maybe_value {
+            Ok(value.clone())
+        } else {
+            // Otherwise we want to check if the key does not refer to a class method
+            Ok(MalisObject::UserFunction(self.class.get(key)?))
+        }
     }
 
     // Set the property identified by `key` to `value`
