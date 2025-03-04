@@ -529,11 +529,14 @@ impl Parser {
                             equals,
                         ));
                     };
-                    Ok(Expr::Assign(var, Box::new(Expr::Set(SetExpr::new(
-                        get.object().clone(),
-                        get.name().clone(),
-                        value,
-                    )))))
+                    Ok(Expr::Assign(
+                        var,
+                        Box::new(Expr::Set(SetExpr::new(
+                            get.object().clone(),
+                            get.name().clone(),
+                            value,
+                        ))),
+                    ))
                 }
                 _ => Err(ParserError::PanicMode(
                     "Invalid assignment target".to_string(),
