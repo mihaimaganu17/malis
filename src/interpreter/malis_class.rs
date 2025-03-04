@@ -1,16 +1,18 @@
-use super::{Interpreter, MalisCallable, MalisObject, RuntimeError};
+use super::{Interpreter, MalisCallable, MalisObject, RuntimeError, UserFunction};
 use crate::token::Token;
 use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct MalisClass {
     name: String,
+    methods: BTreeMap<String, UserFunction>,
 }
 
 impl MalisClass {
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &str, methods: BTreeMap<String, UserFunction>) -> Self {
         Self {
             name: name.to_string(),
+            methods,
         }
     }
 

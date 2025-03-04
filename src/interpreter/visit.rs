@@ -8,6 +8,9 @@ use crate::{
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
     visit::{ExprVisitor, StmtVisitor},
 };
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::collections::BTreeMap;
 
 impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     fn visit_expr_stmt(&mut self, stmt: &Expr) -> Result<(), RuntimeError> {
@@ -81,8 +84,6 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         // function declaration is in, we need to do a complete clone of the `Environment` object.
         // This is because cloning the `Rc` alone would just give us a reference that could change
         // after exiting this function due to other statements.
-        use std::cell::RefCell;
-        use std::rc::Rc;
         let closure_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
         // We define the function with the environment present at the time of declaration
         self.environment.borrow_mut().define(
@@ -101,9 +102,31 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         self.environment
             .borrow_mut()
             .define(class.name.lexeme().to_string(), MalisObject::Nil)?;
+
+        // Create a map that will hold all the class' methods
+        let mut methods = BTreeMap::new();
+
+        // Since we want the closure environment to remain a snapshot of the scope this current
+        // function declaration is in, we need to do a complete clone of the `Environment` object.
+        // This is because cloning the `Rc` alone would just give us a reference that could change
+        // after exiting this function due to other statements.
+        let closure_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
+
+        for method in class.methods.iter() {
+            // Create a new function
+            if let Stmt::Function(function) = method.clone() {
+                let method_name = function.name.lexeme().to_string();
+                // We define the function with the environment present at the time of declaration
+                let user_function = UserFunction::new(function, closure_env.clone());
+                // Insert it into the map
+                methods.insert(method_name, user_function);
+            }
+        }
+        // Put back the original environment
+        closure_env.replace(self.environment.borrow().clone());
         // Instantiate a new `MalisClass` object. Because we already defined this class name, this
         // allows methods inside the class to reference the class they are contained in
-        let malis_class = MalisClass::new(class.name.lexeme());
+        let malis_class = MalisClass::new(class.name.lexeme(), methods);
         // Insert the new object
         self.environment
             .borrow_mut()
