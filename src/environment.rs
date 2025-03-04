@@ -40,7 +40,6 @@ impl Environment {
     // Note: This is not ideal, as we clone the object when getting it. It would be ideal if the
     // storage was a reference and we could do a cheap clone of the object.
     pub fn get(&self, name: &str) -> Result<MalisObject, EnvironmentError> {
-        println!("name {:?} Environment {:#?}", name, self);
         let value_in_current_scope = self
             .values
             .get(name)
@@ -72,7 +71,6 @@ impl Environment {
         name: &str,
         value: MalisObject,
     ) -> Result<MalisObject, EnvironmentError> {
-        println!("SET name {:?} Environment {:#?}", name, self);
         if self.values.contains_key(name) {
             self.values.insert(name.to_string(), value.clone()).unwrap();
             return Ok(value);

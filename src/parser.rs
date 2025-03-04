@@ -757,8 +757,6 @@ impl Parser {
             }
         }
 
-        println!("{:#?}", crate::AstPrinter.print_expr(&call_expr));
-
         Ok(call_expr)
     }
 
