@@ -38,6 +38,7 @@ pub struct Resolver<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResolverFunctionType {
+    Method,
     Function,
     None,
 }
@@ -320,6 +321,12 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         self.declare(&class.name);
         // Define the class
         self.define(&class.name);
+        // Resolve the methods of the class
+        for method in class.methods.iter() {
+            if let Stmt::Function(function) = &method {
+                self.resolve_function(function, ResolverFunctionType::Method)?;
+            }
+        }
         Ok(())
     }
 }
