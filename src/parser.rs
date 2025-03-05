@@ -820,6 +820,11 @@ impl Parser {
                         Err(ParserError::MissingClosingParen)
                     }
                 }
+                TokenType::Keyword(Keyword::ClassSelf) => {
+                    // Get the keyword
+                    let self_keyword = self.advance()?;
+                    Ok(Expr::ClassSelf(self_keyword.clone()))
+                }
                 TokenType::Ident => {
                     let token = self.advance()?.clone();
                     Ok(Expr::Var(token))
