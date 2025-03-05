@@ -176,6 +176,8 @@ pub enum Expr {
     Get(GetExpr),
     // State setter expresion on classes
     Set(SetExpr),
+    // Added self keyword to access current state and behaviour of class instances
+    ClassSelf(Token),
 }
 
 impl AsRef<Expr> for Expr {
@@ -198,6 +200,7 @@ impl Expr {
             Expr::Call(call) => visitor.visit_call(call),
             Expr::Get(get_expr) => visitor.visit_get(get_expr),
             Expr::Set(set_expr) => visitor.visit_set(set_expr),
+            Expr::ClassSelf(class_self) => todo!(), //visitor.visit_self(class_self),
         }
     }
 }
