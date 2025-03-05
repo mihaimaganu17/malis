@@ -76,7 +76,8 @@ impl MalisInstance {
             Ok(value.clone())
         } else {
             // Otherwise we want to check if the key does not refer to a class method
-            Ok(MalisObject::UserFunction(self.class.get(key)?))
+            let method = self.class.get(key)?;
+            Ok(MalisObject::UserFunction(method.bind(self)?))
         }
     }
 

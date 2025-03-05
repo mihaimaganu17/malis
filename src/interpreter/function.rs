@@ -1,4 +1,4 @@
-use super::{Environment, Interpreter, MalisObject, RuntimeError};
+use super::{Environment, Interpreter, MalisObject, RuntimeError, MalisInstance};
 use crate::{ast::FunctionDeclaration, token::Token};
 use core::cmp::Ordering;
 use std::fmt;
@@ -89,6 +89,17 @@ impl UserFunction {
 
     pub fn name(&self) -> &Token {
         &self.function_declaration.name
+    }
+
+    // Binds this function to the class `instance` by defnining a new environment and inside it a
+    // `self` variable to access the instance
+    pub fn bind(self, instance: &MalisInstance) -> Result<Self, RuntimeError> {
+        // Create a new environment with the current closure as it's parent. This is a closure
+        // in-a-closure situation
+        let mut environment =
+            Environment::new(Some(Rc::new(RefCell::new(self.closure.borrow().clone()))));
+        environment.define("self".to_string(), MalisObject::Instance(instance.clone()))?;
+        Ok(Self::new(self.function_declaration, Rc::new(RefCell::new(environment))))
     }
 }
 

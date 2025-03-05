@@ -101,8 +101,8 @@ impl<'a> Resolver<'a> {
 
         // We first declare and define each of the function's parameters
         for param in function.parameters.iter() {
-            self.declare(param);
-            self.define(param);
+            self.declare(param.lexeme());
+            self.define(param.lexeme());
         }
 
         // Afterards, we resolve the function body
@@ -120,36 +120,37 @@ impl<'a> Resolver<'a> {
         self.scopes.push_back(HashMap::new());
     }
 
-    fn declare(&mut self, name: &Token) {
+    fn declare(&mut self, name: &str) {
         // We get a mutable reference to the top stack scope. This way the variable will be
         // declared in the the innermost scope and will shadow any other existing variable with the
         // same name
         if let Some(current_scope) = self.scopes.back_mut() {
             // If the variable was already declared, the user should've just assigned to it.
-            if current_scope.contains_key(name.lexeme()) {
+            if current_scope.contains_key(name) {
                 // At this point we have a double initialisation
-                panic!("Already a variable with this name in this scoep {:?}", name);
+                panic!("Already a variable with this name in this scope {:?}", name);
             }
             // And insert the new declaration in this scope. Because we did not resolve the variable
             // yet, we insert it with a `false` flag in the scopes `HashMap`.
-            current_scope.insert(name.lexeme().to_string(), (false, false));
+            current_scope.insert(name.to_string(), (false, false));
         }
     }
 
-    fn define(&mut self, name: &Token) {
+    fn define(&mut self, name: &str) {
         // At this point, initializer for the variable represented by name should have been run
         // and we mark it as such in the scope
         if let Some(current_scope) = self.scopes.back_mut() {
-            current_scope.insert(name.lexeme().to_string(), (true, false));
+            current_scope.insert(name.to_string(), (true, false));
         }
     }
 
     fn end_scope(&mut self) {
         // Pop the inner most scope
         if let Some(scope) = self.scopes.pop_back() {
-            // Verify all the names defined in the scope
+            // Verify all the names defined in the scope are being used. Except `self` which is
+            // a keyword to access the current instance
             for (key, (defined, accessed)) in scope.iter() {
-                if defined == &true && accessed == &false {
+                if defined == &true && accessed == &false && key != "self" {
                     panic!("Variable defined in this scope is not used {:?}", key);
                 }
             }
@@ -253,11 +254,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), ResolverError> {
         // We spilt variable initialization into 2 steps: declaring and defining.
-        self.declare(stmt.identifier());
+        self.declare(stmt.identifier().lexeme());
         if let Some(expr) = &stmt.expr() {
             self.resolve_expr(expr)?;
         }
-        self.define(stmt.identifier());
+        self.define(stmt.identifier().lexeme());
         Ok(())
     }
 
@@ -312,25 +313,33 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // of the function is bound in the current scope where the function is declared. And when
         // we step into the function's body, we also bind its parameters to the new scope introduced
         // by the function's body.
-        self.declare(&function.name);
+        self.declare(&function.name.lexeme());
         // We define the function eagerly, just after declaration. This enables a function to call
         // itself and do recursion.
-        self.define(&function.name);
+        self.define(&function.name.lexeme());
         self.resolve_function(function, ResolverFunctionType::Function)
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), ResolverError> {
         // The Malis resolver essentially sees this class as just a variable
         // Declare the class
-        self.declare(&class.name);
+        self.declare(&class.name.lexeme());
         // Define the class
-        self.define(&class.name);
+        self.define(&class.name.lexeme());
+        // Create a new scope for the class declaration. This will aid `self` keyword to access
+        // state and behaviour inside the class instance
+        self.begin_scope();
+        // Define `self` in this scope as if it were a variable that we could access. Now, whenever
+        // a `self` expression is encountered (at least inside a method) it will resolve to a
+        // "local variable" `self` defined just outside the scope of all the methods
+        self.define("self");
         // Resolve the methods of the class
         for method in class.methods.iter() {
             if let Stmt::Function(function) = &method {
                 self.resolve_function(function, ResolverFunctionType::Method)?;
             }
         }
+        self.end_scope();
         Ok(())
     }
 }
