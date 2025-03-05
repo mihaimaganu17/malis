@@ -8,4 +8,5 @@ class Thing {
 }
 
 var callback = Thing().get_callback();
+print callback;
 callback();
