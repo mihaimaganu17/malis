@@ -313,19 +313,19 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // of the function is bound in the current scope where the function is declared. And when
         // we step into the function's body, we also bind its parameters to the new scope introduced
         // by the function's body.
-        self.declare(&function.name.lexeme());
+        self.declare(function.name.lexeme());
         // We define the function eagerly, just after declaration. This enables a function to call
         // itself and do recursion.
-        self.define(&function.name.lexeme());
+        self.define(function.name.lexeme());
         self.resolve_function(function, ResolverFunctionType::Function)
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), ResolverError> {
         // The Malis resolver essentially sees this class as just a variable
         // Declare the class
-        self.declare(&class.name.lexeme());
+        self.declare(class.name.lexeme());
         // Define the class
-        self.define(&class.name.lexeme());
+        self.define(class.name.lexeme());
         // Create a new scope for the class declaration. This will aid `self` keyword to access
         // state and behaviour inside the class instance
         self.begin_scope();

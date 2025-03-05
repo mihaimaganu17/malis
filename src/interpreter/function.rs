@@ -1,4 +1,4 @@
-use super::{Environment, Interpreter, MalisObject, RuntimeError, MalisInstance};
+use super::{Environment, Interpreter, MalisInstance, MalisObject, RuntimeError};
 use crate::{ast::FunctionDeclaration, token::Token};
 use core::cmp::Ordering;
 use std::fmt;
@@ -99,7 +99,10 @@ impl UserFunction {
         let mut environment =
             Environment::new(Some(Rc::new(RefCell::new(self.closure.borrow().clone()))));
         environment.define("self".to_string(), MalisObject::Instance(instance.clone()))?;
-        Ok(Self::new(self.function_declaration, Rc::new(RefCell::new(environment))))
+        Ok(Self::new(
+            self.function_declaration,
+            Rc::new(RefCell::new(environment)),
+        ))
     }
 }
 
