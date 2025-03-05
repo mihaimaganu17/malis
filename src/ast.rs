@@ -200,7 +200,7 @@ impl Expr {
             Expr::Call(call) => visitor.visit_call(call),
             Expr::Get(get_expr) => visitor.visit_get(get_expr),
             Expr::Set(set_expr) => visitor.visit_set(set_expr),
-            Expr::ClassSelf(class_self) => todo!(), //visitor.visit_self(class_self),
+            Expr::ClassSelf(class_self) => visitor.visit_self(class_self),
         }
     }
 }

@@ -20,6 +20,7 @@ pub trait ExprVisitor<T> {
     fn visit_call(&mut self, call: &Call) -> T;
     fn visit_get(&mut self, get: &GetExpr) -> T;
     fn visit_set(&mut self, set: &SetExpr) -> T;
+    fn visit_self(&mut self, class_self: &Token) -> T;
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -114,6 +115,10 @@ impl ExprVisitor<String> for AstPrinter {
             "set",
             &[object.as_str(), set.name().lexeme(), "=", value.as_str()],
         )
+    }
+
+    fn visit_self(&mut self, class_self: &Token) -> String {
+        self.parenthesize("self", &[class_self.lexeme()])
     }
 }
 

@@ -342,4 +342,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // order to be assigned
         Ok(object)
     }
+
+    fn visit_self(&mut self, class_self: &Token) -> Result<MalisObject, RuntimeError> {
+        Ok(MalisObject::Nil)
+    }
 }

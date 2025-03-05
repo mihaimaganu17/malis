@@ -234,6 +234,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         self.resolve_expr(set.value())?;
         self.resolve_expr(set.object())
     }
+
+    fn visit_self(&mut self, class_self: &Token) -> Result<(), ResolverError> {
+        self.resolve_local(format!("{:p}", class_self), class_self)
+    }
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
