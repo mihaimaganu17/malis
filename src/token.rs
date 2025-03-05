@@ -112,4 +112,5 @@ pub enum Keyword {
     Var,
     Print,
     Return,
+    ClassSelf,
 }
