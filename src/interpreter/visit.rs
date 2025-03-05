@@ -344,6 +344,6 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     }
 
     fn visit_self(&mut self, class_self: &Token) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+        Ok(self.lookup_variable(class_self)?)
     }
 }
