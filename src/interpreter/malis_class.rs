@@ -45,9 +45,10 @@ impl MalisCallable for MalisClass {
         // Create a new instance for the class
         let instance = MalisInstance::new(self.clone());
         // Find the init method and call it to initialise the instance
-        let method = self.get("init")?;
-        // Bind the method to the current instance and call it.
-        let _object = method.bind(&instance)?.call(interpreter, arguments)?;
+        if let Ok(method) = self.get("init") {
+            // Bind the method to the current instance and call it.
+            let _object = method.bind(&instance)?.call(interpreter, arguments)?;
+        }
         // The object returned by init has to be an instance of the same class type
         Ok(MalisObject::Instance(instance))
     }
