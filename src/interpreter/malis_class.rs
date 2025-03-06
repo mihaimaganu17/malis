@@ -20,12 +20,12 @@ impl MalisClass {
         &self.name
     }
 
-    pub fn get(&self, name: &Token) -> Result<UserFunction, RuntimeError> {
+    pub fn get(&self, name: &str) -> Result<UserFunction, RuntimeError> {
         self.methods
-            .get(name.lexeme())
+            .get(name)
             .ok_or(RuntimeError::PropertyNotPresent(format!(
                 "Property {:?} not present in instance of class {:?}",
-                name.lexeme(),
+                name,
                 self.name()
             )))
             .cloned()
@@ -39,10 +39,16 @@ impl MalisCallable for MalisClass {
 
     fn call(
         &self,
-        _interpreter: &mut Interpreter,
-        _arguments: Vec<MalisObject>,
+        interpreter: &mut Interpreter,
+        arguments: Vec<MalisObject>,
     ) -> Result<MalisObject, RuntimeError> {
+        // Create a new instance for the class
         let instance = MalisInstance::new(self.clone());
+        // Find the init method and call it to initialise the instance
+        let method = self.get("init")?;
+        // Bind the method to the current instance and call it.
+        let _object = method.bind(&instance)?.call(interpreter, arguments)?;
+        // The object returned by init has to be an instance of the same class type
         Ok(MalisObject::Instance(instance))
     }
 }
@@ -76,7 +82,7 @@ impl MalisInstance {
             Ok(value.clone())
         } else {
             // Otherwise we want to check if the key does not refer to a class method
-            let method = self.class.get(key)?;
+            let method = self.class.get(key.lexeme())?;
             Ok(MalisObject::UserFunction(method.bind(self)?))
         }
     }
