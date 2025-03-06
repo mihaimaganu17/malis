@@ -34,6 +34,9 @@ pub struct Resolver<'a> {
     // not. This is used in order to prevent invalid `return` statements, as the ones which are not
     // inside a function.
     current_function: ResolverFunctionType,
+    // Keeps track if for this current point in time, the resolver is withing a class in order to
+    // be able to tell if we should resolve `self` or other types of OOP functionality
+    current_class: ClassType,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,12 +46,19 @@ pub enum ResolverFunctionType {
     None,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ClassType {
+    Class,
+    None,
+}
+
 impl<'a> Resolver<'a> {
     pub fn new(interpreter: &'a mut Interpreter) -> Self {
         Self {
             interpreter,
             scopes: LinkedList::new(),
             current_function: ResolverFunctionType::None,
+            current_class: ClassType::None,
         }
     }
 
@@ -237,6 +247,12 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_self(&mut self, class_self: &Token) -> Result<(), ResolverError> {
+        if let ClassType::None = self.current_class {
+            return Err(ResolverError::InvalidSelfUse(format!(
+                "Can't use `self` keyword outside a class {}.",
+                class_self
+            )));
+        }
         self.resolve_local(format!("{:p}", class_self), class_self)
     }
 }
@@ -321,6 +337,10 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), ResolverError> {
+        // Save the current class as a checkpoint
+        let class_type = self.current_class.clone();
+        // Set the current scope to belong to a class
+        self.current_class = ClassType::Class;
         // The Malis resolver essentially sees this class as just a variable
         // Declare the class
         self.declare(class.name.lexeme());
@@ -339,7 +359,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
                 self.resolve_function(function, ResolverFunctionType::Method)?;
             }
         }
+        // Terminate the scope started for this class' properties and methods
         self.end_scope();
+        // Revert the class scope to the previous checkpoint
+        self.current_class = class_type;
+
         Ok(())
     }
 }

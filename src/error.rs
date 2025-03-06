@@ -146,6 +146,7 @@ pub enum ResolverError {
     ReturnOutsideFunction(String),
     UnusedName(String),
     EnvironmentError(EnvironmentError),
+    InvalidSelfUse(String),
 }
 
 impl From<EnvironmentError> for ResolverError {
