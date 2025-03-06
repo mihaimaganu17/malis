@@ -34,7 +34,13 @@ impl MalisClass {
 
 impl MalisCallable for MalisClass {
     fn arity(&self) -> Result<usize, RuntimeError> {
-        Ok(0)
+        // If we have an initializer method present, the arity is represented by the number of
+        // arguments for the init method
+        if let Ok(method) = self.get("init") {
+            method.arity()
+        } else {
+            Ok(0)
+        }
     }
 
     fn call(
