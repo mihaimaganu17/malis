@@ -58,9 +58,9 @@ impl MalisCallable for MalisClass {
                 // We only alow an instance or `nil` to be returned from the initialiser
                 MalisObject::Instance(_) => Ok(object),
                 MalisObject::Nil => Ok(MalisObject::Instance(instance)),
-                _ => Err(RuntimeError::InvalidClassInit(
-                    format!("Expected class instance to be returned by initialiser, got {object}")
-                )),
+                _ => Err(RuntimeError::InvalidClassInit(format!(
+                    "Expected class instance to be returned by initialiser, got {object}"
+                ))),
             }
         } else {
             // The object returned by init has to be an instance of the same class type
