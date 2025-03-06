@@ -54,10 +54,13 @@ impl MalisCallable for MalisClass {
         if let Ok(method) = self.get("init") {
             // Bind the method to the current instance and call it.
             let object = method.bind(&instance)?.call(interpreter, arguments)?;
-            if let MalisObject::Instance(_) = object {
-                Ok(object)
-            } else {
-                panic!();
+            match object {
+                // We only alow an instance or `nil` to be returned from the initialiser
+                MalisObject::Instance(_) => Ok(object),
+                MalisObject::Nil => Ok(MalisObject::Instance(instance)),
+                _ => Err(RuntimeError::InvalidClassInit(
+                    format!("Expected class instance to be returned by initialiser, got {object}")
+                )),
             }
         } else {
             // The object returned by init has to be an instance of the same class type

@@ -175,6 +175,7 @@ pub enum RuntimeError {
     ResolverError(ResolverError),
     InvalidAccess(String),
     PropertyNotPresent(String),
+    InvalidClassInit(String),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
 }
