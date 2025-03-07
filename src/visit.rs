@@ -199,9 +199,18 @@ impl StmtVisitor<String> for AstPrinter {
             .iter()
             .map(|s| s.walk(self))
             .collect::<Vec<_>>();
-        let methods = self.parenthesize("methods", &methods);
+        let methods = if !methods.is_empty() {
+            self.parenthesize("methods", &methods)
+        } else {
+            self.parenthesize("no methods", &methods)
+        };
         let name = class.name.lexeme();
-        self.parenthesize("class decl", &[name, &methods])
+        let superclass = if let Some(superclass) = &class.superclass {
+            format!("inherits {}", superclass.lexeme())
+        } else {
+            String::new()
+        };
+        self.parenthesize("class decl", &[name, &methods, &superclass])
     }
 }
 
