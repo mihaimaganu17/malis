@@ -22,15 +22,20 @@ impl MalisClass {
         &self.name
     }
 
-    pub fn get(&self, name: &str) -> Result<UserFunction, RuntimeError> {
+    fn find_method(&self, name: &str) -> Option<UserFunction> {
         self.methods
             .get(name)
+            .cloned()
+            .or(self.superclass.as_ref().map(|s| s.find_method(name)).flatten())
+    }
+
+    pub fn get(&self, name: &str) -> Result<UserFunction, RuntimeError> {
+        self.find_method(name)
             .ok_or(RuntimeError::PropertyNotPresent(format!(
                 "Property {:?} not present in instance of class {:?}",
                 name,
                 self.name()
             )))
-            .cloned()
     }
 }
 
