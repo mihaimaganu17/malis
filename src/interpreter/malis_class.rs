@@ -6,13 +6,15 @@ use std::collections::BTreeMap;
 pub struct MalisClass {
     name: String,
     methods: BTreeMap<String, UserFunction>,
+    superclass: Option<Box<MalisClass>>,
 }
 
 impl MalisClass {
-    pub fn new(name: &str, methods: BTreeMap<String, UserFunction>) -> Self {
+    pub fn new(name: &str, methods: BTreeMap<String, UserFunction>, superclass: Option<MalisClass>) -> Self {
         Self {
             name: name.to_string(),
             methods,
+            superclass: superclass.map(Box::new),
         }
     }
 
