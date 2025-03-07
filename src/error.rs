@@ -147,6 +147,7 @@ pub enum ResolverError {
     UnusedName(String),
     EnvironmentError(EnvironmentError),
     InvalidSelfUse(String),
+    SelfInheritance(String),
 }
 
 impl From<EnvironmentError> for ResolverError {

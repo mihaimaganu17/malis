@@ -13,7 +13,7 @@ pub struct Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "{:?} {:?}", self.t_type, self.lexeme())
+        write!(f, "{}:{:?}", self.lexeme, self.line)
     }
 }
 

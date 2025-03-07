@@ -349,6 +349,12 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // Also resolve the superclass which we treat as a variable, because at runtime, this
         // identifier is evaluated as a variable access.
         if let Some(superclass) = &class.superclass {
+            // We need to check that the current class does not try to inherit itself, such that
+            // when the interpreter gets its turn, we do not run into cycles.
+            if superclass.lexeme() == class.name.lexeme() {
+                return Err(
+                    ResolverError::SelfInheritance(format!("A class cannot inherit from itself -> {}", class.name)));
+            }
             self.visit_variable(superclass)?;
         }
         // Create a new scope for the class declaration. This will aid `self` keyword to access
