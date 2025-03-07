@@ -151,13 +151,17 @@ pub enum FunctionKind {
 
 #[derive(Clone)]
 pub struct ClassDeclaration {
+    // Not all classes need to inherit from a superclass
+    pub superclass: Option<Token>,
+    // Name of the class
     pub name: Token,
+    // A list of methods for the class
     pub methods: Vec<Stmt>,
 }
 
 impl ClassDeclaration {
-    pub fn new(name: Token, methods: Vec<Stmt>) -> Self {
-        Self { name, methods }
+    pub fn new(name: Token, methods: Vec<Stmt>, superclass: Option<Token>) -> Self {
+        Self { name, methods, superclass}
     }
 }
 

@@ -106,7 +106,7 @@ impl Parser {
         )?;
 
         // We now construct and return the class declaration
-        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods)))
+        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods, None)))
     }
 
     // Parses a Malis Function Declaration, which is in fact a node of statement. The `kind`
