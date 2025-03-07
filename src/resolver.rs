@@ -346,6 +346,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         self.declare(class.name.lexeme());
         // Define the class
         self.define(class.name.lexeme());
+        // Also resolve the superclass which we treat as a variable, because at runtime, this
+        // identifier is evaluated as a variable access.
+        if let Some(superclass) = &class.superclass {
+            self.visit_variable(superclass)?;
+        }
         // Create a new scope for the class declaration. This will aid `self` keyword to access
         // state and behaviour inside the class instance
         self.begin_scope();
