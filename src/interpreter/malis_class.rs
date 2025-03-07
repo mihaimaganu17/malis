@@ -10,7 +10,11 @@ pub struct MalisClass {
 }
 
 impl MalisClass {
-    pub fn new(name: &str, methods: BTreeMap<String, UserFunction>, superclass: Option<MalisClass>) -> Self {
+    pub fn new(
+        name: &str,
+        methods: BTreeMap<String, UserFunction>,
+        superclass: Option<MalisClass>,
+    ) -> Self {
         Self {
             name: name.to_string(),
             methods,
@@ -26,7 +30,7 @@ impl MalisClass {
         self.methods
             .get(name)
             .cloned()
-            .or(self.superclass.as_ref().map(|s| s.find_method(name)).flatten())
+            .or(self.superclass.as_ref().and_then(|s| s.find_method(name)))
     }
 
     pub fn get(&self, name: &str) -> Result<UserFunction, RuntimeError> {

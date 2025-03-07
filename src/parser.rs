@@ -90,12 +90,12 @@ impl Parser {
             // Consume the token
             self.advance()?;
             // Get the identifier for the superclass this class want to inherit from
-            Some(self
-                .consume(
+            Some(
+                self.consume(
                     &TokenType::Ident,
                     "Expected identifier as superclass name to inherit from".to_string(),
                 )?
-                .clone()
+                .clone(),
             )
         } else {
             None
@@ -125,7 +125,9 @@ impl Parser {
         )?;
 
         // We now construct and return the class declaration
-        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods, superclass)))
+        Ok(Stmt::Class(ClassDeclaration::new(
+            class_name, methods, superclass,
+        )))
     }
 
     // Parses a Malis Function Declaration, which is in fact a node of statement. The `kind`

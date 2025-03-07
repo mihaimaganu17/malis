@@ -352,8 +352,10 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
             // We need to check that the current class does not try to inherit itself, such that
             // when the interpreter gets its turn, we do not run into cycles.
             if superclass.lexeme() == class.name.lexeme() {
-                return Err(
-                    ResolverError::SelfInheritance(format!("A class cannot inherit from itself -> {}", class.name)));
+                return Err(ResolverError::SelfInheritance(format!(
+                    "A class cannot inherit from itself -> {}",
+                    class.name
+                )));
             }
             self.visit_variable(superclass)?;
         }

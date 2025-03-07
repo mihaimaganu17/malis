@@ -107,7 +107,10 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
                 Some(class)
             } else {
                 // Otherwise this type of inheritnace is illegal and we return an error
-                return Err(RuntimeError::InvalidSuperclass(format!("Superclass must be a class -> {}", superclass)));
+                return Err(RuntimeError::InvalidSuperclass(format!(
+                    "Superclass must be a class -> {}",
+                    superclass
+                )));
             }
         } else {
             None

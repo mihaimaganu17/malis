@@ -161,7 +161,11 @@ pub struct ClassDeclaration {
 
 impl ClassDeclaration {
     pub fn new(name: Token, methods: Vec<Stmt>, superclass: Option<Token>) -> Self {
-        Self { name, methods, superclass}
+        Self {
+            name,
+            methods,
+            superclass,
+        }
     }
 }
 
