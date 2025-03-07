@@ -98,6 +98,20 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), RuntimeError> {
+        // We first need to check and evaluate the identifier for the superclass (if any)
+        let _superclass = if let Some(superclass) = &class.superclass {
+            // Access the superclass variable to get its object
+            let object = self.visit_variable(superclass)?;
+            // If the object is a class object, we are good
+            if matches!(object, MalisObject::Class(_)) {
+                object
+            } else {
+                // Otherwise this type of inheritnace is illegal and we return an error
+                return Err(RuntimeError::InvalidSuperclass(format!("Superclass must be a class -> {}", superclass)));
+            }
+        } else {
+            MalisObject::Nil
+        };
         // Define the class name as a new `Nil` object
         self.environment
             .borrow_mut()

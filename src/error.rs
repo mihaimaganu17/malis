@@ -177,6 +177,7 @@ pub enum RuntimeError {
     InvalidAccess(String),
     PropertyNotPresent(String),
     InvalidClassInit(String),
+    InvalidSuperclass(String),
     CannotAccessParentScope,
     MultipleReferenceForEnclosingEnvironment,
 }
