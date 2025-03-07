@@ -82,6 +82,25 @@ impl Parser {
             )?
             .clone();
 
+        // We need to check whethre the next token is the less sign in case this current class
+        // declaration has a superclass
+        let less_token = TokenType::Comparison(Comparison::Less);
+
+        let superclass = if self.any(&[&less_token])? {
+            // Consume the token
+            self.advance()?;
+            // Get the identifier for the superclass this class want to inherit from
+            Some(self
+                .consume(
+                    &TokenType::Ident,
+                    "Expected identifier as superclass name to inherit from".to_string(),
+                )?
+                .clone()
+            )
+        } else {
+            None
+        };
+
         // We need to consume the opening brace that starts the class scope
         let left_brace = TokenType::SingleChar(SingleChar::LeftBrace);
         // We need to consume the left parenthesis `(` in order to parse a proper parameter
@@ -106,7 +125,7 @@ impl Parser {
         )?;
 
         // We now construct and return the class declaration
-        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods, None)))
+        Ok(Stmt::Class(ClassDeclaration::new(class_name, methods, superclass)))
     }
 
     // Parses a Malis Function Declaration, which is in fact a node of statement. The `kind`

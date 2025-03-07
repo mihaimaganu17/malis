@@ -5,3 +5,6 @@ class Ciambella {
 class Calabria < Ciambella {
     // Calabria specific stuff
 }
+
+print Ciambella();
+print Calabria();
