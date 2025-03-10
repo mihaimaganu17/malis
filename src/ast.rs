@@ -186,6 +186,8 @@ pub enum Expr {
     Set(SetExpr),
     // Added self keyword to access current state and behaviour of class instances
     ClassSelf(Token),
+    // `super` keyword expression that calls methods from the superclass
+    SuperExpr(SuperExpr),
 }
 
 impl AsRef<Expr> for Expr {
@@ -209,6 +211,7 @@ impl Expr {
             Expr::Get(get_expr) => visitor.visit_get(get_expr),
             Expr::Set(set_expr) => visitor.visit_set(set_expr),
             Expr::ClassSelf(class_self) => visitor.visit_self(class_self),
+            Expr::SuperExpr(super_expr) => todo!(),//visitor.visit_super(super_expr),
         }
     }
 }
@@ -416,5 +419,30 @@ impl SetExpr {
 
     pub fn value(&self) -> &Expr {
         &self.value
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct SuperExpr {
+    // This is the `super` keyword
+    keyword: Token,
+    // This is the identifier for the method of the superclass that we want to call
+    method: Token,
+}
+
+impl SuperExpr {
+    pub fn new(keyword: Token, method: Token) -> Self {
+        Self {
+            keyword,
+            method,
+        }
+    }
+
+    pub fn keyword(&self) -> &Token{
+        &self.keyword
+    }
+
+    pub fn method(&self) -> &Token{
+        &self.method
     }
 }
