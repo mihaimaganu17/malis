@@ -350,6 +350,8 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // Evaulate the object to the left of the dot
         let object = self.evaluate(get.object())?;
 
+        println!("object {:#?}", object);
+
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
         if let MalisObject::Instance(instance) = object {
@@ -391,6 +393,28 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     }
 
     fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<MalisObject, RuntimeError> {
-        Ok(MalisObject::Nil)
+        let object = if let Some(distance) = self.locals.get(&format!("{:p}", super_expr)) {
+            // We fist get the superclass object that `super` refers to
+            let MalisObject::Class(superclass) = self.environment
+                .borrow_mut()
+                .get_at(*distance, "super")? else {
+                return Err(RuntimeError::InvalidSuperReference(format!("{}", super_expr.keyword())))?;
+            };
+            // We then search inside the `superclass` for the method that the user wants
+            let method = superclass.get(super_expr.method().lexeme())?;
+            // Afterwards, we get the instance of that superclass (because only instances can
+            // execute methods)
+            let MalisObject::Instance(instance) = self.environment
+                .borrow_mut()
+                .get_at(*distance - 1, "self")? else {
+                return Err(RuntimeError::InvalidAccess(format!("{}", super_expr.keyword())))?;
+            };
+            // We then bind the method that the user wants to the above superclass instance
+            MalisObject::UserFunction(method.bind(&instance)?)
+        } else {
+            MalisObject::Nil
+        };
+        println!("object {:?}", object);
+        Ok(object)
     }
 }

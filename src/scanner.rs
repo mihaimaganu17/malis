@@ -37,6 +37,7 @@ impl<'a> Scanner<'a> {
             ("print", Keyword::Print),
             ("return", Keyword::Return),
             ("self", Keyword::ClassSelf),
+            ("super", Keyword::Super),
         ]);
         Self {
             data,

@@ -857,6 +857,7 @@ impl Parser {
                         &TokenType::Ident,
                         "Expect superclass method identifier after `super` dot".to_string(),
                     )?;
+                    println!("help");
                     Ok(Expr::SuperExpr(SuperExpr::new(keyword, method.clone())))
                 }
                 TokenType::Ident => {

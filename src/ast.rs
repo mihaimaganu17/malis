@@ -211,7 +211,7 @@ impl Expr {
             Expr::Get(get_expr) => visitor.visit_get(get_expr),
             Expr::Set(set_expr) => visitor.visit_set(set_expr),
             Expr::ClassSelf(class_self) => visitor.visit_self(class_self),
-            Expr::SuperExpr(super_expr) => todo!(),//visitor.visit_super(super_expr),
+            Expr::SuperExpr(super_expr) => visitor.visit_super(super_expr),
         }
     }
 }
