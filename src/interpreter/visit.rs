@@ -2,7 +2,7 @@ use super::{Interpreter, MalisCallable, MalisClass, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        LiteralType, Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        LiteralType, Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt, SuperExpr,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -120,6 +120,18 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             .borrow_mut()
             .define(class.name.lexeme().to_string(), MalisObject::Nil)?;
 
+        let superclass_env = if let Some(superclass) = &superclass {
+            // We want to create an enclosing environment that will coerce to the superclass
+            // environment and enable the use of `super` expressions.
+            let superclass_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
+            // Define the `super` keyword as one of the variable of the environment, such that the
+            // code can access it and bind it to the `superclass` name.
+            superclass_env.borrow_mut().define("super".to_string(), MalisObject::Class(superclass.clone()))?;
+            Some(superclass_env)
+        } else {
+            None
+        };
+
         // Create a map that will hold all the class' methods
         let mut methods = BTreeMap::new();
 
@@ -127,7 +139,11 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         // function declaration is in, we need to do a complete clone of the `Environment` object.
         // This is because cloning the `Rc` alone would just give us a reference that could change
         // after exiting this function due to other statements.
-        let closure_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
+        let closure_env = if let Some(superclass) = &superclass_env {
+            Rc::new(RefCell::new(superclass.borrow().clone()))
+        } else {
+            Rc::new(RefCell::new(self.environment.borrow().clone()))
+        };
 
         for method in class.methods.iter() {
             // Create a new function
@@ -139,11 +155,21 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
                 methods.insert(method_name, user_function);
             }
         }
-        // Put back the original environment
-        closure_env.replace(self.environment.borrow().clone());
+
         // Instantiate a new `MalisClass` object. Because we already defined this class name, this
         // allows methods inside the class to reference the class they are contained in
         let malis_class = MalisClass::new(class.name.lexeme(), methods, superclass);
+
+        // Put back the original environment for the methods
+        if let Some(superclass) = &superclass_env {
+            closure_env.replace(superclass.borrow().clone());
+        } else {
+            closure_env.replace(self.environment.borrow().clone());
+        }
+
+        if let Some(superclass) = &superclass_env {
+            superclass.replace(self.environment.borrow().clone());
+        }
         // Insert the new object
         self.environment
             .borrow_mut()
@@ -362,5 +388,9 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
 
     fn visit_self(&mut self, class_self: &Token) -> Result<MalisObject, RuntimeError> {
         Ok(self.lookup_variable(class_self)?)
+    }
+
+    fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<MalisObject, RuntimeError> {
+        Ok(MalisObject::Nil)
     }
 }

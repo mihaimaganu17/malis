@@ -160,7 +160,7 @@ impl<'a> Resolver<'a> {
             // Verify all the names defined in the scope are being used. Except `self` which is
             // a keyword to access the current instance
             for (key, (defined, accessed)) in scope.iter() {
-                if defined == &true && accessed == &false && key != "self" {
+                if defined == &true && accessed == &false && key != "self" && key != "super" {
                     panic!("Variable defined in this scope is not used {:?}", key);
                 }
             }
