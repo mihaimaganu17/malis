@@ -865,7 +865,7 @@ impl Parser {
                 }
                 _ => {
                     self.error()?;
-                    Err(ParserError::NoPrimaryProduction)
+                    Err(ParserError::NoPrimaryProduction(format!("{}", self.peek()?)))
                 }
             }
         }

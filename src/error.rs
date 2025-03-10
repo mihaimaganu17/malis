@@ -115,7 +115,7 @@ pub enum ParserError {
     NoTokenType,
     MissingClosingParen,
     MissingColon,
-    NoPrimaryProduction,
+    NoPrimaryProduction(String),
     NoErrorProduction,
     TooManyFuncArg,
     PanicMode(String, Token),
