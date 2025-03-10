@@ -2,7 +2,8 @@ use super::{Interpreter, MalisCallable, MalisClass, MalisObject, UserFunction};
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        LiteralType, Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt, SuperExpr,
+        LiteralType, Logical, ReturnStmt, SetExpr, Stmt, SuperExpr, Ternary, Unary, VarStmt,
+        WhileStmt,
     },
     error::RuntimeError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -126,7 +127,9 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             let superclass_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
             // Define the `super` keyword as one of the variable of the environment, such that the
             // code can access it and bind it to the `superclass` name.
-            superclass_env.borrow_mut().define("super".to_string(), MalisObject::Class(superclass.clone()))?;
+            superclass_env
+                .borrow_mut()
+                .define("super".to_string(), MalisObject::Class(superclass.clone()))?;
             Some(superclass_env)
         } else {
             None
@@ -393,22 +396,29 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     }
 
     fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<MalisObject, RuntimeError> {
-        println!("{}", format!("{:p}", super_expr));
         let object = if let Some(distance) = self.locals.get(&format!("{:p}", super_expr)) {
             // We fist get the superclass object that `super` refers to
-            let MalisObject::Class(superclass) = self.environment
-                .borrow_mut()
-                .get_at(*distance, "super")? else {
-                return Err(RuntimeError::InvalidSuperReference(format!("{}", super_expr.keyword())))?;
+            let MalisObject::Class(superclass) =
+                self.environment.borrow_mut().get_at(*distance, "super")?
+            else {
+                return Err(RuntimeError::InvalidSuperReference(format!(
+                    "{}",
+                    super_expr.keyword()
+                )))?;
             };
             // We then search inside the `superclass` for the method that the user wants
             let method = superclass.get(super_expr.method().lexeme())?;
             // Afterwards, we get the instance of that superclass (because only instances can
             // execute methods)
-            let MalisObject::Instance(instance) = self.environment
+            let MalisObject::Instance(instance) = self
+                .environment
                 .borrow_mut()
-                .get_at(*distance - 1, "self")? else {
-                return Err(RuntimeError::InvalidAccess(format!("{}", super_expr.keyword())))?;
+                .get_at(*distance - 1, "self")?
+            else {
+                return Err(RuntimeError::InvalidAccess(format!(
+                    "{}",
+                    super_expr.keyword()
+                )))?;
             };
             // We then bind the method that the user wants to the above superclass instance
             MalisObject::UserFunction(method.bind(&instance)?)

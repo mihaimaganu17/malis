@@ -1,8 +1,8 @@
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, GetExpr, Group,
-        IfStmt, Literal, LiteralType, Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt,
-        WhileStmt, SuperExpr,
+        IfStmt, Literal, LiteralType, Logical, ReturnStmt, SetExpr, Stmt, SuperExpr, Ternary,
+        Unary, VarStmt, WhileStmt,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -865,7 +865,10 @@ impl Parser {
                 }
                 _ => {
                     self.error()?;
-                    Err(ParserError::NoPrimaryProduction(format!("{}", self.peek()?)))
+                    Err(ParserError::NoPrimaryProduction(format!(
+                        "{}",
+                        self.peek()?
+                    )))
                 }
             }
         }

@@ -432,17 +432,14 @@ pub struct SuperExpr {
 
 impl SuperExpr {
     pub fn new(keyword: Token, method: Token) -> Self {
-        Self {
-            keyword,
-            method,
-        }
+        Self { keyword, method }
     }
 
-    pub fn keyword(&self) -> &Token{
+    pub fn keyword(&self) -> &Token {
         &self.keyword
     }
 
-    pub fn method(&self) -> &Token{
+    pub fn method(&self) -> &Token {
         &self.method
     }
 }

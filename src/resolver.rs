@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt, SuperExpr,
+        Logical, ReturnStmt, SetExpr, Stmt, SuperExpr, Ternary, Unary, VarStmt, WhileStmt,
     },
     error::ResolverError,
     token::Token,
@@ -82,7 +82,7 @@ impl<'a> Resolver<'a> {
     }
 
     fn resolve_local(&mut self, expr_addr: String, name: &Token) -> Result<(), ResolverError> {
-        println!("expr {} name {}",expr_addr, name);
+        println!("expr {} name {}", expr_addr, name);
         // Iterate through all the scopes from the innermost (top of the stack) to the outer most
         // (bottom of the stack)
         for (idx, scope) in self.scopes.iter().enumerate().rev() {
