@@ -2,7 +2,7 @@ use crate::Interpreter;
 use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, GetExpr, Group, IfStmt, Literal,
-        Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt,
+        Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt, WhileStmt, SuperExpr,
     },
     error::ResolverError,
     token::Token,
@@ -255,6 +255,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         }
         self.resolve_local(format!("{:p}", class_self), class_self)
     }
+
+    fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<(), ResolverError> {
+        self.resolve_local(format!("{:p}", super_expr), super_expr.method())
+    }
 }
 
 /// Trait that must be implemented by a type which want to use the Visitor pattern to visit a
@@ -358,6 +362,14 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
                 )));
             }
             self.visit_variable(superclass)?;
+
+            // We want to create a new enclosing scope that will create a `superclass` environment.
+            // This will enable the use of `super` expressions to call superclass methods.
+            self.begin_scope();
+            // We then declare and define super as a variable of that scope, such that the methods
+            // could access a known variable.
+            self.declare("super");
+            self.define("super");
         }
         // Create a new scope for the class declaration. This will aid `self` keyword to access
         // state and behaviour inside the class instance
@@ -374,6 +386,11 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         }
         // Terminate the scope started for this class' properties and methods
         self.end_scope();
+        // Terminate the scope (if any) started in order to enclose a superclass environment for
+        // the use of the `self` keyword.
+        if let Some(_superclass) = &class.superclass {
+            self.end_scope();
+        }
         // Revert the class scope to the previous checkpoint
         self.current_class = class_type;
 

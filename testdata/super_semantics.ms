@@ -15,6 +15,6 @@ class B < A {
 }
 
 class C < B {
-};
+}
 
 C().test();
