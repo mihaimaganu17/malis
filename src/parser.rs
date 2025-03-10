@@ -2,7 +2,7 @@ use crate::{
     ast::{
         Binary, Call, ClassDeclaration, Expr, FunctionDeclaration, FunctionKind, GetExpr, Group,
         IfStmt, Literal, LiteralType, Logical, ReturnStmt, SetExpr, Stmt, Ternary, Unary, VarStmt,
-        WhileStmt,
+        WhileStmt, SuperExpr,
     },
     error::ParserError,
     token::{Comparison, Keyword, SingleChar, Token, TokenType},
@@ -845,6 +845,19 @@ impl Parser {
                     // Get the keyword
                     let self_keyword = self.advance()?;
                     Ok(Expr::ClassSelf(self_keyword.clone()))
+                }
+                TokenType::Keyword(Keyword::Super) => {
+                    // Consume the `super` keyword
+                    let keyword = self.advance()?.clone();
+                    // Consume the `.` dot after it
+                    let dot = TokenType::SingleChar(SingleChar::Dot);
+                    self.consume(&dot, "Expect '.' after `super` keyword".to_string())?;
+                    // Consume the identifier for the superclass function we want to call
+                    let method = self.consume(
+                        &TokenType::Ident,
+                        "Expect superclass method identifier after `super` dot".to_string(),
+                    )?;
+                    Ok(Expr::SuperExpr(SuperExpr::new(keyword, method.clone())))
                 }
                 TokenType::Ident => {
                     let token = self.advance()?.clone();

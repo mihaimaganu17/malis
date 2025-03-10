@@ -113,4 +113,5 @@ pub enum Keyword {
     Print,
     Return,
     ClassSelf,
+    Super,
 }

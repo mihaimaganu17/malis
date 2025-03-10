@@ -14,4 +14,4 @@ class Giulia < AlfaRomeo {
     }
 }
 
-Giulia.drive();
+Giulia().drive();
