@@ -23,6 +23,12 @@ malis file.ms
 ```
 
 ## Syntax
+### Utilities
+Malis support a builtin `print` keyword and C-style oneline comments
+```
+print "Mata mare"; // Prints 'Mata mare'
+```
+
 ### Variable declaration and types
 Variable declaration is done with the keyword `var`. Malis supports dynamic typing, and supports
 all the conventional types
@@ -37,6 +43,59 @@ mutable.
 ```
 specimen = "Humanoid";
 money = money + 10;
+```
+
+### Operations
+Malis supports all the basic calculator operation. Addition, subtraction, multiplication and
+division on integers.
+```
+var gehalt = 1 + 9 + 3;
+var bonus = gehalt * 1.10;
+var after_bills = bonus - 6;
+var split = after_bills / 2;
+print split;
+```
+Addition is also supported on strings.
+```
+var speed = "300";
+print "This car goes " + speed + "!";
+```
+
+We also support logic operators for boolean evaluataion
+```
+print true && false;
+```
+
+### Scopes
+Malis supports scopes through the use of curly brackets.
+```
+var outside = -10;
+{
+    var inside = outside + 20;
+}
+```
+Scoping also supports shadowing variables
+```
+var outside = -10;
+{
+    var outside = 20;
+    print outside; // Prints '20'
+}
+```
+
+### Control flow
+Control flow covers branching logic, with if-else
+```
+var sunny = true;
+if (sunny)
+    print "Merg afara";
+
+var warm = false;
+if (sunny && warm) {
+    print "Merg afara";
+} else {
+    print "Nu e nevoie";
+}
 ```
 
 ## Acknowledgements
