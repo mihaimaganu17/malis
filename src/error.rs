@@ -147,6 +147,7 @@ pub enum ResolverError {
     UnusedName(String),
     EnvironmentError(EnvironmentError),
     InvalidSelfUse(String),
+    InvalidSuperUse(String),
     SelfInheritance(String),
 }
 

@@ -49,6 +49,7 @@ pub enum ResolverFunctionType {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClassType {
     Class,
+    Subclass,
     None,
 }
 
@@ -257,6 +258,17 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<(), ResolverError> {
+        // Check to see whether wi are outside a class or in a class thath does not inherit from
+        // another class. The use of `super` in this cases is invalid.
+        match self.current_class {
+            ClassType::None => return Err(ResolverError::InvalidSuperUse(
+                format!("Can't use `super` expression outside of a class -> {}", super_expr.keyword())
+            )),
+            ClassType::Class => return Err(ResolverError::InvalidSuperUse(
+                format!("Can't use `super` expression in a class which does not inherit -> {}", super_expr.keyword())
+            )),
+            _ => (),
+        };
         // We save the `super` expression with an unique key based on the token of the keyword
         // (which has the type, lexeme and line) and also the method token we want to access.
         // Pointers as keys do not work in this case because the information is class based and
@@ -361,6 +373,9 @@ impl StmtVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // Also resolve the superclass which we treat as a variable, because at runtime, this
         // identifier is evaluated as a variable access.
         if let Some(superclass) = &class.superclass {
+            // We mark the we are in a class that is inheriting from another class, such that we
+            // can later catch invalid uses of `super`.
+            self.current_class = ClassType::Subclass;
             // We need to check that the current class does not try to inherit itself, such that
             // when the interpreter gets its turn, we do not run into cycles.
             if superclass.lexeme() == class.name.lexeme() {
