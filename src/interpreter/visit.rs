@@ -353,8 +353,6 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
         // Evaulate the object to the left of the dot
         let object = self.evaluate(get.object())?;
 
-        println!("object {:#?}", object);
-
         // If the object is a class instance object, this means we are trying to access a property.
         // And only instances have properties
         if let MalisObject::Instance(instance) = object {

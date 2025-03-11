@@ -82,13 +82,11 @@ impl<'a> Resolver<'a> {
     }
 
     fn resolve_local(&mut self, expr_addr: String, name: &Token) -> Result<(), ResolverError> {
-        println!("expr {} name {}", expr_addr, name);
         // Iterate through all the scopes from the innermost (top of the stack) to the outer most
         // (bottom of the stack)
         for (idx, scope) in self.scopes.iter().enumerate().rev() {
             // If we find the variable in one of the scopes
             if scope.contains_key(name.lexeme()) {
-                println!("name {} idx {}", name, idx);
                 // We resolve it, passing in the number of scopes between the current innermost
                 // scope and the scope where the variable was found.
                 return self
