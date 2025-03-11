@@ -259,7 +259,12 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
     }
 
     fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<(), ResolverError> {
-        self.resolve_local(format!("{:p}", super_expr), super_expr.keyword())
+        // We save the `super` expression with an unique key based on the token of the keyword
+        // (which has the type, lexeme and line) and also the method token we want to access.
+        // Pointers as keys do not work in this case because the information is class based and
+        // because currently we clone and object when we access it, accessing this local would
+        // retrieve a different pointer.
+        self.resolve_local(format!("{:?}:{:?}", super_expr.keyword(), super_expr.method()), super_expr.keyword())
     }
 }
 
