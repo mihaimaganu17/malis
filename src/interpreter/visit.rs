@@ -99,11 +99,12 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
     }
 
     fn visit_class(&mut self, class: &ClassDeclaration) -> Result<(), RuntimeError> {
-        // We first need to check and evaluate the identifier for the superclass (if any)
+        // We first need to check and evaluate if we were provided with an identifier for a
+        // superclass to inherit from
         let superclass = if let Some(superclass) = &class.superclass {
             // Access the superclass variable to get its object
             let object = self.visit_variable(superclass)?;
-            // If the object is a class object, we are good
+            // Class objects can only inherit from other class objects
             if let MalisObject::Class(class) = object {
                 Some(class)
             } else {
@@ -114,24 +115,32 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
                 )));
             }
         } else {
+            // If we do not have an identifier for the super class, we return `None`
             None
         };
-        // Define the class name as a new `Nil` object
+
+        // Define the class name as a new `Nil` object. Declaration will come later after we
+        // evaluate all the classes properties and methods
         self.environment
             .borrow_mut()
             .define(class.name.lexeme().to_string(), MalisObject::Nil)?;
 
+        // In the case we inherit from a superclass
         let superclass_env = if let Some(superclass) = &superclass {
-            // We want to create an enclosing environment that will coerce to the superclass
-            // environment and enable the use of `super` expressions.
+            // We want to create an enclosing environment that will coerce any variable to work with
+            // the superclass methods and properties by the use of `super` expressions.
             let superclass_env = Rc::new(RefCell::new(self.environment.borrow().clone()));
-            // Define the `super` keyword as one of the variable of the environment, such that the
-            // code can access it and bind it to the `superclass` name.
+            // Define the `super` keyword as one of the variables of the environment, such that
+            // code can access, reference and bind methods and properties from the inherited
+            // `superclass`. The object `super` refers to is a `Class` object created from the
+            // superclass' class.
             superclass_env
                 .borrow_mut()
                 .define("super".to_string(), MalisObject::Class(superclass.clone()))?;
+            // Return the newly created environment
             Some(superclass_env)
         } else {
+            // Otherwise, no new environment has to be created
             None
         };
 
@@ -139,7 +148,7 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         let mut methods = BTreeMap::new();
 
         // Since we want the closure environment to remain a snapshot of the scope this current
-        // function declaration is in, we need to do a complete clone of the `Environment` object.
+        // class declaration is in, we need to do a complete clone of the `Environment` object.
         // This is because cloning the `Rc` alone would just give us a reference that could change
         // after exiting this function due to other statements.
         let closure_env = if let Some(superclass) = &superclass_env {
@@ -148,9 +157,11 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
             Rc::new(RefCell::new(self.environment.borrow().clone()))
         };
 
+        // We go through each method of the class declaration
         for method in class.methods.iter() {
             // Create a new function
             if let Stmt::Function(function) = method.clone() {
+                // Get the name of the method
                 let method_name = function.name.lexeme().to_string();
                 // We define the function with the environment present at the time of declaration
                 let user_function = UserFunction::new(function, closure_env.clone());
@@ -163,17 +174,21 @@ impl StmtVisitor<Result<(), RuntimeError>> for Interpreter {
         // allows methods inside the class to reference the class they are contained in
         let malis_class = MalisClass::new(class.name.lexeme(), methods, superclass);
 
-        // Put back the original environment for the methods
+        // If we have previously defined a superclass environment to enable the use of `super`, we
+        // put back the original environment of the enclosing
         if let Some(superclass) = &superclass_env {
+            // First we unwrap the environment for the classes methods which is needed for `self`
             closure_env.replace(superclass.borrow().clone());
+            // Then we unwrap the environment for the `super` keyword used to access superclass'
+            // method and properties
+            superclass.replace(self.environment.borrow().clone());
         } else {
+            // If we do not have a superclass, we only need to unwrap the environment for the
+            // classes methods which is needed for `self`
             closure_env.replace(self.environment.borrow().clone());
         }
 
-        if let Some(superclass) = &superclass_env {
-            superclass.replace(self.environment.borrow().clone());
-        }
-        // Insert the new object
+        // Insert the new class object
         self.environment
             .borrow_mut()
             .insert(class.name.lexeme(), MalisObject::Class(malis_class))?;
