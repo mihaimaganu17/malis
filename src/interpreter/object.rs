@@ -99,9 +99,9 @@ impl Not for MalisObject {
 
     fn not(self) -> Self::Output {
         if self.is_truthy() {
-            MalisObject::Boolean(true)
-        } else {
             MalisObject::Boolean(false)
+        } else {
+            MalisObject::Boolean(true)
         }
     }
 }
