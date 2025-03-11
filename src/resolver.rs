@@ -262,7 +262,10 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // Pointers as keys do not work in this case because the information is class based and
         // because currently we clone and object when we access it, accessing this local would
         // retrieve a different pointer.
-        self.resolve_local(format!("{:?}:{:?}", super_expr.keyword(), super_expr.method()), super_expr.keyword())
+        self.resolve_local(
+            format!("{:?}:{:?}", super_expr.keyword(), super_expr.method()),
+            super_expr.keyword(),
+        )
     }
 }
 

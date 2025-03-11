@@ -394,7 +394,11 @@ impl ExprVisitor<Result<MalisObject, RuntimeError>> for Interpreter {
     }
 
     fn visit_super(&mut self, super_expr: &SuperExpr) -> Result<MalisObject, RuntimeError> {
-        let object = if let Some(distance) = self.locals.get(&format!("{:?}:{:?}", super_expr.keyword(), super_expr.method())) {
+        let object = if let Some(distance) = self.locals.get(&format!(
+            "{:?}:{:?}",
+            super_expr.keyword(),
+            super_expr.method()
+        )) {
             // We fist get the superclass object that `super` refers to
             let MalisObject::Class(superclass) =
                 self.environment.borrow_mut().get_at(*distance, "super")?
