@@ -261,12 +261,18 @@ impl ExprVisitor<Result<(), ResolverError>> for Resolver<'_> {
         // Check to see whether wi are outside a class or in a class thath does not inherit from
         // another class. The use of `super` in this cases is invalid.
         match self.current_class {
-            ClassType::None => return Err(ResolverError::InvalidSuperUse(
-                format!("Can't use `super` expression outside of a class -> {}", super_expr.keyword())
-            )),
-            ClassType::Class => return Err(ResolverError::InvalidSuperUse(
-                format!("Can't use `super` expression in a class which does not inherit -> {}", super_expr.keyword())
-            )),
+            ClassType::None => {
+                return Err(ResolverError::InvalidSuperUse(format!(
+                    "Can't use `super` expression outside of a class -> {}",
+                    super_expr.keyword()
+                )))
+            }
+            ClassType::Class => {
+                return Err(ResolverError::InvalidSuperUse(format!(
+                    "Can't use `super` expression in a class which does not inherit -> {}",
+                    super_expr.keyword()
+                )))
+            }
             _ => (),
         };
         // We save the `super` expression with an unique key based on the token of the keyword
